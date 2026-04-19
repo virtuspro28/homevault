@@ -56,8 +56,9 @@ function App() {
           ) : !isInitialized ? (
             <Navigate to="/setup" replace />
           ) : (
-            <Login onAuthSuccess={() => setAuthenticated(true)} />
+            <Login onAuthSuccess={() => setAuthenticated({ id: '1', username: 'admin', role: 'admin' })} />
           )
+
         } 
       />
       

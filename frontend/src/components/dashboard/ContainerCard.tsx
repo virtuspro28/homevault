@@ -3,12 +3,12 @@ import type { ContainerInfo } from '../../types/docker';
 
 interface ContainerCardProps {
   container: ContainerInfo;
-  isProcessing: boolean;
-  onStart: (id: string) => void;
-  onStop: (id: string) => void;
+  isProcessing?: boolean;
+  onStart?: (id: string) => void;
+  onStop?: (id: string) => void;
 }
 
-export default function ContainerCard({ container, isProcessing, onStart, onStop }: ContainerCardProps) {
+export default function ContainerCard({ container, isProcessing = false, onStart, onStop }: ContainerCardProps) {
   const isRunning = container.state === 'running';
 
   return (

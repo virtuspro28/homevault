@@ -16,10 +16,10 @@ interface NetworkHistoryPoint {
 }
 
 interface NetworkHistoryChartProps {
-  data: NetworkHistoryPoint[];
+  data?: NetworkHistoryPoint[];
 }
 
-const NetworkHistoryChart: React.FC<NetworkHistoryChartProps> = ({ data }) => {
+export default function NetworkHistoryChart({ data = [] }: NetworkHistoryChartProps) {
   // Formatear bytes/s a algo legible
   const formatYAxis = (value: number) => {
     if (value >= 1024 * 1024) return `${(value / (1024 * 1024)).toFixed(1)} Mb/s`;

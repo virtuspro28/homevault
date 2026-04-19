@@ -35,11 +35,11 @@ export default function MainLayout() {
     }
   };
 
-  const showNativeNotification = (message: string) => {
+  const showNativeNotification = (message: string, level: string) => {
     if ("Notification" in window && Notification.permission === "granted") {
-      new Notification("HomePiNAS", {
+      new Notification(`HomePiNAS - ${level}`, {
         body: message,
-        icon: "/favicon.ico",
+        icon: '/favicon.ico'
       });
     }
   };

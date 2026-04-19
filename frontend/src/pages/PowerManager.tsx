@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 export default function PowerManager() {
   const [status, setStatus] = useState<any>(null);
   const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchData();

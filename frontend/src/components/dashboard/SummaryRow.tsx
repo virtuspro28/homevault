@@ -14,14 +14,17 @@ interface SummaryData {
 }
 
 interface SummaryRowProps {
-  data: SummaryData | null;
+  activeContainers: number;
+  smartHealthy: number;
+  blockedIps: number;
+  uptime: string;
 }
 
-const SummaryRow: React.FC<SummaryRowProps> = ({ data }) => {
+const SummaryRow: React.FC<SummaryRowProps> = ({ activeContainers, smartHealthy, blockedIps, uptime }) => {
   const cards = [
     {
       label: 'Servicios',
-      value: data?.activeServices ?? '--',
+      value: activeContainers,
       sub: 'Docker Activos',
       icon: <Box className="w-5 h-5" />,
       color: 'text-emerald-500',
@@ -29,7 +32,7 @@ const SummaryRow: React.FC<SummaryRowProps> = ({ data }) => {
     },
     {
       label: 'Discos',
-      value: data?.healthyDisks ?? '--',
+      value: smartHealthy,
       sub: 'Salud SMART OK',
       icon: <CheckCircle2 className="w-5 h-5" />,
       color: 'text-blue-500',
@@ -37,7 +40,7 @@ const SummaryRow: React.FC<SummaryRowProps> = ({ data }) => {
     },
     {
       label: 'Seguridad',
-      value: data?.blockedIPs ?? '--',
+      value: blockedIps,
       sub: 'IPs Bloqueadas',
       icon: <ShieldAlert className="w-5 h-5" />,
       color: 'text-red-500',
@@ -45,13 +48,14 @@ const SummaryRow: React.FC<SummaryRowProps> = ({ data }) => {
     },
     {
       label: 'Tiempo',
-      value: data?.uptime ?? '--',
+      value: uptime,
       sub: 'Uptime Sistema',
       icon: <Clock className="w-5 h-5" />,
       color: 'text-amber-500',
       bg: 'bg-amber-500/10'
     }
   ];
+
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

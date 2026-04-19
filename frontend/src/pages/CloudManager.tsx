@@ -6,7 +6,8 @@ import {
   Loader2, 
   Database,
   Globe,
-  Info
+  Info,
+  Trash2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 

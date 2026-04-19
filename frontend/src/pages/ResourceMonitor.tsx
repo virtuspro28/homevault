@@ -1,16 +1,8 @@
 import { useState, useEffect } from 'react';
-import { 
-  Activity, 
-  Cpu, 
-  HardDrive, 
-  RefreshCw,
-  MemoryStick,
-  ArrowUp,
-  ArrowDown,
-  Layers,
   Terminal, 
   X, 
-  Zap
+  Zap,
+  Database
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { io, Socket } from 'socket.io-client';
