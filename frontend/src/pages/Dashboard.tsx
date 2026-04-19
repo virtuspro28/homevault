@@ -1,14 +1,9 @@
 import { useState, useEffect } from 'react';
 import { 
-  LayoutDashboard, 
   Activity, 
   Cpu, 
   HardDrive, 
-  Layers, 
   ShoppingBag,
-  ArrowUpRight,
-  ArrowDownRight,
-  Clock,
   Plus,
   Info
 } from 'lucide-react';
@@ -19,8 +14,6 @@ import {
   ResponsiveContainer,
   Tooltip
 } from 'recharts';
-import { motion } from 'framer-motion';
-import StatCard from '../components/dashboard/StatCard';
 import NetworkHistoryChart from '../components/dashboard/NetworkHistoryChart';
 import ContainerCard from '../components/dashboard/ContainerCard';
 import UsageBar from '../components/dashboard/UsageBar';
