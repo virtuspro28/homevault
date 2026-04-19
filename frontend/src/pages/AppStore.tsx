@@ -4,10 +4,8 @@ import {
   Search, 
   Plus, 
   CheckCircle2, 
-  AlertCircle, 
   Cpu, 
   Database, 
-  Terminal,
   X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

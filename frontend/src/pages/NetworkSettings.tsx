@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Globe, Server, Save, RotateCw, ShieldCheck, AlertCircle, Info } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { Globe, Server, Save, ShieldCheck, Info } from 'lucide-react';
 
 export default function NetworkSettings() {
   const [status, setStatus] = useState<any>(null);

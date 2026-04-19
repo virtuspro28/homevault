@@ -47,7 +47,7 @@ export default function ContainerCard({ container, isProcessing = false, onStart
       <div className="flex space-x-3">
         {isRunning ? (
           <button
-            onClick={() => onStop(container.id)}
+            onClick={() => onStop?.(container.id)}
             disabled={isProcessing}
             className="flex-1 flex items-center justify-center py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl font-medium transition-colors disabled:opacity-50"
           >
@@ -55,7 +55,7 @@ export default function ContainerCard({ container, isProcessing = false, onStart
           </button>
         ) : (
           <button
-            onClick={() => onStart(container.id)}
+            onClick={() => onStart?.(container.id)}
             disabled={isProcessing}
             className="flex-1 flex items-center justify-center py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-xl font-medium transition-colors disabled:opacity-50"
           >

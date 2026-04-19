@@ -19,7 +19,7 @@ import {
   HardDrive
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
-import { motion } from 'framer-motion';
+
 
 interface SidebarProps {
   onLogout: () => void;

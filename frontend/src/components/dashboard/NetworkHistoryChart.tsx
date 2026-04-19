@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   AreaChart, 
   Area, 
@@ -102,5 +101,3 @@ export default function NetworkHistoryChart({ data = [] }: NetworkHistoryChartPr
     </div>
   );
 };
-
-export default NetworkHistoryChart;

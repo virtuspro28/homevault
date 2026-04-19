@@ -31,7 +31,8 @@ import ProtectedRoute from './components/ProtectedRoute'
 
 
 function App() {
-  const { isAuthenticated, isInitialized, setAuthenticated } = useAuth()
+  const { isAuthenticated, setAuthenticated } = useAuth()
+  const isInitialized = true;
 
   return (
     <Routes>

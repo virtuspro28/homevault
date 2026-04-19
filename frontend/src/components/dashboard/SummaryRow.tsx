@@ -6,12 +6,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 
-interface SummaryData {
-  activeServices: number;
-  healthyDisks: number;
-  blockedIPs: number;
-  uptime: string;
-}
+
 
 interface SummaryRowProps {
   activeContainers: number;

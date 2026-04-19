@@ -6,8 +6,6 @@ import {
   HardDrive, 
   Network, 
   Shield, 
-  Info, 
-  CheckCircle2, 
   ToggleLeft, 
   ToggleRight,
   Loader2,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Zap, Activity, AlertCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
+
 
 interface PowerMonitorWidgetProps {
   voltage: number;

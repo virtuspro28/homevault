@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { UserPlus, ShieldCheck, Trash2, Key, Users, AlertCircle, Loader2, X, Shield, ShieldQuestion, HardDrive } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface User {
   id: string;

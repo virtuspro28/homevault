@@ -2,11 +2,9 @@ import { useState, useEffect } from 'react';
 import { 
   ShieldAlert, 
   Search, 
-  Filter, 
   RefreshCw, 
   AlertCircle, 
   CheckCircle2, 
-  AlertTriangle,
   Clock,
   History,
   Activity

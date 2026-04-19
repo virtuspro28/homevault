@@ -28,7 +28,7 @@ interface BackupTask {
 export default function BackupManager() {
   const [tasks, setTasks] = useState<BackupTask[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showAdd, setShowAdd] = useState(false);
+
   const [usbDrives, setUsbDrives] = useState<any[]>([]);
   const [executingTaskId, setExecutingTaskId] = useState<string | null>(null);
 

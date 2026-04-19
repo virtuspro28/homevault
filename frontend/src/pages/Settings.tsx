@@ -5,7 +5,6 @@ import {
   RefreshCw, 
   Clock,
   CheckCircle2,
-  AlertCircle,
   Download,
   Terminal,
   ArrowUpCircle
