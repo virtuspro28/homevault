@@ -50,7 +50,8 @@ fi
 echo -e "${CYAN}[1/6] Actualizando sistema y paquetes críticos...${NC}"
 apt update && apt upgrade -y
 # Usamos || true para que un solo paquete rebelde no detenga toda la instalación
-apt install -y curl git mergerfs snapraid smartmontools nginx wireguard lsblk htop ufw || true
+apt install -y curl git build-essential mergerfs snapraid smartmontools nginx wireguard lsblk htop ufw || true
+
 
 
 # 3. Instalación de Docker
