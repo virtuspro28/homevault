@@ -50,7 +50,8 @@ fi
 echo -e "${CYAN}[1/6] Actualizando sistema y paquetes críticos...${NC}"
 apt update && apt upgrade -y
 # Usamos || true para que un solo paquete rebelde no detenga toda la instalación
-apt install -y curl git build-essential mergerfs snapraid smartmontools nginx wireguard lsblk htop ufw || true
+apt install -y curl git build-essential mergerfs snapraid smartmontools nginx wireguard util-linux htop ufw || true
+
 
 
 
@@ -78,11 +79,22 @@ echo -e "${CYAN}[4/6] Configurando archivos de la aplicación en $INSTALL_DIR...
 
 mkdir -p $INSTALL_DIR
 # Si este script se ejecuta desde el repo, copiamos. Si no, clonamos vía HTTPS público.
-if [ -d "./src" ]; then
+if [ -d "./src" ] && [ -f "package.json" ]; then
+    echo -e "${GREEN}Copiando archivos locales...${NC}"
     cp -r . $INSTALL_DIR/
 else
-    git clone https://github.com/virtuspro28/dashboard.git $INSTALL_DIR
+    if [ -d "$INSTALL_DIR/.git" ]; then
+        echo -e "${YELLOW}El directorio ya existe. Actualizando repositorio...${NC}"
+        cd $INSTALL_DIR
+        git fetch --all
+        git reset --hard origin/main
+    else
+        echo -e "${YELLOW}Limpiando instalación previa fallida...${NC}"
+        rm -rf $INSTALL_DIR
+        git clone https://github.com/virtuspro28/dashboard.git $INSTALL_DIR
+    fi
 fi
+
 
 cd $INSTALL_DIR
 
