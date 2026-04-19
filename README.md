@@ -1,49 +1,93 @@
-# HomePiNAS 🍓
+# 🏠 HomePiNAS - High-Performance Raspberry Pi NAS & Home Server
 
-HomePiNAS es una solución de almacenamiento personal "todo en uno" diseñada específicamente para Raspberry Pi. Transforma tu Pi en un servidor NAS profesional con una interfaz web moderna, segura y fácil de usar.
+[![Licence](https://img.shields.io/github/license/virtuspro28/dashboard?style=for-the-badge)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-Production--Ready-emerald?style=for-the-badge)](https://github.com/virtuspro28/dashboard)
 
-## Características Principales
-
-- **Dashboard Inteligente**: Monitorización en tiempo real de CPU, RAM, temperatura y almacenamiento.
-- **Gestión de Archivos**: Explorador web integrado con soporte para Drag & Drop y previsualización de multimedia.
-- **Almacenamiento Avanzado**: Soporte para MergerFS (unificación de discos) y SnapRAID (paridad de datos).
-- **Control de Docker**: Despliega y gestiona contenedores con un solo clic desde la "Tienda de Apps".
-- **Seguridad**: Cortafuegos (UFW) y VPN (WireGuard) preconfigurados.
-- **Notificaciones**: Alertas críticas en tiempo real vía Telegram, Discord y notificaciones nativas de escritorio.
+HomePiNAS is an all-in-one, high-performance dashboard designed specifically for the Raspberry Pi ecosystem. It bridges the gap between raw command-line administration and high-end enterprise NAS solutions, offering a beautiful glassmorphism interface coupled with robust system control.
 
 ---
 
-## 🚀 Instalación Rápida (Un solo comando)
+## 📸 Visual Showcase
 
-Para instalar HomePiNAS en una Raspberry Pi fresca con **Raspberry Pi OS (64-bit)** o cualquier sistema basado en Debian/Ubuntu, ejecuta el siguiente comando:
+### Interactive Dashboard
+![Dashboard Showcase](docs/assets/demo_shots.webp)
+
+*Main panel showing real-time hardware telemetry and storage status.*
+
+### Advanced Telemetry
+| Power Monitoring | Event Log Viewer |
+| :---: | :---: |
+| ![Power Monitor](docs/assets/dashboard.png) | ![Event Logs](docs/assets/events.png) |
+
+---
+
+## 🚀 Key Features
+
+### 🐳 App Center
+- **Docker Management**: Deploy and manage containers with a single click.
+- **NAS App Store**: Pre-configured templates for Plex, Pi-hole, AdGuard, and more.
+- **Terminal Integration**: Integrated shell for advanced troubleshooting.
+
+### 💾 Smart Storage
+- **Pool Management**: Seamless integration with **MergerFS** and **SnapRAID**.
+- **Disk Health**: Real-time **S.M.A.R.T.** data and temperature monitoring.
+- **File Station**: intuitive web-based file manager with dual-pane view.
+
+### 🌡️ Hardware Telemetry (Pro-Grade)
+- **Power Monitor**: Real-time Voltage/Amperage/Wattage tracking (INA238).
+- **Active Cooling**: Dynamic PWM fan curves based on CPU temperature (EMC2305).
+- **UPS Integration**: Safe shutdown protocols and energy event logging.
+
+### 🔄 Backup & Sync
+- **3-2-1 Rule Engine**: Schedule local, external (USB), and remote backups.
+- **Cloud Manager**: Mount Google Drive, Dropbox, or OneDrive via **RClone**.
+- **Active Backup**: Agent-based protection for your remote machines.
+
+### 🛡️ Security & Connectivity
+- **Glassmorphism Firewall**: Manage Fail2Ban and Iptables visually.
+- **VPN Control**: One-click WireGuard tunnel management.
+- **Nginx Reverse Proxy**: Secure your apps with domains and SSL.
+
+---
+
+## 🛠️ Installation
+
+Deploy HomePiNAS on your Raspberry Pi (Debian/Raspberry Pi OS) with the **One-Command Master Installer**:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/tu-usuario/homepinas/main/install.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/virtuspro28/dashboard/main/install.sh | sudo bash
 ```
 
-*El script se encargará de instalar Docker, Node.js, Samba y todas las dependencias necesarias. Al finalizar, te proporcionará la IP local para acceder al panel.*
+### Manual Setup
+
+1. **Clone the repo**:
+   ```bash
+   git clone https://github.com/virtuspro28/dashboard.git
+   cd dashboard
+   ```
+
+2. **Configure environment**:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your specific settings
+   ```
+
+3. **Install & Build**:
+   ```bash
+   npm install
+   npm run build:all
+   ```
 
 ---
 
-## Acceso Inicial
-
-Una vez completada la instalación:
-1. Abre tu navegador y ve a `http://IP-DE-TU-PI`.
-2. Completa el asistente de configuración inicial.
-3. **Importante**: El primer usuario que crees tendrá el rol de `OWNER`, lo que le otorga permisos totales para editar archivos de sistema y gestionar cuotas.
-
-## Comandos Útiles
-
-- **Ver logs del sistema**: `sudo journalctl -u homepinas -f`
-- **Reiniciar servicio**: `sudo systemctl restart homepinas`
-- **Detener servicio**: `sudo systemctl stop homepinas`
-
-## Requisitos de Hardware
-
-- **Sugerido**: Raspberry Pi 4 o Pi 5 con 4GB+ de RAM.
-- **Almacenamiento**: MicroSD para el sistema operativo y discos USB para tus datos.
-- **OS**: Raspberry Pi OS (64 bits) Lite o Desktop.
+## 🛠️ Tech Stack
+- **Backend**: Node.js, Express, Prisma (SQLite).
+- **Frontend**: React, Vite, TailwindCSS (for UI elements), Framer Motion.
+- **Communication**: Socket.io for real-time telemetry.
 
 ---
 
-Desarrollado con ❤️ por el equipo de **Advanced Agentic Coding**.
+## ⚖️ License
+Distributed under the MIT License. See `LICENSE` for more information.
+
+*Crafted with 💙 for the Self-Hosting Community.*
