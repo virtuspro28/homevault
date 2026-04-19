@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Terminal as TerminalIcon, Shield } from 'lucide-react';
 import { Terminal } from 'xterm';
 // @ts-ignore
-import { FitAddon } from 'xterm-addon-fit';
+import { FitAddon } from '@xterm/addon-fit';
 import { io } from 'socket.io-client';
 import 'xterm/css/xterm.css';
 
