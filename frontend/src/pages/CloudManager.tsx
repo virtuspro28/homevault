@@ -1,18 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Cloud, 
-  ExternalLink, 
   HardDrive, 
   Plus, 
-  RefreshCw, 
-  Trash2, 
   Loader2, 
-  CheckCircle2, 
-  AlertTriangle,
   Database,
-  Globe
+  Globe,
+  Info
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface CloudRemote {
   name: string;

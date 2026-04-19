@@ -35,7 +35,7 @@ export default function MainLayout() {
     }
   };
 
-  const showNativeNotification = (message: string, level: string) => {
+  const showNativeNotification = (message: string) => {
     if ("Notification" in window && Notification.permission === "granted") {
       new Notification("HomePiNAS", {
         body: message,

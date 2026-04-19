@@ -1,23 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Terminal, RefreshCw, Download, Trash2, Search } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Terminal, RefreshCw } from 'lucide-react';
 
 export default function Logs() {
-  const [logs, setLogs] = useState<string>('');
+  const [logs, setLogs] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    fetchLogs();
-    const interval = setInterval(fetchLogs, 10000); // Auto-refresh cada 10s
-    return () => clearInterval(interval);
-  }, []);
+  const logEndRef = useRef<HTMLDivElement>(null);
 
   const fetchLogs = async () => {
     try {
       const res = await fetch('/api/system/logs');
       const data = await res.json();
       if (data.success) {
-        setLogs(data.data);
+        setLogs(prev => [...prev, ...data.logs].slice(-500)); // Keep last 500 lines
       }
     } catch (err) {
       console.error('Error fetching logs:', err);
@@ -27,71 +21,52 @@ export default function Logs() {
   };
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    fetchLogs();
+    const interval = setInterval(fetchLogs, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs]);
 
-  return (
-    <div className="h-[calc(100vh-120px)] flex flex-col space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <div className="p-3 bg-slate-800 rounded-2xl border border-white/5">
-            <Terminal className="w-6 h-6 text-blue-400" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight text-xl uppercase">System Logs</h1>
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Monitoreo en tiempo real de journalctl</p>
-          </div>
-        </div>
+  if (loading) {
+     return (
+       <div className="flex items-center justify-center min-h-[60vh]">
+         <RefreshCw className="w-8 h-8 animate-spin text-blue-500" />
+       </div>
+     );
+  }
 
-        <div className="flex items-center space-x-3">
-          <button 
-            onClick={fetchLogs}
-            className="flex items-center space-x-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl border border-white/5 transition-all"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            <span className="text-xs font-bold uppercase">Refrescar</span>
-          </button>
+  return (
+    <div className="space-y-8 pb-12">
+      <div className="flex items-center space-x-4 bg-slate-900/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-white/5">
+        <div className="p-4 bg-blue-500/10 rounded-2xl">
+          <Terminal className="w-8 h-8 text-blue-500" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-black text-white">Registros del Backend</h1>
+          <p className="text-sm text-slate-500 font-bold uppercase tracking-widest mt-1">Salida de consola del servidor node.js</p>
         </div>
       </div>
 
-      {/* Terminal Container */}
-      <div className="flex-1 bg-black/60 backdrop-blur-xl border border-white/10 rounded-[2rem] overflow-hidden flex flex-col shadow-2xl">
-        {/* Terminal Header */}
-        <div className="bg-white/5 px-6 py-3 border-b border-white/5 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-red-500/50"></div>
-            <div className="w-3 h-3 rounded-full bg-yellow-500/50"></div>
-            <div className="w-3 h-3 rounded-full bg-green-500/50"></div>
-            <span className="text-[10px] font-black tracking-widest text-slate-500 ml-4">HOMEPI-NAS-DAEMON</span>
-          </div>
-          <div className="text-[10px] text-slate-600 font-mono">journalctl -u homepinas -n 50</div>
+      <div className="bg-slate-950 border border-white/5 rounded-[2.5rem] overflow-hidden">
+        <div className="p-4 bg-white/5 border-b border-white/5 flex items-center justify-between">
+           <div className="flex space-x-1.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-red-500/20"></div>
+              <div className="w-2.5 h-2.5 rounded-full bg-amber-500/20"></div>
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/20"></div>
+           </div>
+           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">system.log</span>
         </div>
-
-        {/* Terminal Text Area */}
-        <div 
-          ref={scrollRef}
-          className="flex-1 p-6 overflow-y-auto font-mono text-sm leading-relaxed scrollbar-thin scrollbar-thumb-slate-800"
-        >
-          {loading && !logs ? (
-            <div className="flex items-center justify-center h-full">
-              <RefreshCw className="w-8 h-8 text-slate-800 animate-spin" />
+        <div className="p-8 h-[600px] overflow-y-auto font-mono text-xs leading-relaxed">
+          {logs.map((log, idx) => (
+            <div key={idx} className="hover:bg-white/5 py-0.5 rounded px-2">
+              <span className="text-slate-600 mr-4">[{idx + 1}]</span>
+              <span className="text-slate-300">{log}</span>
             </div>
-          ) : (
-            <pre className="text-slate-300 whitespace-pre-wrap">
-              {logs || 'No hay registros disponibles en este momento.'}
-            </pre>
-          )}
-        </div>
-
-        {/* Status Bar */}
-        <div className="bg-blue-600/5 px-6 py-2 border-t border-white/5 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <span className="text-[10px] text-blue-400 font-bold uppercase">Estado: Conectado</span>
-            <span className="text-[10px] text-slate-600 font-bold">Auto-Sync: Habilitado (10s)</span>
-          </div>
+          ))}
+          <div ref={logEndRef} />
         </div>
       </div>
     </div>

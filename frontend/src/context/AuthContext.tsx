@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import { AuthContextType, User } from '../types/auth'; // Asumiendo que existen o usando any si no
 import { Loader2, ShieldCheck } from 'lucide-react';
 
 interface User {

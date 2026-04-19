@@ -1,227 +1,195 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
-  History, 
+  ShieldAlert, 
   Search, 
   Filter, 
-  Download, 
-  Trash2, 
+  RefreshCw, 
   AlertCircle, 
-  Info, 
-  AlertTriangle, 
-  RefreshCw,
-  ChevronLeft,
-  ChevronRight,
-  Shield,
-  Zap,
-  HardDrive,
-  Cpu,
-  Layers
+  CheckCircle2, 
+  AlertTriangle,
+  Clock,
+  History,
+  Activity
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
-interface SystemEvent {
+interface EventLog {
   id: string;
+  level: 'INFO' | 'WARNING' | 'CRITICAL' | 'SUCCESS';
   message: string;
-  level: 'INFO' | 'WARNING' | 'CRITICAL';
-  category: 'SECURITY' | 'STORAGE' | 'POWER' | 'SYSTEM' | 'DOCKER' | 'BACKUP';
+  source: string;
   timestamp: string;
-  isRead: boolean;
 }
 
-const Events: React.FC = () => {
-  const [events, setEvents] = useState<SystemEvent[]>([]);
+export default function Events() {
+  const [events, setEvents] = useState<EventLog[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ 
-    level: '', 
-    category: '', 
-    search: '' 
-  });
+  const [filter, setFilter] = useState('');
+  const [levelFilter, setLevelFilter] = useState('ALL');
 
   useEffect(() => {
     fetchEvents();
-  }, [filters.level, filters.category]);
+    const interval = setInterval(fetchEvents, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchEvents = async () => {
-    setLoading(true);
     try {
-      const query = new URLSearchParams(filters as any).toString();
-      const res = await fetch(`/api/system/events?${query}`);
+      const res = await fetch('/api/system/notifications/history');
       const data = await res.json();
-      if (data.success) {
-        setEvents(data.data);
-      }
+      if (data.success) setEvents(data.data);
     } catch (err) {
-      console.error("Error fetching events:", err);
+      console.error('Error fetching event logs:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const clearLogs = async () => {
-    if (!confirm("¿Estás seguro de que deseas vaciar todo el historial de eventos?")) return;
-    try {
-      await fetch('/api/system/events', { method: 'DELETE' });
-      fetchEvents();
-    } catch (err) {
-      alert("Error al limpiar logs");
-    }
-  };
+  const filteredEvents = events.filter(event => {
+    const matchesSearch = event.message.toLowerCase().includes(filter.toLowerCase()) ||
+                         event.source.toLowerCase().includes(filter.toLowerCase());
+    const matchesLevel = levelFilter === 'ALL' || event.level === levelFilter;
+    return matchesSearch && matchesLevel;
+  });
 
-  const exportCSV = () => {
-    const headers = "ID,Fecha,Nivel,Categoría,Mensaje\n";
-    const rows = events.map(e => 
-      `${e.id},${new Date(e.timestamp).toLocaleString()},${e.level},${e.category},"${e.message.replace(/"/g, '""')}"`
-    ).join("\n");
-    
-    const blob = new Blob([headers + rows], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `HomePiNAS_Events_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-  };
-
-  const getLevelColor = (level: string) => {
-    switch (level) {
-      case 'CRITICAL': return 'text-red-500 bg-red-500/10 border-red-500/20';
-      case 'WARNING': return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20';
-      default: return 'text-blue-500 bg-blue-500/10 border-blue-500/20';
-    }
-  };
-
-  const getCategoryIcon = (cat: string) => {
-    switch (cat) {
-      case 'SECURITY': return <Shield className="w-3 h-3" />;
-      case 'POWER': return <Zap className="w-3 h-3" />;
-      case 'STORAGE': return <HardDrive className="w-3 h-3" />;
-      case 'DOCKER': return <Layers className="w-3 h-3" />;
-      default: return <Cpu className="w-3 h-3" />;
-    }
-  };
+  if (loading) {
+     return (
+       <div className="flex items-center justify-center min-h-[60vh]">
+         <RefreshCw className="w-8 h-8 animate-spin text-blue-500" />
+       </div>
+     );
+  }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center">
-            <History className="w-8 h-8 mr-3 text-blue-500" />
-            Visor de Eventos
-          </h1>
-          <p className="mt-2 text-slate-400">Monitoriza toda la actividad crítica de tu HomePiNAS en un solo lugar.</p>
+    <div className="space-y-8 pb-12">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-white/5">
+        <div className="flex items-center space-x-4">
+          <div className="p-4 bg-blue-500/10 rounded-2xl">
+            <History className="w-8 h-8 text-blue-400" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black text-white">Visor de Eventos</h1>
+            <p className="text-sm text-slate-500 font-bold uppercase tracking-widest mt-1">Logs del sistema en tiempo real</p>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={exportCSV}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700 transition-all text-sm font-bold"
-          >
-            <Download className="w-4 h-4" /> Exportar CSV
-          </button>
-          <button 
-            onClick={clearLogs}
-            className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl border border-red-500/20 transition-all text-sm font-bold"
-          >
-            <Trash2 className="w-4 h-4" /> Vaciar
-          </button>
+
+        <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+           <div className="relative w-full md:w-64">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input 
+                type="text"
+                placeholder="Filtrar eventos..."
+                className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+              />
+           </div>
+           <select 
+             className="bg-white/5 border border-white/10 px-4 py-3 rounded-2xl text-sm font-bold text-slate-300 outline-none focus:ring-2 focus:ring-blue-500"
+             value={levelFilter}
+             onChange={(e) => setLevelFilter(e.target.value)}
+           >
+              <option value="ALL">Todos los Niveles</option>
+              <option value="CRITICAL">Críticos</option>
+              <option value="WARNING">Advertencias</option>
+              <option value="INFO">Información</option>
+              <option value="SUCCESS">Éxito</option>
+           </select>
         </div>
       </div>
 
-      {/* Filtros */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-900/40 p-4 rounded-3xl border border-slate-800">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-          <input 
-            type="text" 
-            placeholder="Buscar en mensajes..."
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/50"
-            value={filters.search}
-            onChange={e => setFilters({...filters, search: e.target.value})}
-            onKeyDown={e => e.key === 'Enter' && fetchEvents()}
-          />
-        </div>
-        <select 
-          className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm outline-none cursor-pointer"
-          value={filters.level}
-          onChange={e => setFilters({...filters, level: e.target.value})}
-        >
-          <option value="">Todos los Niveles</option>
-          <option value="INFO">Información</option>
-          <option value="WARNING">Advertencia</option>
-          <option value="CRITICAL">Crítico</option>
-        </select>
-        <select 
-          className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm outline-none cursor-pointer"
-          value={filters.category}
-          onChange={e => setFilters({...filters, category: e.target.value})}
-        >
-          <option value="">Todas las Categorías</option>
-          <option value="SYSTEM">Sistema</option>
-          <option value="SECURITY">Seguridad</option>
-          <option value="STORAGE">Almacenamiento</option>
-          <option value="POWER">Energía</option>
-          <option value="DOCKER">Docker</option>
-        </select>
-        <button 
-          onClick={fetchEvents}
-          className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl py-2 text-sm font-bold transition-all"
-        >
-          <Filter className="w-4 h-4" /> Aplicar Filtros
-        </button>
-      </div>
+      <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] overflow-hidden">
+         <div className="p-6 border-b border-white/5 flex items-center justify-between">
+            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center space-x-2">
+               <Activity className="w-4 h-4" />
+               <span>Cronología del Sistema</span>
+            </h3>
+            <button 
+              onClick={fetchEvents}
+              className="p-2 hover:bg-white/5 rounded-xl transition-all"
+            >
+               <RefreshCw className="w-4 h-4 text-slate-500" />
+            </button>
+         </div>
 
-      {/* Tabla de Eventos */}
-      <div className="bg-slate-900/40 border border-slate-800 rounded-3xl overflow-hidden shadow-xl overflow-x-auto">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="bg-slate-950/50 border-b border-slate-800">
-              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Nivel</th>
-              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Fecha y Hora</th>
-              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Categoría</th>
-              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Mensaje de Evento</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-800/50">
-            {loading ? (
-              <tr>
-                <td colSpan={4} className="py-20 text-center">
-                  <RefreshCw className="w-8 h-8 animate-spin mx-auto text-blue-500 mb-2" />
-                  <p className="text-slate-500 text-sm">Cargando eventos del sistema...</p>
-                </td>
-              </tr>
-            ) : events.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="py-20 text-center text-slate-600 italic text-sm">No se encontraron eventos con estos criterios</td>
-              </tr>
-            ) : (
-              events.map(event => (
-                <tr key={event.id} className={`hover:bg-white/5 transition-colors group ${!event.isRead ? 'bg-blue-500/5' : ''}`}>
-                  <td className="px-6 py-5">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black border uppercase ${getLevelColor(event.level)}`}>
-                      {event.level === 'CRITICAL' && <AlertCircle className="w-3 h-3" />}
-                      {event.level === 'WARNING' && <AlertTriangle className="w-3 h-3" />}
-                      {event.level}
-                    </span>
-                  </td>
-                  <td className="px-6 py-5">
-                    <p className="text-xs text-slate-200 font-medium">{new Date(event.timestamp).toLocaleDateString()}</p>
-                    <p className="text-[10px] text-slate-500 tabular-nums">{new Date(event.timestamp).toLocaleTimeString()}</p>
-                  </td>
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-800/50 px-3 py-1 rounded-lg w-fit border border-slate-700/50">
-                      {getCategoryIcon(event.category)}
-                      {event.category}
-                    </div>
-                  </td>
-                  <td className="px-6 py-5">
-                    <p className="text-sm text-slate-300 leading-relaxed max-w-xl">{event.message}</p>
-                  </td>
-                </tr>
-              ))
+         <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+               <thead>
+                  <tr className="bg-white/[0.02] border-b border-white/5">
+                     <th className="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest pl-12">Nivel</th>
+                     <th className="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Fuente</th>
+                     <th className="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Mensaje</th>
+                     <th className="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Timestamp</th>
+                  </tr>
+               </thead>
+               <tbody className="divide-y divide-white/5">
+                  {filteredEvents.map((event) => (
+                    <tr key={event.id} className="hover:bg-white/[0.03] transition-colors group">
+                       <td className="p-6 pl-12 whitespace-nowrap">
+                          <div className="flex items-center space-x-3">
+                             <div className={`w-2 h-2 rounded-full ${
+                               event.level === 'CRITICAL' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' :
+                               event.level === 'WARNING' ? 'bg-amber-500' :
+                               event.level === 'SUCCESS' ? 'bg-emerald-500' : 'bg-blue-500'
+                             }`} />
+                             <span className={`text-[10px] font-black uppercase tracking-widest ${
+                               event.level === 'CRITICAL' ? 'text-red-500' :
+                               event.level === 'WARNING' ? 'text-amber-500' :
+                               event.level === 'SUCCESS' ? 'text-emerald-500' : 'text-blue-500'
+                             }`}>
+                                {event.level}
+                             </span>
+                          </div>
+                       </td>
+                       <td className="p-6">
+                          <span className="text-xs font-black text-white bg-white/5 px-2 py-1 rounded-md">{event.source}</span>
+                       </td>
+                       <td className="p-6">
+                          <p className="text-xs text-slate-300 font-medium leading-relaxed max-w-md">
+                             {event.message}
+                          </p>
+                       </td>
+                       <td className="p-6 whitespace-nowrap">
+                          <div className="flex items-center space-x-2 text-slate-500">
+                             <Clock className="w-3 h-3" />
+                             <span className="text-[10px] font-bold">
+                                {new Date(event.timestamp).toLocaleString()}
+                             </span>
+                          </div>
+                       </td>
+                    </tr>
+                  ))}
+               </tbody>
+            </table>
+
+            {filteredEvents.length === 0 && (
+               <div className="py-20 text-center">
+                  <AlertCircle className="w-12 h-12 text-slate-700 mx-auto mb-4 opacity-20" />
+                  <p className="text-slate-500 font-bold">No se encontraron eventos</p>
+               </div>
             )}
-          </tbody>
-        </table>
+         </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+         <div className="p-8 bg-blue-500/5 border border-blue-500/10 rounded-[2.5rem] flex items-start space-x-4">
+            <CheckCircle2 className="w-6 h-6 text-blue-500 mt-1" />
+            <div>
+               <p className="text-sm font-black text-white uppercase tracking-widest mb-1">Retención Activa</p>
+               <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                  Los eventos del sistema se almacenan localmente durante 30 días para auditoría y resolución de problemas.
+               </p>
+            </div>
+         </div>
+         <div className="p-8 bg-amber-500/5 border border-amber-500/10 rounded-[2.5rem] flex items-start space-x-4">
+            <ShieldAlert className="w-6 h-6 text-amber-500 mt-1" />
+            <div>
+               <p className="text-sm font-black text-white uppercase tracking-widest mb-1">Alertas Críticas</p>
+               <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                  Cualquier alerta marcada como **CRITICAL** activa automáticamente una notificación push en el navegador.
+               </p>
+            </div>
+         </div>
       </div>
     </div>
   );
-};
-
-export default Events;
+}

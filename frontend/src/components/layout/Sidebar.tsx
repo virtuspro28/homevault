@@ -1,4 +1,22 @@
-import { Server, LayoutDashboard, Component, HardDrive, Settings, LogOut, Network, Shield, ShoppingBag, Users, Terminal, Globe, Layers, ShieldCheck, Zap, Activity, Code, FolderLock, History } from 'lucide-react';
+import { 
+  Server, 
+  LayoutDashboard, 
+  Component, 
+  Settings, 
+  LogOut, 
+  Shield, 
+  ShoppingBag, 
+  Users, 
+  Terminal, 
+  Globe, 
+  Layers, 
+  ShieldCheck, 
+  Zap, 
+  Activity, 
+  Code, 
+  FolderLock, 
+  History 
+} from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 

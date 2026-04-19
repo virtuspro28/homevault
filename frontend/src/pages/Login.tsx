@@ -1,16 +1,15 @@
-// src/pages/Login.tsx
-import { useState } from 'react'
-import { Server, Lock, User, AlertCircle } from 'lucide-react'
+import { useState } from 'react';
+import { Server, Lock, User, AlertCircle } from 'lucide-react';
 
 interface LoginProps {
-  onAuthSuccess: () => void
+  onAuthSuccess: () => void;
 }
 
 export default function Login({ onAuthSuccess }: LoginProps) {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

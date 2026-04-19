@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Shield, Monitor, History, Download, CheckCircle2, AlertCircle, Clock, Database, ChevronRight, Loader2, Server } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Shield, Monitor, History, Download, AlertCircle, Clock, Database, ChevronRight, Loader2, Server } from 'lucide-react';
 
 interface BackupLog {
   id: string;

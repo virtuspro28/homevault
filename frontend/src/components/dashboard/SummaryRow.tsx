@@ -1,7 +1,6 @@
 import React from 'react';
 import { 
   Box, 
-  HardDrive, 
   ShieldAlert, 
   Clock,
   CheckCircle2

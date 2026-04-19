@@ -1,227 +1,196 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
-  FileText, 
+  FileCode, 
   Save, 
-  RefreshCw, 
-  AlertCircle, 
-  ChevronRight, 
+  RotateCw, 
   CheckCircle2, 
-  Settings2,
-  Trash2,
-  Play
+  AlertCircle, 
+  ChevronRight,
+  FileText
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Editor from 'react-simple-code-editor';
+// @ts-ignore
 import { highlight, languages } from 'prismjs';
 import 'prismjs/components/prism-yaml';
 import 'prismjs/components/prism-json';
-import 'prismjs/components/prism-toml';
+import 'prismjs/components/prism-bash';
 import 'prismjs/themes/prism-tomorrow.css';
-import { motion, AnimatePresence } from 'framer-motion';
 
 interface ConfigFile {
   name: string;
   path: string;
+  type: 'yaml' | 'json' | 'env' | 'conf';
 }
 
-const ConfigEditor: React.FC = () => {
+export default function ConfigEditor() {
   const [files, setFiles] = useState<ConfigFile[]>([]);
   const [selectedFile, setSelectedFile] = useState<ConfigFile | null>(null);
-  const [code, setCode] = useState<string>('');
+  const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [status, setStatus] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
 
   useEffect(() => {
-    fetchConfigFiles();
+    fetchFiles();
   }, []);
 
-  const fetchConfigFiles = async () => {
+  const fetchFiles = async () => {
     try {
       const res = await fetch('/api/config/files');
       const data = await res.json();
       if (data.success) {
         setFiles(data.data);
+        if (data.data.length > 0) handleSelectFile(data.data[0]);
       }
     } catch (err) {
-      setError('Failed to load file list');
+      console.error('Error fetching config files:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadFile = async (file: ConfigFile) => {
-    setLoading(true);
-    setError(null);
-    setSuccessMsg(null);
+  const handleSelectFile = async (file: ConfigFile) => {
+    setSelectedFile(file);
+    setContent('Cargando...');
     try {
       const res = await fetch(`/api/config/read?path=${encodeURIComponent(file.path)}`);
       const data = await res.json();
-      if (data.success) {
-        setSelectedFile(file);
-        setCode(data.data);
-      } else {
-        setError(data.error);
-      }
+      if (data.success) setContent(data.content);
     } catch (err) {
-      setError('Failed to read file content');
-    } finally {
-      setLoading(false);
+      setContent('Error al cargar el archivo.');
     }
   };
 
-  const handleSave = async (restart = false) => {
+  const handleSave = async () => {
     if (!selectedFile) return;
     setSaving(true);
-    setError(null);
-    setSuccessMsg(null);
-    const containerHint = selectedFile.name.split('.')[0];
+    setStatus(null);
     try {
       const res = await fetch('/api/config/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          path: selectedFile.path,
-          content: code,
-          restartContainerId: restart ? containerHint : undefined 
-        })
+        body: JSON.stringify({ path: selectedFile.path, content })
       });
       const data = await res.json();
       if (data.success) {
-        setSuccessMsg(restart ? 'Config saved and service restarting...' : 'Configuration saved successfully!');
-        setTimeout(() => setSuccessMsg(null), 3000);
+        setStatus({ type: 'success', msg: 'Archivo guardado correctamente' });
       } else {
-        setError(data.error);
+        setStatus({ type: 'error', msg: data.error || 'Error al guardar' });
       }
     } catch (err) {
-      setError('Failed to save file');
+      setStatus({ type: 'error', msg: 'Error de red al guardar' });
     } finally {
       setSaving(false);
     }
   };
 
-  const getLanguage = (filename: string) => {
-    if (filename.endsWith('.yml') || filename.endsWith('.yaml')) return languages.yaml;
-    if (filename.endsWith('.json')) return languages.json;
-    return languages.plain;
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <RotateCw className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden">
-      {/* Sidebar - File List */}
-      <div className="w-80 border-r border-slate-800 bg-slate-900/20 p-6 flex flex-col h-full">
-        <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-          <Settings2 className="w-5 h-5 text-blue-500" />
-          Config Editor
-        </h2>
-        
-        <div className="flex-1 overflow-y-auto space-y-2 -mx-2 px-2 custom-scrollbar">
-          {files.length === 0 && !loading && (
-            <div className="text-slate-600 text-sm italic p-4 text-center">
-              No editable configs found in /data/configs
-            </div>
-          )}
-          
-          {files.map(file => (
-            <button
-              key={file.path}
-              onClick={() => loadFile(file)}
-              className={`w-full text-left px-4 py-3 rounded-xl transition-all flex items-center justify-between group ${
-                selectedFile?.path === file.path 
-                ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20' 
-                : 'text-slate-400 hover:bg-white/5 border border-transparent'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <FileText className="w-4 h-4 opacity-50" />
-                <span className="text-sm font-medium">{file.name}</span>
-              </div>
-              <ChevronRight className={`w-4 h-4 transition-transform ${selectedFile?.path === file.path ? 'translate-x-0' : '-translate-x-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-0'}`} />
-            </button>
-          ))}
+    <div className="space-y-8 pb-12">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-white/5">
+        <div className="flex items-center space-x-4">
+          <div className="p-4 bg-blue-500/10 rounded-2xl">
+            <FileCode className="w-8 h-8 text-blue-500" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black text-white">Editor de Configuración</h1>
+            <p className="text-sm text-slate-500 font-bold uppercase tracking-widest mt-1">Gestión avanzada de archivos .conf, .yaml y .env</p>
+          </div>
         </div>
+        <button 
+          onClick={handleSave}
+          disabled={saving || !selectedFile}
+          className="flex items-center space-x-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50"
+        >
+          {saving ? <RotateCw className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+          <span>Guardar Cambios</span>
+        </button>
       </div>
 
-      {/* Main Content - Editor */}
-      <div className="flex-1 flex flex-col relative">
-        <div className="h-20 border-b border-slate-800 flex items-center justify-between px-8 bg-slate-950/50 backdrop-blur-md">
-          <div>
-            {selectedFile ? (
-              <div className="flex items-center gap-3 text-slate-300">
-                <span className="px-2 py-0.5 bg-slate-800 rounded text-xs font-mono">{selectedFile.path.split('.').pop()}</span>
-                <span className="font-bold">{selectedFile.name}</span>
-              </div>
-            ) : (
-              <span className="text-slate-500 italic">Select a file to start editing</span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => handleSave(false)}
-              disabled={!selectedFile || saving}
-              className="flex items-center gap-2 px-6 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-sm font-bold transition-all border border-slate-700"
-            >
-              {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              Guardar
-            </button>
-            <button 
-              onClick={() => handleSave(true)}
-              disabled={!selectedFile || saving}
-              className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all"
-            >
-              <Play className="w-4 h-4" />
-              Guardar y Reiniciar
-            </button>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Explorador de Archivos */}
+        <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-6 lg:col-span-1">
+          <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-6 px-2">Archivos Críticos</h3>
+          <div className="space-y-2">
+            {files.map((file) => (
+              <button
+                key={file.path}
+                onClick={() => handleSelectFile(file)}
+                className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${
+                  selectedFile?.path === file.path 
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                  : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center space-x-3 overflow-hidden">
+                  <FileText className="w-4 h-4 shrink-0" />
+                  <span className="text-xs font-bold truncate">{file.name}</span>
+                </div>
+                <ChevronRight className="w-4 h-4 shrink-0" />
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="flex-1 overflow-hidden relative">
-          <AnimatePresence>
-            {(error || successMsg) && (
-              <motion.div 
-                initial={{ opacity: 0, y: -20 }}
+        {/* Editor */}
+        <div className="lg:col-span-3 space-y-4">
+          <AnimatePresence mode="wait">
+            {status && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="absolute top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+                exit={{ opacity: 0, y: -10 }}
+                className={`p-4 rounded-2xl border flex items-center space-x-3 ${
+                  status.type === 'success' 
+                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                  : 'bg-red-500/10 border-red-500/20 text-red-400'
+                }`}
               >
-                {error ? (
-                  <div className="bg-red-500/10 border border-red-500/30 text-red-500 px-6 py-2 rounded-full flex items-center gap-2 backdrop-blur-md">
-                    <AlertCircle className="w-4 h-4" /> {error}
-                  </div>
-                ) : (
-                  <div className="bg-green-500/10 border border-green-500/30 text-green-500 px-6 py-2 rounded-full flex items-center gap-2 backdrop-blur-md">
-                    <CheckCircle2 className="w-4 h-4" /> {successMsg}
-                  </div>
-                )}
+                {status.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+                <span className="text-xs font-black uppercase tracking-widest">{status.msg}</span>
               </motion.div>
             )}
           </AnimatePresence>
 
-          <div className="h-full overflow-auto custom-scrollbar bg-[#2d2d2d] p-8 font-mono">
-            {selectedFile && (
+          <div className="bg-slate-950 border border-white/5 rounded-[2.5rem] overflow-hidden min-h-[600px] font-mono text-sm">
+            <div className="p-4 bg-white/5 border-b border-white/5 flex items-center space-x-2">
+               <div className="flex space-x-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/20"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-amber-500/20"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/20"></div>
+               </div>
+               <span className="text-[10px] font-bold text-slate-500 uppercase ml-4">{selectedFile?.path || 'Ningún archivo seleccionado'}</span>
+            </div>
+            
+            <div className="p-6">
               <Editor
-                value={code}
-                onValueChange={code => setCode(code)}
-                highlight={code => highlight(code, getLanguage(selectedFile.name), 'yaml')}
+                value={content}
+                onValueChange={code => setContent(code)}
+                highlight={code => highlight(code, 
+                  selectedFile?.type === 'yaml' ? languages.yaml : 
+                  selectedFile?.type === 'json' ? languages.json : 
+                  languages.bash, 'editor')}
                 padding={20}
-                className="min-h-full outline-none text-sm"
+                className="code-editor"
                 style={{
-                  fontFamily: '"Fira code", "Fira Mono", monospace',
+                  fontFamily: '"Fira Code", "Fira Mono", monospace',
+                  fontSize: 14,
+                  minHeight: '520px',
+                  backgroundColor: 'transparent',
                 }}
               />
-            )}
-            {!selectedFile && (
-              <div className="h-full flex flex-col items-center justify-center text-slate-600 gap-4 opacity-30">
-                <FileText className="w-16 h-16" />
-                <p>Abra un archivo desde el panel izquierdo</p>
-              </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
-};
-
-export default ConfigEditor;
+}

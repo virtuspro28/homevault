@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Activity, 
   Cpu, 
-  Database, 
-  Search, 
-  RefreshCw, 
+  HardDrive, 
+  RefreshCw,
+  MemoryStick,
+  ArrowUp,
+  ArrowDown,
+  Layers,
   Terminal, 
   X, 
-  Zap,
-  Info
+  Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { io, Socket } from 'socket.io-client';

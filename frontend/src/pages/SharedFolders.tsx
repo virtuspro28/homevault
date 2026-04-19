@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   FolderLock, 
   Plus, 
@@ -26,7 +26,7 @@ const SharedFolders: React.FC = () => {
   const [shares, setShares] = useState<Share[]>([]);
   const [loading, setLoading] = useState(true);
   const [smbEnabled, setSmbEnabled] = useState(true);
-  const [nfsEnabled, setNfsEnabled] = true;
+  const [nfsEnabled, setNfsEnabled] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newShare, setNewShare] = useState({ name: '', path: '', readOnly: false, type: 'SMB' });
 

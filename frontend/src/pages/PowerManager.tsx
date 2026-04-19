@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Battery, BatteryCharging, BatteryLow, BatteryWarning, Zap, RefreshCw, AlertTriangle, History, Clock, Activity, Cpu } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { BatteryCharging, BatteryWarning, Zap, AlertTriangle, History, Clock, Activity } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 
 export default function PowerManager() {
   const [status, setStatus] = useState<any>(null);
   const [events, setEvents] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchData();
