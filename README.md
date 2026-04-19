@@ -55,8 +55,13 @@ HomePiNAS is an all-in-one, high-performance dashboard designed specifically for
 Deploy HomePiNAS on your Raspberry Pi (Debian/Raspberry Pi OS) with the **One-Command Master Installer**:
 
 ```bash
+# Sencillo (si ya tienes sudo)
 curl -sSL https://raw.githubusercontent.com/virtuspro28/dashboard/main/install.sh | sudo bash
+
+# Si eres ROOT directamente (y no tienes sudo instalado)
+curl -sSL https://raw.githubusercontent.com/virtuspro28/dashboard/main/install.sh | bash
 ```
+
 
 ### Manual Setup
 
