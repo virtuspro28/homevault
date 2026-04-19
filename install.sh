@@ -48,9 +48,16 @@ fi
 
 # 2. Actualización de Sistema y Dependencias
 echo -e "${CYAN}[1/6] Actualizando sistema y paquetes críticos...${NC}"
-apt update && apt upgrade -y
-# Usamos || true para que un solo paquete rebelde no detenga toda la instalación
-apt install -y curl git build-essential mergerfs snapraid smartmontools nginx wireguard util-linux htop ufw || true
+# Forzar actualización de repositorios
+apt-get update -y
+
+echo -e "${CYAN}Instalando herramientas de compilación y sistema...${NC}"
+# Instalamos primero lo crítico de forma aislada
+apt-get install -y build-essential curl git util-linux python3-minimal --no-install-recommends || true
+
+echo -e "${CYAN}Instalando dependencias de red y NAS...${NC}"
+# Instalamos el resto de servicios
+apt-get install -y mergerfs snapraid smartmontools nginx wireguard htop ufw --no-install-recommends || true
 
 
 
