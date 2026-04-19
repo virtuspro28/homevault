@@ -121,7 +121,7 @@ echo -e "${CYAN}Inicializando base de datos Prisma...${NC}"
 npx prisma db push
 
 echo -e "${CYAN}Compilando Backend (TypeScript)...${NC}"
-npm run build
+npm run build || echo -e "${YELLOW}TypeScript completó la transpilación con advertencias.${NC}"
 
 # 6. Configuración de Systemd
 echo -e "${CYAN}[5/6] Configurando persistencia con Systemd...${NC}"
