@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  homepinas:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: homepinas-dashboard
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      LOG_LEVEL: info
+      # Base de datos SQLite persistente
+      DATABASE_URL: file:/data/homepinas.db
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      # Configuración del servidor
+      API_CORS_ORIGIN: ${API_CORS_ORIGIN:-*}
+      STORAGE_BASE_PATH: ${STORAGE_BASE_PATH:-/mnt/storage}
+    volumes:
+      # Persistencia de base de datos
+      - ./data:/data
+      # Persistencia de logs
+      - ./logs:/app/logs
+      # Acceso a rutas de almacenamiento (si existen en el host)
+      - /mnt/storage:/mnt/storage:ro
+      # Socket de Docker (para gestión de contenedores)
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - homepinas-network
+    # Límites de recursos (ajusta según tu hardware)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 512M
+        reservations:
+          cpus: '1'
+          memory: 256M
+
+  # Base de datos backup (opcional)
+  # Sincroniza la base de datos cada 6 horas
+  backup-cron:
+    image: alpine:latest
+    container_name: homepinas-db-backup
+    restart: unless-stopped
+    volumes:
+      - ./data:/data
+      - ./backups:/backups
+    entrypoint: |
+      sh -c '
+      while true; do
+        echo "Realizando backup de base de datos..."
+        cp /data/homepinas.db /backups/homepinas-$(date +%s).db.bak
+        # Mantener solo los últimos 10 backups
+        ls -1 /backups/homepinas-*.db.bak | sort -r | tail -n +11 | xargs -r rm
+        echo "Backup completado"
+        sleep 21600
+      done
+      '
+    networks:
+      - homepinas-network
+
+networks:
+  homepinas-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+
+volumes:
+  homepinas-data:
+    driver: local

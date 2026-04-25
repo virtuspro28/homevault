@@ -24,6 +24,10 @@ export default function AppStore() {
       .then(data => {
          if (data.success) setApps(data.data);
          setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error cargando apps:', err);
+        setLoading(false);
       });
   }, []);
 
@@ -31,18 +35,22 @@ export default function AppStore() {
     setInstalling(true);
     setInstallLog(`Iniciando instalación de ${appId}...\n`);
     try {
-      const res = await fetch(`/api/docker/store/install/${appId}`, { method: 'POST' });
-      const reader = res.body?.getReader();
-      if (!reader) throw new Error('No se pudo abrir el stream de logs');
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const text = new TextDecoder().decode(value);
-        setInstallLog(prev => prev + text);
+      const res = await fetch(`/api/docker/store/install/${appId}`, { 
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || `Error ${res.status}`);
       }
-    } catch (err) {
-      setInstallLog(prev => prev + '\n❌ Error crítico durante la instalación.');
+
+      const data = await res.json();
+      setInstallLog(prev => prev + `\n✅ ${data.message}`);
+    } catch (err: any) {
+      setInstallLog(prev => prev + `\n❌ Error: ${err.message || 'Error crítico durante la instalación.'}`);
     } finally {
       setInstalling(false);
     }
