@@ -30,7 +30,7 @@ router.get('/apps', requireAuth, async (req, res) => {
  */
 router.post('/install/:id', requireAuth, async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params["id"] as string;
     await StoreService.installApp(id);
     res.json({ success: true, message: `Instalación de ${id} iniciada correctamente` });
   } catch (error: any) {

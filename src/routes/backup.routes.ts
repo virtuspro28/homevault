@@ -45,7 +45,7 @@ router.post('/tasks', requireAuth, async (req, res) => {
  */
 router.post('/run/:id', requireAuth, async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params["id"] as string;
     // No esperamos el resultado para no bloquear la petición
     BackupService.executeRsyncTask(id);
     res.json({ success: true, message: 'Tarea de respaldo iniciada en segundo plano' });

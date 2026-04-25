@@ -26,7 +26,7 @@ router.use(requireAuth);
  */
 const storage = multer.diskStorage({
   destination: (req, _file, cb) => {
-    const dest = req.query.path ? path.join(config.storage.basePath, req.query.path as string) : config.storage.basePath;
+    const dest = req.query["path"] ? path.join(config.storage.basePath, req.query["path"] as string) : config.storage.basePath;
     // Ensure destination exists
     if (!fs.existsSync(dest)) {
       fs.mkdirSync(dest, { recursive: true });
@@ -88,7 +88,7 @@ router.post("/upload", upload.array("files"), async (req: Request, res: Response
  * [GET] /api/files/download?path=/folder/file.ext
  */
 router.get("/download", (req: Request, res: Response) => {
-  const filePath = req.query.path as string;
+  const filePath = req.query["path"] as string;
   if (!filePath) return res.status(400).json({ success: false, error: "Path is required" });
 
   const absolutePath = path.join(config.storage.basePath, filePath);
@@ -125,7 +125,7 @@ router.post("/mkdir", async (req: Request, res: Response) => {
  */
 router.delete("/delete", async (req: Request, res: Response) => {
   try {
-    const filePath = req.query.path as string;
+    const filePath = req.query["path"] as string;
     await deleteItem(filePath);
     res.status(200).json({ success: true });
   } catch (err: any) {
@@ -152,7 +152,7 @@ router.patch("/rename", async (req: Request, res: Response) => {
  */
 router.get("/search", async (req: Request, res: Response) => {
   try {
-    const query = req.query.q as string;
+    const query = req.query["q"] as string;
     if (!query) return res.status(400).json({ success: false, error: "Query is required" });
     const results = await searchFiles(query);
     res.status(200).json({ success: true, data: results });

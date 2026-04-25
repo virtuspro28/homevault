@@ -421,8 +421,9 @@ function getNetworkInfo(): NetworkInfo {
       lastNetFetch = now;
       lastRxBytes = currentRx;
       lastTxBytes = currentTx;
-    } catch (error) {
-      log.debug("Error leyendo métricas de red:", error);
+    } catch (error: unknown) {
+      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
+      log.debug("Error leyendo métricas de red:", errData);
     }
   }
 

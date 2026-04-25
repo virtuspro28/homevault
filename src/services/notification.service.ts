@@ -54,8 +54,9 @@ export const NotificationService = {
       });
 
       log.info(`Alerta [${level}] enviada y registrada correctamente.`);
-    } catch (error) {
-      log.error('Error enviando algunas notificaciones:', error);
+    } catch (error: unknown) {
+      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
+      log.error('Error enviando algunas notificaciones:', errData);
     }
   },
 
@@ -94,8 +95,9 @@ export const NotificationService = {
         })
       });
       if (!response.ok) throw new Error(`Discord API error: ${response.statusText}`);
-    } catch (error) {
-      log.error('Fallo al enviar a Discord:', error);
+    } catch (error: unknown) {
+      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
+      log.error('Fallo al enviar a Discord:', errData);
       throw error;
     }
   },
@@ -116,8 +118,9 @@ export const NotificationService = {
         })
       });
       if (!response.ok) throw new Error(`Telegram API error: ${response.statusText}`);
-    } catch (error) {
-      log.error('Fallo al enviar a Telegram:', error);
+    } catch (error: unknown) {
+      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
+      log.error('Fallo al enviar a Telegram:', errData);
       throw error;
     }
   }

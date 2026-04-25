@@ -77,11 +77,11 @@ export const DiskService = {
     for (const line of lines) {
       // Modelo
       if (line.includes('Device Model:') || line.includes('Model Family:')) {
-        model = line.split(':')[1].trim();
+        model = line.split(':')[1]?.trim() ?? 'Desconocido';
       }
       // Serial
       if (line.includes('Serial Number:')) {
-        serialNumber = line.split(':')[1].trim();
+        serialNumber = line.split(':')[1]?.trim() ?? 'Desconocido';
       }
       // Estado General
       if (line.includes('SMART overall-health self-assessment test result:')) {
@@ -90,12 +90,12 @@ export const DiskService = {
       // Temperatura (ID 194 o 190)
       if (line.match(/^(190|194)\s+Temperature_Celsius/)) {
         const parts = line.trim().split(/\s+/);
-        temperature = parseInt(parts[parts.length - 1]);
+        temperature = parseInt(parts[parts.length - 1] ?? "0");
       }
       // Horas de encendido (ID 9)
       if (line.match(/^9\s+Power_On_Hours/)) {
         const parts = line.trim().split(/\s+/);
-        powerOnHours = parseInt(parts[parts.length - 1]);
+        powerOnHours = parseInt(parts[parts.length - 1] ?? "0");
       }
     }
 

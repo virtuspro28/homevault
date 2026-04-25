@@ -14,15 +14,17 @@ import { exec } from "node:child_process";
 import { NotificationService } from "../services/notification.service.js";
 import { UpdateService } from "../services/update.service.js";
 import { logger } from "../utils/logger.js";
-import { requireAuth } from "../middlewares/authMiddleware.js";
+import { requireAuth, requireAdmin } from "../middlewares/authMiddleware.js";
 import { getDatabase } from "../database/connection.js";
 import { TelemetryService } from "../services/telemetry.service.js";
 import { promisify } from "node:util";
 import { getSystemStats, getHardwareInfo } from "../modules/system-monitor.js";
+import { PrismaClient } from "@prisma/client";
 
 const execAsync = promisify(exec);
 const router = Router();
 const log = logger.child("system-routes");
+const prisma = new PrismaClient();
 
 router.post("/reboot", requireAuth, async (_req: Request, res: Response) => {
   try {
@@ -75,9 +77,9 @@ router.get("/processes", requireAuth, async (_req: Request, res: Response) => {
       const p = line.trim().split(/\s+/);
       return {
         user: p[0],
-        pid: parseInt(p[1]),
-        cpu: parseFloat(p[2]),
-        mem: parseFloat(p[3]),
+        pid: parseInt(p[1] ?? "0"),
+        cpu: parseFloat(p[2] ?? "0"),
+        mem: parseFloat(p[3] ?? "0"),
         name: p[10] ? p.slice(10).join(' ').substring(0, 40) : "Unknown"
       };
     });
@@ -106,10 +108,8 @@ router.delete("/processes/:pid", requireAuth, async (req: Request, res: Response
 /**
  * GET /api/system/notifications/history
  */
-import { getDatabase } from "../database/connection.js";
 router.get("/notifications/history", requireAuth, async (_req: Request, res: Response) => {
   try {
-    const prisma = getDatabase();
     const history = await prisma.notificationActivity.findMany({
       where: { isRead: false },
       orderBy: { timestamp: 'desc' },
@@ -128,7 +128,6 @@ router.get("/notifications/history", requireAuth, async (_req: Request, res: Res
 router.get("/events", requireAuth, async (req: Request, res: Response) => {
   try {
     const { level, category, search } = req.query;
-    const prisma = getDatabase();
     
     const where: any = {};
     if (level) where.level = level;
@@ -154,7 +153,6 @@ router.get("/events", requireAuth, async (req: Request, res: Response) => {
  */
 router.patch("/events/read-all", requireAuth, async (_req: Request, res: Response) => {
   try {
-    const prisma = getDatabase();
     await prisma.notificationActivity.updateMany({
       where: { isRead: false },
       data: { isRead: true }
@@ -169,10 +167,8 @@ router.patch("/events/read-all", requireAuth, async (_req: Request, res: Respons
  * DELETE /api/system/events
  * Limpiar historial de eventos (Solo Admin)
  */
-import { requireAdmin } from "../middlewares/authMiddleware.js";
 router.delete("/events", requireAuth, requireAdmin, async (_req: Request, res: Response) => {
   try {
-    const prisma = getDatabase();
     await prisma.notificationActivity.deleteMany({});
     res.json({ success: true, message: "Historial de eventos vaciado" });
   } catch (error: any) {

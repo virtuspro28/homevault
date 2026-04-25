@@ -40,7 +40,7 @@ export const SambaService = {
       const sections = content.split(/^\[(.+?)\]/m);
 
       for (let i = 1; i < sections.length; i += 2) {
-        const name = sections[i].trim();
+        const name = sections[i]?.trim() ?? '';
         const config = sections[i + 1] || '';
 
         if (['global', 'homes', 'printers', 'print$'].includes(name.toLowerCase())) {
@@ -51,7 +51,7 @@ export const SambaService = {
         if (pathMatch) {
           shares.push({
             name,
-            path: pathMatch[1].trim(),
+            path: pathMatch[1]?.trim() ?? '',
             browseable: !/browseable\s*=\s*no/i.test(config),
             readOnly: /read only\s*=\s*yes/i.test(config),
             guestOk: /guest ok\s*=\s*yes/i.test(config),
@@ -60,8 +60,9 @@ export const SambaService = {
       }
 
       return shares;
-    } catch (error) {
-      log.error('Error al leer smb.conf:', error);
+    } catch (error: unknown) {
+      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
+      log.error('Error al leer smb.conf:', errData);
       return [];
     }
   },
@@ -92,8 +93,9 @@ export const SambaService = {
       await fs.appendFile(SMB_CONF_PATH, shareConfig);
       await this.restartService('smbd');
       log.info(`Samba share [${name}] added.`);
-    } catch (error) {
-      log.error(`Error adding Samba share [${name}]:`, error);
+    } catch (error: unknown) {
+      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
+      log.error(`Error adding Samba share [${name}]:`, errData);
       throw new Error('Could not update smb.conf');
     }
   },
@@ -109,8 +111,9 @@ export const SambaService = {
       await fs.appendFile(NFS_EXPORTS_PATH, entry);
       await execAsync('sudo exportfs -ra');
       log.info(`NFS export added for ${path}`);
-    } catch (error) {
-      log.error('Error adding NFS share:', error);
+    } catch (error: unknown) {
+      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
+      log.error('Error adding NFS share:', errData);
       throw new Error('Failed to update NFS exports');
     }
   },
@@ -129,8 +132,9 @@ export const SambaService = {
       await fs.writeFile(SMB_CONF_PATH, newContent);
       await this.restartService('smbd');
       log.info(`Samba share [${name}] deleted.`);
-    } catch (error) {
-      log.error(`Error deleting share [${name}]:`, error);
+    } catch (error: unknown) {
+      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
+      log.error(`Error deleting share [${name}]:`, errData);
       throw new Error('Error modifying smb.conf');
     }
   },
@@ -158,8 +162,9 @@ export const SambaService = {
       await execAsync(`sudo systemctl ${action} ${service}`);
       await execAsync(`sudo systemctl ${enableDisable} ${service}`);
       log.info(`Protocol ${protocol} ${enabled ? 'enabled' : 'disabled'}`);
-    } catch (error) {
-      log.error(`Failed to toggle protocol ${protocol}:`, error);
+    } catch (error: unknown) {
+      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
+      log.error(`Failed to toggle protocol ${protocol}:`, errData);
       throw new Error(`Failed to manage ${service}`);
     }
   }

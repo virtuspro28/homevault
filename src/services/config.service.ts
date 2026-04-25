@@ -57,8 +57,9 @@ export async function listConfigFiles(): Promise<{ name: string; path: string }[
         name: f,
         path: f // Returning relative to CONFIG_ROOT
       }));
-  } catch (err) {
-    log.error('Error listing config files:', err);
+  } catch (err: unknown) {
+    const errData = err instanceof Error ? { error: err.message } : { error: String(err) };
+    log.error('Error listing config files:', errData);
     return [];
   }
 }

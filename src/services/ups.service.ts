@@ -1,12 +1,13 @@
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
-import { getDatabase } from "../database/connection.js";
+import { PrismaClient } from "@prisma/client";
 import { logger } from "../utils/logger.js";
 import { config as appConfig } from "../config/index.js";
 import { NotificationService } from "./notification.service.js";
 
 const execAsync = promisify(exec);
 const log = logger.child("ups-service");
+const prisma = new PrismaClient();
 
 export interface UpsStatus {
   charge: number;     // 0-100%
@@ -87,8 +88,6 @@ export const UpsService = {
    * Lógica de seguridad y apagado automático
    */
   async evaluateSafety(stats: UpsStatus) {
-    const prisma = getDatabase();
-
     // 1. Detectar cambio de estado (Corriente -> Batería)
     if (lastStatus === "OL" && stats.status.includes("OB")) {
       await prisma.powerEvent.create({
@@ -124,7 +123,6 @@ export const UpsService = {
   },
 
   async getEvents() {
-    const prisma = getDatabase();
     return await prisma.powerEvent.findMany({
       orderBy: { timestamp: 'desc' },
       take: 20

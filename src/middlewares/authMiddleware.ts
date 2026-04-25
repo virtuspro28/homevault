@@ -19,7 +19,7 @@ declare global {
  */
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
   try {
-    const token = req.cookies?.jwt;
+    const token = req.cookies?.["jwt"];
 
     if (!token) {
       log.warn(`Acceso denegado. No hay cookie [IP: ${req.ip}]`);
@@ -29,7 +29,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
 
     const decoded = verifyToken(token);
 
-    if (!decoded || !decoded.id) {
+    if (!decoded || !decoded["id"]) {
       log.warn(`Intento de acceso con token inválido [IP: ${req.ip}]`);
       res.clearCookie("jwt");
       res.status(401).json({ success: false, error: "Sesión inválida o expirada." });
@@ -38,9 +38,9 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
 
     // El token ahora incluye el rol
     req.user = {
-      id: decoded.id as string,
-      username: decoded.username as string,
-      role: decoded.role as string,
+      id: decoded["id"] as string,
+      username: decoded["username"] as string,
+      role: decoded["role"] as string,
     };
 
     next();

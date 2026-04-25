@@ -42,17 +42,21 @@ export const RCloneService = {
         // En un sistema real verificaríamos si está montado via 'df' o tracking interno
         const isMounted = await this.isRemoteMounted(name);
         
-        remotes.push({
+        const remote: CloudRemote = {
           name,
           type: data.type,
           isMounted,
-          mountPath: isMounted ? path.join(config.storage.basePath, 'cloud', name) : undefined
-        });
+        };
+        if (isMounted) {
+          remote.mountPath = path.join(config.storage.basePath, 'cloud', name);
+        }
+        remotes.push(remote);
       }
 
       return remotes;
-    } catch (error) {
-      log.error('Error listando remotos:', error);
+    } catch (error: unknown) {
+      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
+      log.error('Error listando remotos:', errData);
       return [];
     }
   },

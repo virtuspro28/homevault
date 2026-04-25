@@ -23,7 +23,7 @@ router.get("/containers", async (_req: Request, res: Response) => {
 
 router.post("/containers/:id/start", async (req: Request, res: Response) => {
   try {
-    await startContainer(req.params.id);
+    await startContainer(req.params["id"] as string);
     res.status(200).json({ success: true, message: "Contenedor iniciado" });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Error iniciando container';
@@ -34,7 +34,7 @@ router.post("/containers/:id/start", async (req: Request, res: Response) => {
 
 router.post("/containers/:id/stop", async (req: Request, res: Response) => {
   try {
-    await stopContainer(req.params.id);
+    await stopContainer(req.params["id"] as string);
     res.status(200).json({ success: true, message: "Contenedor detenido" });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Error deteniendo container';

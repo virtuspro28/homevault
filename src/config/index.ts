@@ -87,6 +87,11 @@ export interface AppConfig {
     readonly busyTimeout: number;
   };
 
+  /** Autenticación */
+  readonly auth: {
+    readonly jwtSecret: string;
+  };
+
   /** Logger */
   readonly logger: {
     readonly level: "debug" | "info" | "warn" | "error";
@@ -146,6 +151,10 @@ export const config: AppConfig = Object.freeze({
   database: Object.freeze({
     cacheSize: sqliteCacheSize,
     busyTimeout: 5000,
+  }),
+
+  auth: Object.freeze({
+    jwtSecret: process.env["JWT_SECRET"] ?? "homepinas-default-secret-change-me",
   }),
 
   logger: Object.freeze({

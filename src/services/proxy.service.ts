@@ -1,20 +1,19 @@
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import fs from "node:fs";
-import { getDatabase } from "../database/connection.js";
+import { PrismaClient } from "@prisma/client";
 import { logger } from "../utils/logger.js";
 import { config as appConfig } from "../config/index.js";
 
 const execAsync = promisify(exec);
 const log = logger.child("proxy-service");
+const prisma = new PrismaClient();
 
 export const ProxyService = {
   /**
    * Añade un nuevo dominio con Proxy Inverso
    */
   async addDomain(domain: string, targetPort: number) {
-    const prisma = getDatabase();
-    
     // 1. Guardar en DB
     const proxy = await prisma.proxyDomain.create({
       data: { domain, targetPort }
@@ -55,7 +54,6 @@ export const ProxyService = {
    * Emite certificado SSL usando Certbot
    */
   async issueSSL(id: string) {
-    const prisma = getDatabase();
     const proxy = await prisma.proxyDomain.findUnique({ where: { id } });
     if (!proxy) throw new Error("Dominio no encontrado");
 
@@ -82,14 +80,12 @@ export const ProxyService = {
   },
 
   async listDomains() {
-    const prisma = getDatabase();
     return await prisma.proxyDomain.findMany({
       orderBy: { createdAt: 'desc' }
     });
   },
 
   async deleteDomain(id: string) {
-    const prisma = getDatabase();
     const proxy = await prisma.proxyDomain.delete({ where: { id } });
     
     if (!appConfig.platform.isWindows) {

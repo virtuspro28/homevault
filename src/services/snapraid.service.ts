@@ -1,19 +1,19 @@
 import { spawn, exec } from "node:child_process";
 import { promisify } from "node:util";
 import fs from "node:fs";
-import { getDatabase } from "../database/connection.js";
+import { PrismaClient } from "@prisma/client";
 import { logger } from "../utils/logger.js";
 import { config } from "../config/index.js";
 
 const execAsync = promisify(exec);
 const log = logger.child("snapraid-service");
+const prisma = new PrismaClient();
 
 export const SnapRaidService = {
   /**
    * Obtiene el estado actual del Pool desde la DB
    */
   async getStatus() {
-    const prisma = getDatabase();
     let status = await prisma.storagePool.findUnique({ where: { id: "global" } });
     
     if (!status) {
@@ -28,7 +28,6 @@ export const SnapRaidService = {
    * Ejecuta SnapRAID Sync con captura de progreso
    */
   async runSync() {
-    const prisma = getDatabase();
     log.info("Iniciando SnapRAID Sync...");
 
     await prisma.storagePool.update({
@@ -44,12 +43,12 @@ export const SnapRaidService = {
 
     const child = spawn("sudo", ["snapraid", "sync"]);
 
-    child.stdout.on("data", async (data) => {
+    child.stdout.on("data", async (data: Buffer) => {
       const output = data.toString();
       // Buscar patrones de porcentaje: " 15%"
       const match = output.match(/(\d+)%/);
       if (match) {
-        const progress = parseInt(match[1]);
+        const progress = parseInt(match[1] ?? "0");
         await prisma.storagePool.update({
           where: { id: "global" },
           data: { progress }
@@ -57,13 +56,13 @@ export const SnapRaidService = {
       }
     });
 
-    child.on("close", async (code) => {
+    child.on("close", async (code: number | null) => {
       await prisma.storagePool.update({
         where: { id: "global" },
         data: { 
           status: "idle", 
           progress: 100, 
-          lastSync: code === 0 ? new Date() : undefined 
+          lastSync: code === 0 ? new Date() : null 
         }
       });
       log.info(`SnapRAID Sync finalizado con código ${code}`);
@@ -100,7 +99,6 @@ export const SnapRaidService = {
    * Simulación para entornos de desarrollo
    */
   simulateProcess(status: "syncing" | "scrubbing", dateField: string) {
-    const prisma = getDatabase();
     let prog = 0;
     const interval = setInterval(async () => {
       prog += 10;

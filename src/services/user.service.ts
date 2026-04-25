@@ -40,8 +40,9 @@ export const UserService = {
 
       log.info(`Usuario creado: ${username} [Rol: ${role}]`);
       return user;
-    } catch (error) {
-      log.error(`Error creando usuario ${username}:`, error);
+    } catch (error: unknown) {
+      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
+      log.error(`Error creando usuario ${username}:`, errData);
       throw new Error('Fallo al guardar usuario en la base de datos');
     }
   },
@@ -86,8 +87,9 @@ export const UserService = {
 
       log.info(`Permisos actualizados para user ${user.username}`);
       return user;
-    } catch (error) {
-      log.error(`Error actualizando permisos para user ${userId}:`, error);
+    } catch (error: unknown) {
+      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
+      log.error(`Error actualizando permisos para user ${userId}:`, errData);
       throw new Error('No se pudo actualizar el usuario');
     }
   },

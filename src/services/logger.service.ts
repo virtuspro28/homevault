@@ -43,8 +43,9 @@ export const LoggerService = {
 
       // 4. Return the created event for socket emitting (done in routes/sockets)
       return event;
-    } catch (error) {
-      log.error('Failed to log event:', error);
+    } catch (error: unknown) {
+      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
+      log.error('Failed to log event:', errData);
       throw error;
     }
   },

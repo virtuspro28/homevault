@@ -1,21 +1,20 @@
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import fs from "node:fs";
-import { getDatabase } from "../database/connection.js";
+import { PrismaClient } from "@prisma/client";
 import { logger } from "../utils/logger.js";
 import QRCode from "qrcode";
 import { config as appConfig } from "../config/index.js";
 
 const execAsync = promisify(exec);
 const log = logger.child("vpn-service");
+const prisma = new PrismaClient();
 
 export const VpnService = {
   /**
    * Genera llaves de cliente y registra en DB
    */
   async addClient(name: string) {
-    const prisma = getDatabase();
-    
     // Simulación para Windows (el usuario suele estar en Windows desarrollando)
     if (appConfig.platform.isWindows) {
       const client = await prisma.vpnClient.create({
@@ -64,7 +63,6 @@ export const VpnService = {
    * Genera el contenido del archivo .conf para un cliente
    */
   async getClientConfig(clientId: string) {
-    const prisma = getDatabase();
     const client = await prisma.vpnClient.findUnique({ where: { id: clientId } });
     if (!client) throw new Error("Cliente no encontrado");
 
@@ -96,14 +94,12 @@ PersistentKeepalive = 25
   },
 
   async listClients() {
-    const prisma = getDatabase();
     return await prisma.vpnClient.findMany({
       orderBy: { createdAt: 'desc' }
     });
   },
 
   async deleteClient(id: string) {
-    const prisma = getDatabase();
     const client = await prisma.vpnClient.delete({ where: { id } });
     // En Linux deberíamos eliminar el Peer de wg0.conf y recargar
     return client;

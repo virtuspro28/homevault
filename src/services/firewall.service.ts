@@ -38,10 +38,10 @@ export const FirewallService = {
         const match = line.match(ruleRegex);
         if (match) {
           rules.push({
-            index: parseInt(match[1]),
-            to: match[2],
-            action: match[3],
-            from: match[4]
+            index: parseInt(match[1] ?? "0"),
+            to: match[2] ?? "",
+            action: match[3] ?? "",
+            from: match[4] ?? ""
           });
         }
       }

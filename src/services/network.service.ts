@@ -37,8 +37,9 @@ export const NetworkService = {
         const content = fs.readFileSync("/etc/dhcpcd.conf", "utf-8");
         info.isStatic = content.includes("static ip_address=");
       }
-    } catch (err) {
-      log.debug("Error obteniendo detalles de red (posible Windows):", err);
+    } catch (err: unknown) {
+      const errData = err instanceof Error ? { error: err.message } : { error: String(err) };
+      log.debug("Error obteniendo detalles de red (posible Windows):", errData);
     }
 
     return info;

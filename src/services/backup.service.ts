@@ -33,8 +33,9 @@ export const BackupService = {
         const publicKey = await fs.readFile(PUBLIC_KEY_PATH, 'utf-8');
         return publicKey;
       }
-    } catch (error) {
-      log.error('Error gestionando llaves SSH:', error);
+    } catch (error: unknown) {
+      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
+      log.error('Error gestionando llaves SSH:', errData);
       throw new Error('Fallo al inicializar claves SSH para el sistema de backup');
     }
   },
@@ -56,8 +57,9 @@ export const BackupService = {
       
       log.info(`Agente registrado: ${machineName} -> ${storagePath}`);
       return task;
-    } catch (error) {
-      log.error(`Error registrando máquina ${machineName}:`, error);
+    } catch (error: unknown) {
+      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
+      log.error(`Error registrando máquina ${machineName}:`, errData);
       throw error;
     }
   },
@@ -75,7 +77,7 @@ export const BackupService = {
         data: {
           taskId: task.id,
           status,
-          details
+          details: details ?? null
         }
       });
 
@@ -97,8 +99,9 @@ export const BackupService = {
       }
 
       return updatedTask;
-    } catch (error) {
-      log.error(`Error reportando estado para ${machineName}:`, error);
+    } catch (error: unknown) {
+      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
+      log.error(`Error reportando estado para ${machineName}:`, errData);
       throw error;
     }
   },
@@ -147,8 +150,9 @@ export const BackupService = {
       
       if (data.blockdevices) processDevices(data.blockdevices);
       return drives;
-    } catch (err) {
-      log.error('Error detectando USBs:', err);
+    } catch (err: unknown) {
+      const errData = err instanceof Error ? { error: err.message } : { error: String(err) };
+      log.error('Error detectando USBs:', errData);
       return [];
     }
   },

@@ -63,23 +63,22 @@ export const StoreService = {
       log.info(`Ejecutando despliegue: ${dockerCmd}`);
       
       // 3. Ejecutar con spawn para streaming de logs
-      const [cmd, ...args] = dockerCmd.split(' ');
-      const child = spawn(cmd, args, { shell: true });
+      const child = spawn(dockerCmd, [], { shell: true });
 
-      child.stdout.on('data', (data) => {
+      child.stdout?.on('data', (data: Buffer) => {
         const line = data.toString();
         log.info(`[BUILD:${appId}] ${line.trim()}`);
         io.emit(`app:install:log:${appId}`, { stream: 'stdout', text: line });
       });
 
-      child.stderr.on('data', (data) => {
+      child.stderr?.on('data', (data: Buffer) => {
         const line = data.toString();
         log.warn(`[BUILD:${appId}] ${line.trim()}`);
         io.emit(`app:install:log:${appId}`, { stream: 'stderr', text: line });
       });
 
-      await new Promise((resolve, reject) => {
-        child.on('close', (code) => {
+      await new Promise<boolean>((resolve, reject) => {
+        child.on('close', (code: number | null) => {
           if (code === 0) resolve(true);
           else reject(new Error(`Docker falló con código ${code}`));
         });

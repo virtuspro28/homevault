@@ -44,8 +44,9 @@ export function startSystemWatcher() {
       if (stats.network) {
         TelemetryService.pushNetworkData(stats.network.rxSpeed, stats.network.txSpeed);
       }
-    } catch (error) {
-      log.error('Error en el loop del System Watcher:', error);
+    } catch (error: unknown) {
+      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
+      log.error('Error en el loop del System Watcher:', errData);
     }
   }, CHECK_INTERVAL_MS);
 }

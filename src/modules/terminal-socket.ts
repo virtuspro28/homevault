@@ -10,7 +10,7 @@ const log = logger.child("terminal-socket");
 export function setupTerminalSocket(io: Server) {
   // Middleware de autenticación para Sockets
   io.use((socket, next) => {
-    const token = socket.handshake.auth.token || socket.handshake.query.token;
+    const token = socket.handshake.auth["token"] || socket.handshake.query["token"];
 
     if (!token) {
       log.warn("Intento de conexión a Terminal sin token");
@@ -18,7 +18,7 @@ export function setupTerminalSocket(io: Server) {
     }
 
     try {
-      const decoded = jwt.verify(token, config.auth.jwtSecret) as any;
+      const decoded = jwt.verify(token as string, config.auth.jwtSecret) as any;
       
       // Solo administradores pueden usar la terminal
       if (decoded.role !== 'ADMIN' && decoded.role !== 'OWNER') {
@@ -28,8 +28,9 @@ export function setupTerminalSocket(io: Server) {
 
       (socket as any).user = decoded;
       next();
-    } catch (err) {
-      log.error("Fallo de validación JWT en Socket:", err);
+    } catch (err: unknown) {
+      const errData = err instanceof Error ? { error: err.message } : { error: String(err) };
+      log.error("Fallo de validación JWT en Socket:", errData);
       next(new Error("Authentication error: Invalid token"));
     }
   });
@@ -55,7 +56,7 @@ export function setupTerminalSocket(io: Server) {
       name: "xterm-color",
       cols: 80,
       rows: 24,
-      cwd: process.env.HOME || "/home/pi",
+      cwd: process.env["HOME"] || "/home/pi",
       env: process.env as any,
     });
 

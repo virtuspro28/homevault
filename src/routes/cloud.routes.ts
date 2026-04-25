@@ -21,7 +21,7 @@ router.get('/remotes', requireAuth, async (req, res) => {
  */
 router.post('/mount/:name', requireAuth, async (req, res) => {
   try {
-    const { name } = req.params;
+    const name = req.params["name"] as string;
     await RCloneService.mountRemote(name);
     res.json({ success: true, message: `Remoto ${name} montado correctamente` });
   } catch (error: any) {
@@ -34,7 +34,7 @@ router.post('/mount/:name', requireAuth, async (req, res) => {
  */
 router.delete('/mount/:name', requireAuth, async (req, res) => {
   try {
-    const { name } = req.params;
+    const name = req.params["name"] as string;
     await RCloneService.unmountRemote(name);
     res.json({ success: true, message: `Remoto ${name} desmontado` });
   } catch (error: any) {

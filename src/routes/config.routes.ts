@@ -33,7 +33,7 @@ router.get("/files", async (_req: Request, res: Response) => {
  */
 router.get("/read", async (req: Request, res: Response) => {
   try {
-    const filePath = req.query.path as string;
+    const filePath = req.query["path"] as string;
     if (!filePath) return res.status(400).json({ success: false, error: "Path is required" });
     
     const content = await readConfigFile(filePath);

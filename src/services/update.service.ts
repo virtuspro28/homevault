@@ -38,8 +38,9 @@ export const UpdateService = {
         latestVersion: remoteHash.substring(0, 7),
         currentVersion: localHash.trim().substring(0, 7)
       };
-    } catch (error) {
-      log.error('Error comprobando actualizaciones:', error);
+    } catch (error: unknown) {
+      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
+      log.error('Error comprobando actualizaciones:', errData);
       return { available: false, latestVersion: 'unknown', currentVersion: this.private.currentVersion };
     }
   },

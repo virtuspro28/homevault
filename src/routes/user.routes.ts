@@ -44,7 +44,7 @@ router.post('/', requireAdmin, async (req, res) => {
 router.patch('/:id', requireAdmin, async (req, res) => {
   try {
     const { role, storageQuota } = req.body;
-    const user = await UserService.updatePermissions(req.params.id, { role, storageQuota });
+    const user = await UserService.updatePermissions(req.params["id"] as string, { role, storageQuota });
     res.json({ success: true, data: user });
   } catch (error: any) {
     res.status(400).json({ success: false, error: error.message });
@@ -61,7 +61,7 @@ router.post('/:id/reset-password', requireAdmin, async (req, res) => {
     if (!password) {
       return res.status(400).json({ success: false, error: 'La nueva contraseña es obligatoria' });
     }
-    await UserService.resetPassword(req.params.id, password);
+    await UserService.resetPassword(req.params["id"] as string, password);
     res.json({ success: true, message: 'Contraseña restablecida correctamente' });
   } catch (error: any) {
     res.status(400).json({ success: false, error: error.message });
@@ -74,7 +74,7 @@ router.post('/:id/reset-password', requireAdmin, async (req, res) => {
  */
 router.delete('/:id', requireAdmin, async (req, res) => {
   try {
-    await UserService.deleteUser(req.params.id);
+    await UserService.deleteUser(req.params["id"] as string);
     res.json({ success: true, message: 'Usuario eliminado correctamente' });
   } catch (error: any) {
     res.status(400).json({ success: false, error: error.message });

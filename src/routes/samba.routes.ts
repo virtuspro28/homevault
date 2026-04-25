@@ -76,7 +76,7 @@ router.post('/protocol/toggle', requireAdmin, async (req, res) => {
  */
 router.delete('/shares/:name', requireAdmin, async (req, res) => {
   try {
-    const { name } = req.params;
+    const name = req.params["name"] as string;
     await SambaService.deleteShare(name);
     res.json({ success: true, message: 'Recurso compartido eliminado correctamente' });
   } catch (error: any) {

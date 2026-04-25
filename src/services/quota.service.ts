@@ -40,8 +40,9 @@ export class QuotaService {
       };
 
       return await calculateSize(userDir);
-    } catch (error) {
-      log.error(`Failed to calculate usage for ${username}:`, error);
+    } catch (error: unknown) {
+      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
+      log.error(`Failed to calculate usage for ${username}:`, errData);
       return 0;
     }
   }

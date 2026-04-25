@@ -1,11 +1,12 @@
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
-import { getDatabase } from "../database/connection.js";
+import { PrismaClient } from "@prisma/client";
 import { logger } from "../utils/logger.js";
 import { config as appConfig } from "../config/index.js";
 
 const execAsync = promisify(exec);
 const log = logger.child("security-service");
+const prisma = new PrismaClient();
 
 export const SecurityService = {
   /**
@@ -69,7 +70,6 @@ export const SecurityService = {
   },
 
   async getConfig() {
-    const prisma = getDatabase();
     let config = await prisma.securityConfig.findUnique({ where: { id: "global" } });
     if (!config) {
       config = await prisma.securityConfig.create({
