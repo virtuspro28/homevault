@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Server, Lock, User, AlertCircle } from 'lucide-react';
 
 interface LoginProps {
-  onAuthSuccess: () => void;
+  onAuthSuccess: (user: { id: string; username: string; role: string }) => void;
 }
 
 export default function Login({ onAuthSuccess }: LoginProps) {
@@ -12,13 +12,11 @@ export default function Login({ onAuthSuccess }: LoginProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setIsLoading(true)
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
 
     try {
-      // Usamos fetch nativo. El proxy de Vite enviará esto a localhost:3000
-      // credentials: 'include' es VITAL para que la cookie set-cookie HttpOnly sea guardada por el navegador.
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -26,30 +24,28 @@ export default function Login({ onAuthSuccess }: LoginProps) {
         },
         credentials: 'include',
         body: JSON.stringify({ username, password })
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Autenticación fallida')
+        throw new Error(data.error || 'Autenticación fallida');
       }
 
-      // Si todo va bien, notificamos a App.tsx
-      onAuthSuccess()
+      onAuthSuccess(data.data);
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setError(err.message)
+        setError(err.message);
       } else {
-        setError('No se pudo conectar al servidor')
+        setError('No se pudo conectar al servidor');
       }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4">
-      {/* Tarjeta Glassmorfismo Minimalista */}
       <div className="w-full max-w-md bg-slate-900/50 backdrop-blur-xl border border-slate-800 p-8 rounded-2xl shadow-2xl">
         <div className="flex flex-col items-center mb-8">
           <div className="w-16 h-16 bg-blue-500/10 flex items-center justify-center rounded-2xl mb-4 border border-blue-500/20">
@@ -117,5 +113,5 @@ export default function Login({ onAuthSuccess }: LoginProps) {
         </form>
       </div>
     </div>
-  )
+  );
 }
