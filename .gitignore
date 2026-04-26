@@ -21,6 +21,9 @@ data/*.db-journal
 data/*.db-wal
 data/*.db-shm
 
+# Documentation
+docs_local/
+
 # Logs
 logs/
 *.log

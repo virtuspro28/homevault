@@ -16,15 +16,11 @@ export default function Setup({ onSetupComplete }: SetupProps) {
     e.preventDefault();
     setError(null);
 
-    if (password.length < 12) {
-      setError('La contraseña maestra debe tener al menos 12 caracteres.');
+    if (password.length < 4) {
+      setError('La contraseña debe tener al menos 4 caracteres.');
       return;
     }
 
-    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password)) {
-      setError('La contraseña debe incluir mayúsculas, minúsculas y números.');
-      return;
-    }
 
     if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden. Revisa la escritura.');
@@ -72,8 +68,9 @@ export default function Setup({ onSetupComplete }: SetupProps) {
             Se ha detectado una base de datos nueva. Configure obligatoriamente la cuenta de administración maestra.
           </p>
           <p className="text-slate-500 text-xs mt-2 text-center">
-            Usa una clave de 12+ caracteres con mayúsculas, minúsculas y números.
+            Usa una contraseña de al menos 4 caracteres.
           </p>
+
         </div>
 
         {error && (

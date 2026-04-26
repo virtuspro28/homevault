@@ -61,25 +61,14 @@ export async function setup(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    if (password.length < 12 || password.length > 128) {
+    if (password.length < 4 || password.length > 128) {
       res.status(400).json({
         success: false,
-        error: "Contraseña debe tener entre 12 y 128 caracteres",
+        error: "Contraseña debe tener entre 4 y 128 caracteres",
       });
       return;
     }
 
-    const hasUppercase = /[A-Z]/.test(password);
-    const hasLowercase = /[a-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-
-    if (!hasUppercase || !hasLowercase || !hasNumbers) {
-      res.status(400).json({
-        success: false,
-        error: "Contraseña debe contener mayúsculas, minúsculas y números",
-      });
-      return;
-    }
 
     const count = await prisma.user.count();
     if (count > 0) {
