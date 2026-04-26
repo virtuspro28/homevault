@@ -189,10 +189,20 @@ export const HardwareService = {
   },
 
   async getCombinedStatus() {
+    let disks = [];
+    try {
+      const { DiskService } = await import("./disk.service.js");
+      disks = await DiskService.getHealthStatus();
+    } catch (e) {
+      log.warn("Error obteniendo salud de discos para telemetría");
+    }
+
     return {
       power: await this.getPowerTelemetry(),
       fan: await this.getFanTelemetry(),
-      cpuTemp: await this.getCPUTemp()
+      cpuTemp: await this.getCPUTemp(),
+      disks: disks
     };
   }
+
 };
