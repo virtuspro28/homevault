@@ -75,14 +75,15 @@ export const HardwareService = {
       return this.private.currentStats.power;
     }
 
+    if (!this.private.currentStats.power.detected) {
+      return this.private.currentStats.power;
+    }
+
     try {
-      // INA238 I2C Reading (Address 0x40)
-      // Bus Voltage Register: 0x01, Power Register: 0x08, Current Register: 0x07
-      // Usamos i2cget (debe estar instalado: apt install i2c-tools)
-      const { stdout: vRaw } = await execAsync('i2cget -y 1 0x40 0x01 w');
-      const { stdout: pRaw } = await execAsync('i2cget -y 1 0x40 0x08 w');
+      // Usamos un timeout corto para evitar bloqueos
+      const { stdout: vRaw } = await execAsync('i2cget -y 1 0x40 0x01 w', { timeout: 1000 });
+      const { stdout: pRaw } = await execAsync('i2cget -y 1 0x40 0x08 w', { timeout: 1000 });
       
-      // Conversión simplificada (basada en LSB estándar del INA238)
       const voltage = parseInt(vRaw, 16) * 0.003125; // 3.125mV LSB
       const power = parseInt(pRaw, 16) * 0.01;       // Asumiendo calibración de 10mW LSB
 
@@ -93,8 +94,10 @@ export const HardwareService = {
         detected: true
       };
     } catch (err) {
+      log.debug('INA238 no respondio, desactivando deteccion de energia');
       this.private.currentStats.power.detected = false;
     }
+
     return this.private.currentStats.power;
   },
 
