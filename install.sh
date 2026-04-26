@@ -69,9 +69,9 @@ else
 fi
 
 log_step "[4/7] Desplegando archivos de la aplicación..."
-mkdir -p "$INSTALL_DIR" "$DATA_DIR"
 
 if [ -d "./src" ] && [ -f "./package.json" ] && [ -d "./frontend" ]; then
+  mkdir -p "$INSTALL_DIR"
   rsync -a --delete \
     --exclude ".git" \
     --exclude "node_modules" \
@@ -81,20 +81,23 @@ if [ -d "./src" ] && [ -f "./package.json" ] && [ -d "./frontend" ]; then
     ./ "$INSTALL_DIR/"
 else
   if [ ! -d "$INSTALL_DIR/.git" ]; then
-    echo -e "${YELLOW}La carpeta existe pero no es un repositorio Git. Limpiando para re-instalación...${NC}"
-    rm -rf "$INSTALL_DIR"
+    # Si la carpeta existe pero no tiene .git, la borramos para poder clonar
+    if [ -d "$INSTALL_DIR" ]; then
+        rm -rf "$INSTALL_DIR"
+    fi
     git clone https://github.com/virtuspro28/dashboard.git "$INSTALL_DIR"
   else
     echo -e "${BLUE}Actualizando código desde GitHub...${NC}"
     git -C "$INSTALL_DIR" fetch --all
     git -C "$INSTALL_DIR" reset --hard origin/main
   fi
-
 fi
 
-cd "$INSTALL_DIR"
+# AHORA creamos las carpetas de datos (después de clonar)
 mkdir -p "$DATA_DIR"
+cd "$INSTALL_DIR"
 touch "$DB_FILE"
+
 
 log_step "[5/7] Instalando dependencias, generando Prisma y compilando..."
 npm install
