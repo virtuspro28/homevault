@@ -51,7 +51,7 @@ export default function AppStore() {
   const [installLog, setInstallLog] = useState('');
 
   useEffect(() => {
-    fetch('/api/store/apps')
+    fetch('/api/store/apps', { credentials: 'include' })
 
       .then((res) => res.json())
       .then((data) => {
@@ -73,7 +73,8 @@ export default function AppStore() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        credentials: 'include'
       });
 
       if (!res.ok) {
