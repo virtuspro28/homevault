@@ -26,6 +26,7 @@ router.get("/pools", async (_req, res) => {
   }
 });
 
+/**
  * GET /api/storage/pool/status
  * Obtiene el estado de sincronización y protección del Pool
  */
@@ -63,9 +64,6 @@ router.post("/pool/persist-pool", async (_req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
-
-/**
- * GET /api/storage/health
 
 /**
  * GET /api/storage/health
