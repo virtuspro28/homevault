@@ -51,7 +51,8 @@ export default function AppStore() {
   const [installLog, setInstallLog] = useState('');
 
   useEffect(() => {
-    fetch('/api/docker/store/apps')
+    fetch('/api/store/apps')
+
       .then((res) => res.json())
       .then((data) => {
         if (data.success) setApps(data.data);
@@ -67,7 +68,8 @@ export default function AppStore() {
     setInstalling(true);
     setInstallLog(`Iniciando instalación de ${appId}...\n`);
     try {
-      const res = await fetch(`/api/docker/store/install/${appId}`, {
+      const res = await fetch(`/api/store/install/${appId}`, {
+
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

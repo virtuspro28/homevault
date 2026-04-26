@@ -11,7 +11,17 @@ const router = Router();
 router.get('/apps', requireAuth, async (req, res) => {
   try {
     const catalog = await StoreService.getCatalog();
-    const installedList = await StoreService.getInstalledStatus();
+    
+    // Obtener estado de instalación de forma segura sin bloquear si Docker falla
+    let installedList: string[] = [];
+    try {
+      installedList = await Promise.race([
+        StoreService.getInstalledStatus(),
+        new Promise<string[]>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000))
+      ]);
+    } catch (e) {
+      // Ignorar fallo de docker para no bloquear la store
+    }
 
     const appsWithStatus = catalog.map(app => ({
       ...app,
@@ -23,6 +33,7 @@ router.get('/apps', requireAuth, async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+
 
 /**
  * POST /api/store/install/:id

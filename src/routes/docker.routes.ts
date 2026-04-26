@@ -54,72 +54,7 @@ router.post("/containers/:id/stop", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * GET /api/docker/store/apps
- * Lista aplicaciones disponibles para instalar desde la tienda
- */
-router.get("/store/apps", async (_req: Request, res: Response) => {
-  try {
-    const catalog = await StoreService.getCatalog();
-    
-    // Obtener estado de instalación de forma segura sin bloquear si Docker falla
-    let installedList: string[] = [];
-    try {
-      // Timeout de 2 segundos para no bloquear la Store entera
-      installedList = await Promise.race([
-        StoreService.getInstalledStatus(),
-        new Promise<string[]>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000))
-      ]);
-    } catch (e) {
-      log.warn("No se pudo obtener estado de instalacion a tiempo, cargando Store sin marcas de instalado.");
-    }
+// Nota: Las rutas de Store se han movido a /api/store para mayor claridad y evitar colisiones.
 
-    const appsWithStatus = catalog.map(app => ({
-      ...app,
-      isInstalled: installedList.includes(app.id.toLowerCase())
-    }));
-
-    res.status(200).json({ success: true, data: appsWithStatus });
-
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Error listando apps';
-    log.error(msg);
-    res.status(500).json({ success: false, error: msg });
-  }
-});
-
-/**
- * POST /api/docker/store/install/:id
- * Instala una aplicación del catálogo
- */
-router.post("/store/install/:id", async (req: Request, res: Response) => {
-  try {
-    const appId = req.params["id"] as string;
-    
-    if (!appId || !/^[a-zA-Z0-9_\-]{2,32}$/.test(appId)) {
-      res.status(400).json({ success: false, error: "ID de aplicación inválido" });
-      return;
-    }
-
-    // Iniciar instalación de forma asincrónica
-    StoreService.deployApp(appId)
-      .then(() => {
-        log.info(`Instalación de ${appId} completada`);
-      })
-      .catch((err: unknown) => {
-        const msg = err instanceof Error ? err.message : 'Error desconocido';
-        log.error(`Error instalando ${appId}: ${msg}`);
-      });
-
-    res.status(202).json({ 
-      success: true, 
-      message: `Instalación de ${appId} iniciada. Consulta los logs para el estado.` 
-    });
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Error iniciando instalación';
-    log.error(msg);
-    res.status(500).json({ success: false, error: msg });
-  }
-});
 
 export default router;
