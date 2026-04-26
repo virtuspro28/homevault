@@ -23,6 +23,7 @@ import type { Request, Response, NextFunction } from "express";
 import { Server as SocketServer } from "socket.io";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import cookieParser from "cookie-parser";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -90,6 +91,7 @@ app.use(corsErrorHandler);
 
 /** Parser JSON con límite configurable desde config */
 app.use(express.json({ limit: config.server.jsonLimit }));
+app.use(cookieParser());
 
 /**
  * Montaje del router API bajo /api.

@@ -28,7 +28,7 @@ export default function UserManager() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/users');
+      const res = await fetch('/api/users', { credentials: 'include' });
       const data = await res.json();
       if (data.success) {
         setUsers(data.data);
@@ -49,6 +49,7 @@ export default function UserManager() {
       const res = await fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ ...formData, storageQuota: Number(formData.storageQuota) * 1024 * 1024 * 1024 }), // Convert GB to Bytes
       });
       const data = await res.json();
@@ -70,7 +71,10 @@ export default function UserManager() {
     if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente a ${user.username}?`)) return;
     
     try {
-      const res = await fetch(`/api/users/${user.id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/users/${user.id}`, { 
+        method: 'DELETE',
+        credentials: 'include'
+      });
       const data = await res.json();
       if (data.success) {
         fetchUsers();
@@ -90,6 +94,7 @@ export default function UserManager() {
       const res = await fetch(`/api/users/${userId}/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ password: newPass }),
       });
       const data = await res.json();

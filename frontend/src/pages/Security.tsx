@@ -15,8 +15,8 @@ export default function Security() {
   const fetchSecurityData = async () => {
     try {
       const [rulesRes, ipsRes] = await Promise.all([
-        fetch('/api/security/firewall/rules'),
-        fetch('/api/security/firewall/recent-ips')
+        fetch('/api/security/firewall/rules', { credentials: 'include' }),
+        fetch('/api/security/firewall/recent-ips', { credentials: 'include' })
       ]);
       const rulesData = await rulesRes.json();
       const ipsData = await ipsRes.json();
@@ -34,7 +34,10 @@ export default function Security() {
     // Lógica para activar/desactivar regla
     const rule = rules[index];
     try {
-      await fetch(`/api/security/firewall/rules/${rule.id}/toggle`, { method: 'POST' });
+      await fetch(`/api/security/firewall/rules/${rule.id}/toggle`, { 
+        method: 'POST',
+        credentials: 'include'
+      });
       fetchSecurityData();
     } catch (err) {
       alert('Error al cambiar estado de la regla');

@@ -24,7 +24,7 @@ export default function SambaManager() {
   const fetchShares = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/samba/shares');
+      const res = await fetch('/api/samba/shares', { credentials: 'include' });
       const data = await res.json();
       if (data.success) {
         setShares(data.data);
@@ -46,6 +46,7 @@ export default function SambaManager() {
       const res = await fetch('/api/samba/shares', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(newShare),
       });
       const data = await res.json();
@@ -68,7 +69,10 @@ export default function SambaManager() {
     
     setActionLoading(true);
     try {
-      const res = await fetch(`/api/samba/shares/${name}`, { method: 'DELETE' });
+      const res = await fetch(`/api/samba/shares/${name}`, { 
+        method: 'DELETE',
+        credentials: 'include'
+      });
       const data = await res.json();
       if (data.success) {
         fetchShares();

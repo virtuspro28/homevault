@@ -11,7 +11,7 @@ const log = logger.child("auth-controller");
 const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: config.env === "production",
-  sameSite: "strict" as const,
+  sameSite: "lax" as const,
   maxAge: 7 * 24 * 60 * 60 * 1000,
   domain: undefined,
 };

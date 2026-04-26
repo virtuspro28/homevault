@@ -32,9 +32,9 @@ export default function Dashboard() {
     const fetchData = async () => {
       try {
         const [statsRes, hwResponse, containersRes] = await Promise.all([
-          fetch('/api/system/stats'),
-          fetch('/api/hardware/telemetry'),
-          fetch('/api/docker/containers')
+          fetch('/api/system/stats', { credentials: 'include' }),
+          fetch('/api/hardware/telemetry', { credentials: 'include' }),
+          fetch('/api/docker/containers', { credentials: 'include' })
         ]);
 
         const statsData = await statsRes.json();
