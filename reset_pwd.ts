@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   const isInstalled = await prisma.user.count();
-  const hash = await bcrypt.hash('homepinas', 10);
+  const hash = await bcrypt.hash('homevault', 10);
   
   if (isInstalled > 0) {
     await prisma.user.updateMany({

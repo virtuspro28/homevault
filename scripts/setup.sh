@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # ═══════════════════════════════════════════════════════════════════
-# HomePiNAS Dashboard — Script de Inicialización del Entorno
+# HomeVault Dashboard — Script de Inicialización del Entorno
 # ═══════════════════════════════════════════════════════════════════
-# Este script configura el entorno completo para ejecutar HomePiNAS
+# Este script configura el entorno completo para ejecutar HomeVault
 # Usage: ./scripts/setup.sh
 
 set -e
 
 echo "╔═══════════════════════════════════════════════════════════════╗"
-echo "║  HomePiNAS Dashboard — Setup Inicial                         ║"
+echo "║  HomeVault Dashboard — Setup Inicial                         ║"
 echo "╚═══════════════════════════════════════════════════════════════╝"
 echo
 
@@ -92,9 +92,9 @@ echo "💾 Inicializando base de datos..."
 mkdir -p data
 
 # Si la BD existe, hacer backup
-if [ -f "data/homepinas.db" ]; then
-    BACKUP_NAME="data/homepinas-$(date +%s).db.bak"
-    cp data/homepinas.db "$BACKUP_NAME"
+if [ -f "data/homevault.db" ]; then
+    BACKUP_NAME="data/homevault-$(date +%s).db.bak"
+    cp data/homevault.db "$BACKUP_NAME"
     echo "   📦 Backup creado: $BACKUP_NAME"
 fi
 

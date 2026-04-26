@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # ═══════════════════════════════════════════════════════════════════
-# HomePiNAS Dashboard — Script de Desarrollo con Watch
+# HomeVault Dashboard — Script de Desarrollo con Watch
 # ═══════════════════════════════════════════════════════════════════
 # Inicia el servidor en modo desarrollo con hot-reload
 
 echo "╔═══════════════════════════════════════════════════════════════╗"
-echo "║  HomePiNAS Dashboard — Modo Desarrollo                       ║"
+echo "║  HomeVault Dashboard — Modo Desarrollo                       ║"
 echo "╚═══════════════════════════════════════════════════════════════╝"
 echo
 

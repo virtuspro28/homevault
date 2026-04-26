@@ -1,6 +1,6 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- *  HomePiNAS Dashboard — Conexión SQLite
+ *  HomeVault Dashboard — Conexión SQLite
  * ═══════════════════════════════════════════════════════════════
  *
  *  Gestiona la conexión singleton a better-sqlite3.

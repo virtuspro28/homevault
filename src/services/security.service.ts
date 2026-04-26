@@ -21,7 +21,7 @@ export const SecurityService = {
     }
 
     try {
-      const { stdout } = await execAsync("sudo fail2ban-client status homepinas");
+      const { stdout } = await execAsync("sudo fail2ban-client status homevault");
       // El output suele ser algo como: "`- Banned IP list:  1.2.3.4 5.6.7.8"
       const match = stdout.match(/Banned IP list:\s+(.*)/);
       if (match && match[1]) {
@@ -41,7 +41,7 @@ export const SecurityService = {
   async unbanIP(ip: string) {
     log.warn(`Desbloqueando IP: ${ip}`);
     if (appConfig.platform.isWindows) return;
-    await execAsync(`sudo fail2ban-client set homepinas unbanip ${ip}`);
+    await execAsync(`sudo fail2ban-client set homevault unbanip ${ip}`);
   },
 
   /**

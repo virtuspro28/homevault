@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  homepinas:
+  homevault:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: homepinas-dashboard
+    container_name: homevault-dashboard
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -14,7 +14,7 @@ services:
       PORT: 3000
       LOG_LEVEL: info
       # Base de datos SQLite persistente
-      DATABASE_URL: file:/data/homepinas.db
+      DATABASE_URL: file:/data/homevault.db
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
       # Configuración del servidor
       API_CORS_ORIGIN: ${API_CORS_ORIGIN:-*}
@@ -29,7 +29,7 @@ services:
       # Socket de Docker (para gestión de contenedores)
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - homepinas-network
+      - homevault-network
     # Límites de recursos (ajusta según tu hardware)
     deploy:
       resources:
@@ -44,7 +44,7 @@ services:
   # Sincroniza la base de datos cada 6 horas
   backup-cron:
     image: alpine:latest
-    container_name: homepinas-db-backup
+    container_name: homevault-db-backup
     restart: unless-stopped
     volumes:
       - ./data:/data
@@ -53,23 +53,23 @@ services:
       sh -c '
       while true; do
         echo "Realizando backup de base de datos..."
-        cp /data/homepinas.db /backups/homepinas-$(date +%s).db.bak
+        cp /data/homevault.db /backups/homevault-$(date +%s).db.bak
         # Mantener solo los últimos 10 backups
-        ls -1 /backups/homepinas-*.db.bak | sort -r | tail -n +11 | xargs -r rm
+        ls -1 /backups/homevault-*.db.bak | sort -r | tail -n +11 | xargs -r rm
         echo "Backup completado"
         sleep 21600
       done
       '
     networks:
-      - homepinas-network
+      - homevault-network
 
 networks:
-  homepinas-network:
+  homevault-network:
     driver: bridge
     ipam:
       config:
         - subnet: 172.25.0.0/16
 
 volumes:
-  homepinas-data:
+  homevault-data:
     driver: local

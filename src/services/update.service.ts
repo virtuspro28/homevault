@@ -9,7 +9,7 @@ const log = logger.child('update-service');
 
 export const UpdateService = {
   private: {
-    repoUrl: 'https://api.github.com/repos/homepinas/homepinas/commits/main',
+    repoUrl: 'https://api.github.com/repos/homevault/homevault/commits/main',
     currentVersion: '1.2.5' // Payload de ejemplo, en un sistema real se lee del package.json o git rev-parse
   },
 
@@ -69,7 +69,7 @@ export const UpdateService = {
       // 3. Reinicio del servicio via Systemd después de 3 segundos
       log.info('Reiniciando servicio en 3 segundos...');
       setTimeout(() => {
-        exec('sudo systemctl restart homepinas.service');
+        exec('sudo systemctl restart homevault.service');
       }, 3000);
 
     } catch (error: any) {

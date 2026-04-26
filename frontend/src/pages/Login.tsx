@@ -52,7 +52,7 @@ export default function Login({ onAuthSuccess }: LoginProps) {
             <Server className="w-8 h-8 text-blue-400" />
           </div>
           <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
-            HomePiNAS
+            HomeVault
           </h2>
           <p className="text-slate-400 text-sm mt-1">Acceso seguro al sistema</p>
         </div>

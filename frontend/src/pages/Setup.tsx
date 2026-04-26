@@ -151,7 +151,7 @@ export default function Setup({ onSetupComplete }: SetupProps) {
                 ) : (
                   <>
                     <Server className="w-5 h-5 mr-2" />
-                    Inicializar HomePiNAS
+                    Inicializar HomeVault
                   </>
                 )}
               </span>

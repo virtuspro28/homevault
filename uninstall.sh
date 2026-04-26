@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ═══════════════════════════════════════════════════════════════
-#  HomePiNAS Dashboard — Script de Desinstalación Limpia
+#  HomeVault Dashboard — Script de Desinstalación Limpia
 # ═══════════════════════════════════════════════════════════════
 
 set -euo pipefail
@@ -13,16 +13,16 @@ YELLOW='\033[1;33m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-INSTALL_DIR="/opt/homepinas"
-SERVICE_NAME="homepinas"
-NGINX_SITE="/etc/nginx/sites-available/homepinas"
+INSTALL_DIR="/opt/homevault"
+SERVICE_NAME="homevault"
+NGINX_SITE="/etc/nginx/sites-available/homevault"
 
 if [ "${EUID}" -ne 0 ]; then
   echo -e "${RED}Error: Este script debe ejecutarse con privilegios de ROOT.${NC}"
   exit 1
 fi
 
-echo -e "${BLUE}${BOLD}--- Desinstalando HomePiNAS ---${NC}\n"
+echo -e "${BLUE}${BOLD}--- Desinstalando HomeVault ---${NC}\n"
 
 # 1. Detener y eliminar el servicio de systemd
 echo -e "${YELLOW}[1/4] Deteniendo y eliminando el servicio de sistema...${NC}"
@@ -35,7 +35,7 @@ systemctl daemon-reload
 
 # 2. Eliminar configuración de Nginx
 echo -e "${YELLOW}[2/4] Eliminando configuración de Nginx...${NC}"
-rm -f "/etc/nginx/sites-enabled/homepinas"
+rm -f "/etc/nginx/sites-enabled/homevault"
 rm -f "$NGINX_SITE"
 systemctl restart nginx || true
 

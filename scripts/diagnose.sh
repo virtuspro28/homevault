@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # ═══════════════════════════════════════════════════════════════════
-# HomePiNAS Dashboard — Script de Verificación del Sistema
+# HomeVault Dashboard — Script de Verificación del Sistema
 # ═══════════════════════════════════════════════════════════════════
 # Verifica que todos los componentes estén configurados correctamente
 
 echo "╔═══════════════════════════════════════════════════════════════╗"
-echo "║  HomePiNAS Dashboard — Diagnóstico del Sistema              ║"
+echo "║  HomeVault Dashboard — Diagnóstico del Sistema              ║"
 echo "╚═══════════════════════════════════════════════════════════════╝"
 echo
 
@@ -74,10 +74,10 @@ else
     echo -e "${RED}✗${NC} .env: No configurado"
 fi
 
-if [ -f "data/homepinas.db" ]; then
+if [ -f "data/homevault.db" ]; then
     echo -e "${GREEN}✓${NC} Base de datos: Existe"
     if command -v sqlite3 &> /dev/null; then
-        integrity=$(sqlite3 "data/homepinas.db" "PRAGMA integrity_check;" 2>/dev/null)
+        integrity=$(sqlite3 "data/homevault.db" "PRAGMA integrity_check;" 2>/dev/null)
         if [ "$integrity" = "ok" ]; then
             echo -e "${GREEN}✓${NC} Base de datos: Íntegra"
         else
@@ -91,9 +91,9 @@ echo
 
 echo "📊 Uso de Disco:"
 echo "────────────────────────────────────────────────────────────────"
-if [ -f "data/homepinas.db" ]; then
-    size=$(du -h "data/homepinas.db" | cut -f1)
-    echo "   homepinas.db: $size"
+if [ -f "data/homevault.db" ]; then
+    size=$(du -h "data/homevault.db" | cut -f1)
+    echo "   homevault.db: $size"
 fi
 
 if [ -d "node_modules" ]; then

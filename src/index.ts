@@ -1,6 +1,6 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- *  HomePiNAS Dashboard — Punto de Entrada Principal
+ *  HomeVault Dashboard — Punto de Entrada Principal
  * ═══════════════════════════════════════════════════════════════
  *
  *  REGLA: Este archivo SOLO orquesta. No contiene lógica de negocio.
@@ -167,7 +167,7 @@ httpServer.listen(config.server.port, () => {
 
   console.log("");
   console.log("═══════════════════════════════════════════════════════");
-  console.log("  🏠 HomePiNAS Dashboard v1.0.1");
+  console.log("  🏠 HomeVault Dashboard v1.0.1");
   console.log("═══════════════════════════════════════════════════════");
   console.log("");
   console.log(`  ▸ Servidor:       http://${config.server.host}:${config.server.port}`);

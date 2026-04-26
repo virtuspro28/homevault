@@ -1,9 +1,9 @@
-# 🏠 HomePiNAS - High-Performance Raspberry Pi NAS & Home Server
+# 🏠 HomeVault - High-Performance Raspberry Pi NAS & Home Server
 
 [![Licence](https://img.shields.io/github/license/virtuspro28/dashboard?style=for-the-badge)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Production--Ready-emerald?style=for-the-badge)](https://github.com/virtuspro28/dashboard)
 
-HomePiNAS is an all-in-one, high-performance dashboard designed specifically for the Raspberry Pi ecosystem. It bridges the gap between raw command-line administration and high-end enterprise NAS solutions, offering a beautiful glassmorphism interface coupled with robust system control.
+HomeVault is an all-in-one, high-performance dashboard designed specifically for the Raspberry Pi ecosystem. It bridges the gap between raw command-line administration and high-end enterprise NAS solutions, offering a beautiful glassmorphism interface coupled with robust system control.
 
 ---
 
@@ -52,7 +52,7 @@ HomePiNAS is an all-in-one, high-performance dashboard designed specifically for
 
 ## 🛠️ Installation
 
-Deploy HomePiNAS on your Raspberry Pi (Debian/Raspberry Pi OS) with the **One-Command Master Installer**:
+Deploy HomeVault on your Raspberry Pi (Debian/Raspberry Pi OS) with the **One-Command Master Installer**:
 
 ```bash
 # Sencillo (si ya tienes sudo)

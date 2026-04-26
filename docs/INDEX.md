@@ -1,4 +1,4 @@
-# Indice de Documentacion - HomePiNAS Dashboard
+# Indice de Documentacion - HomeVault Dashboard
 
 ## Lectura recomendada
 
@@ -36,7 +36,7 @@ Ademas, la aplicacion necesita permisos sudo suficientes para manipular WireGuar
 
 ## Modulos con trabajo pendiente
 
-- Gestion centralizada de agentes remotos HomePiNAS
+- Gestion centralizada de agentes remotos HomeVault
 - Automatizacion completa de preparacion WireGuard del servidor
 - Validacion end-to-end de `start/stop/restart` contra una VM Linux real
 - Afinado de permisos y ownership en pools y compartidos de produccion

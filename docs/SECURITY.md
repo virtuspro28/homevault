@@ -1,8 +1,8 @@
-# 🔐 Guía de Seguridad - HomePiNAS Dashboard
+# 🔐 Guía de Seguridad - HomeVault Dashboard
 
 ## Introducción
 
-Este documento describe las mejores prácticas de seguridad implementadas en HomePiNAS Dashboard y cómo mantener tu instalación segura.
+Este documento describe las mejores prácticas de seguridad implementadas en HomeVault Dashboard y cómo mantener tu instalación segura.
 
 ## 1. Autenticación & Contraseñas
 
@@ -162,10 +162,10 @@ PRAGMA temp_store = MEMORY;     -- Temporales en RAM
 
 ```bash
 # Backup manual
-cp data/homepinas.db data/homepinas-$(date +%s).db.bak
+cp data/homevault.db data/homevault-$(date +%s).db.bak
 
 # Backup automático (docker-compose)
-docker-compose exec homepinas-db-backup "ls backups/"
+docker-compose exec homevault-db-backup "ls backups/"
 ```
 
 ## 7. Seguridad de Docker
@@ -175,7 +175,7 @@ docker-compose exec homepinas-db-backup "ls backups/"
 ```yaml
 # docker-compose.yml
 services:
-  homepinas:
+  homevault:
     restart: unless-stopped
     read_only: true              # Sistema de archivos de solo lectura
     cap_drop:
@@ -215,13 +215,13 @@ JWT_SECRET=xxxxx
 
 ```bash
 # Logs del servidor
-tail -f logs/homepinas.log
+tail -f logs/homevault.log
 
 # Logs de Docker
-docker-compose logs -f homepinas
+docker-compose logs -f homevault
 
 # Logs del contenedor (dentro)
-docker exec homepinas tail -f logs/homepinas.log
+docker exec homevault tail -f logs/homevault.log
 ```
 
 ## 9. HTTPS en Producción
@@ -308,7 +308,7 @@ sudo ufw enable
 
 ### Contactar Soporte
 
-- 🐛 Bugs de seguridad: issues@homepinas.dev
+- 🐛 Bugs de seguridad: issues@homevault.dev
 - 📧 Responsablemente: NO publiques vulnerabilidades
 
 ## 13. Variables de Entorno Críticas
@@ -342,4 +342,4 @@ DEBUG=false
 
 **Última actualización**: Abril 2026  
 **Versión**: 1.0.0  
-**Mantenedor**: HomePiNAS Team
+**Mantenedor**: HomeVault Team

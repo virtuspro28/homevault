@@ -73,7 +73,7 @@ async function resolveEndpoint(): Promise<string> {
   }
 
   if (appConfig.platform.isWindows) {
-    return `demo.homepinas.local:${WG_PORT}`;
+    return `demo.homevault.local:${WG_PORT}`;
   }
 
   try {
@@ -129,7 +129,7 @@ async function allocateClientAddress(): Promise<string> {
 }
 
 async function appendPeerToConfig(publicKey: string, address: string, name: string): Promise<void> {
-  const peerBlock = `\n# HomePiNAS client: ${name}\n[Peer]\nPublicKey = ${publicKey}\nAllowedIPs = ${address}/32\n`;
+  const peerBlock = `\n# HomeVault client: ${name}\n[Peer]\nPublicKey = ${publicKey}\nAllowedIPs = ${address}/32\n`;
   await fs.appendFile(WG_CONFIG_PATH, peerBlock, "utf-8");
 }
 
@@ -137,7 +137,7 @@ async function removePeerFromConfig(publicKey: string): Promise<void> {
   const content = await readWireGuardConfig();
   const escapedKey = escapeRegExp(publicKey);
   const blockPattern = new RegExp(
-    `\\n?# HomePiNAS client:.*?\\n\\[Peer\\]\\nPublicKey = ${escapedKey}\\nAllowedIPs = .*?\\n(?=\\n# HomePiNAS client:|\\n\\[Peer\\]|$)`,
+    `\\n?# HomeVault client:.*?\\n\\[Peer\\]\\nPublicKey = ${escapedKey}\\nAllowedIPs = .*?\\n(?=\\n# HomeVault client:|\\n\\[Peer\\]|$)`,
     "gs",
   );
   const genericPattern = new RegExp(

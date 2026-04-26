@@ -43,7 +43,7 @@ export function useSystemStats(intervalMs: number = 3000): UseSystemStatsResult 
         setError(null);
       } catch (err: unknown) {
         if (isMounted) {
-            setError(err instanceof Error ? err.message : "Pérdida de conexión con HomePiNAS.");
+            setError(err instanceof Error ? err.message : "Pérdida de conexión con HomeVault.");
         }
       } finally {
         if (isMounted) {

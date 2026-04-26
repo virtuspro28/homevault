@@ -1,6 +1,6 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- *  HomePiNAS Dashboard — Middleware de Validación
+ *  HomeVault Dashboard — Middleware de Validación
  * ═══════════════════════════════════════════════════════════════
  *
  *  Valida entrada de datos con esquemas seguros.

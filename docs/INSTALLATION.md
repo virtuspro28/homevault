@@ -1,4 +1,4 @@
-# 🚀 Guía de Instalación - HomePiNAS Dashboard
+# 🚀 Guía de Instalación - HomeVault Dashboard
 
 ## Requisitos Previos
 
@@ -28,8 +28,8 @@
 ### Paso 1: Clonar el Repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/homepinas-dashboard.git
-cd homepinas-dashboard
+git clone https://github.com/tu-usuario/homevault-dashboard.git
+cd homevault-dashboard
 ```
 
 ### Paso 2: Configurar Entorno
@@ -46,7 +46,7 @@ nano .env
 
 ```bash
 # Base de datos
-DATABASE_URL="file:./data/homepinas.db"
+DATABASE_URL="file:./data/homevault.db"
 
 # Seguridad (generar con: openssl rand -base64 32)
 JWT_SECRET="your-secret-key-here"
@@ -108,8 +108,8 @@ newgrp docker
 ### Paso 1: Clonar Repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/homepinas-dashboard.git
-cd homepinas-dashboard
+git clone https://github.com/tu-usuario/homevault-dashboard.git
+cd homevault-dashboard
 ```
 
 ### Paso 2: Configurar Variables
@@ -132,7 +132,7 @@ JWT_SECRET=$(openssl rand -base64 32)
 docker-compose up -d --build
 
 # Opción B: Build manual
-docker build -t homepinas-dashboard:latest .
+docker build -t homevault-dashboard:latest .
 docker-compose up -d
 ```
 
@@ -143,7 +143,7 @@ docker-compose up -d
 docker-compose ps
 
 # Ver logs en vivo
-docker-compose logs -f homepinas
+docker-compose logs -f homevault
 
 # Verificar salud del servicio
 curl http://localhost:3000/api/health
@@ -205,10 +205,10 @@ exit
 ```bash
 cd /opt  # Ubicación estándar
 
-sudo git clone https://github.com/tu-usuario/homepinas-dashboard.git
-sudo chown -R pi:pi homepinas-dashboard
+sudo git clone https://github.com/tu-usuario/homevault-dashboard.git
+sudo chown -R pi:pi homevault-dashboard
 
-cd homepinas-dashboard
+cd homevault-dashboard
 cp .env.example .env
 
 # Editar .env para RPi
@@ -224,15 +224,15 @@ LOG_LEVEL="warn"                       # Menos logging = menos I/O SD
 
 ```bash
 # Crear archivo de servicio
-sudo tee /etc/systemd/system/homepinas.service > /dev/null <<EOF
+sudo tee /etc/systemd/system/homevault.service > /dev/null <<EOF
 [Unit]
-Description=HomePiNAS Dashboard
+Description=HomeVault Dashboard
 After=network.target docker.service
 
 [Service]
 Type=simple
 User=pi
-WorkingDirectory=/opt/homepinas-dashboard
+WorkingDirectory=/opt/homevault-dashboard
 ExecStart=docker-compose up
 
 Restart=unless-stopped
@@ -244,11 +244,11 @@ EOF
 
 # Habilitar y arrancar
 sudo systemctl daemon-reload
-sudo systemctl enable homepinas
-sudo systemctl start homepinas
+sudo systemctl enable homevault
+sudo systemctl start homevault
 
 # Ver estado
-sudo systemctl status homepinas
+sudo systemctl status homevault
 ```
 
 ### Paso 6: Optimizar Rendimiento
@@ -274,8 +274,8 @@ echo "net.core.wmem_max=134217728" | sudo tee -a /etc/sysctl.conf
 
 ```bash
 # 1. Clonar
-git clone https://github.com/tu-usuario/homepinas-dashboard.git
-cd homepinas-dashboard
+git clone https://github.com/tu-usuario/homevault-dashboard.git
+cd homevault-dashboard
 
 # 2. Instalar dependencias completas (incluyendo dev)
 npm ci
@@ -333,13 +333,13 @@ docker-compose down -v
 
 ```bash
 # Ejecutar comando en contenedor
-docker-compose exec homepinas bash
+docker-compose exec homevault bash
 
 # Hacer backup de BD dentro del contenedor
-docker-compose exec homepinas cp data/homepinas.db /backups/
+docker-compose exec homevault cp data/homevault.db /backups/
 
 # Ver tamaño de imagen
-docker images | grep homepinas
+docker images | grep homevault
 ```
 
 ---
@@ -353,10 +353,10 @@ docker images | grep homepinas
 curl http://localhost:3000/api/health
 
 # 2. BD inicializada
-ls -lh data/homepinas.db
+ls -lh data/homevault.db
 
 # 3. Logs disponibles
-tail logs/homepinas.log
+tail logs/homevault.log
 
 # 4. Permisos correctos
 ls -la data/ logs/ backups/
@@ -370,7 +370,7 @@ netstat -tuln | grep 3000
 1. Abre http://localhost:3000
 2. Haz clic en "Setup" o "Configurar"
 3. Crea usuario OWNER con contraseña fuerte (mín 12 caracteres)
-4. ¡Listo! Ya puedes usar HomePiNAS
+4. ¡Listo! Ya puedes usar HomeVault
 
 ---
 
@@ -393,10 +393,10 @@ sudo kill -9 $(lsof -t -i:3000)
 
 ```bash
 # Hacer backup
-cp data/homepinas.db data/homepinas-corrupted.db
+cp data/homevault.db data/homevault-corrupted.db
 
 # Eliminar y reiniciar (se recreará)
-rm data/homepinas.db
+rm data/homevault.db
 npm run dev
 ```
 
@@ -429,7 +429,7 @@ NODE_OPTIONS="--max-old-space-size=256" npm start
 
 1. ✅ Lee [SECURITY.md](./SECURITY.md) para proteger tu instalación
 2. 📖 Consulta [docs/](./docs/) para documentación completa
-3. 🐛 Reporta problemas en [GitHub Issues](https://github.com/tu-usuario/homepinas-dashboard/issues)
+3. 🐛 Reporta problemas en [GitHub Issues](https://github.com/tu-usuario/homevault-dashboard/issues)
 4. 🤝 Contribuye mejoras via pull requests
 
 ---

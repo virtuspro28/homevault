@@ -42,7 +42,7 @@ router.patch('/notifications', requireAuth, async (req, res) => {
 router.post('/notifications/test', requireAuth, async (req, res) => {
   try {
     await NotificationService.sendAlert(
-      "🎯 TEST DE NOTIFICACIÓN\n\n¡Enhorabuena! Si estás leyendo esto, tu sistema de notificaciones en HomePiNAS está correctamente configurado.",
+      "🎯 TEST DE NOTIFICACIÓN\n\n¡Enhorabuena! Si estás leyendo esto, tu sistema de notificaciones en HomeVault está correctamente configurado.",
       'INFO'
     );
     res.json({ success: true, message: 'Notificación de prueba enviada' });

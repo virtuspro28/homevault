@@ -1,6 +1,6 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- *  HomePiNAS Dashboard — Sistema de Migraciones SQLite
+ *  HomeVault Dashboard — Sistema de Migraciones SQLite
  * ═══════════════════════════════════════════════════════════════
  *
  *  Sistema de migraciones versionado y transaccional.
@@ -50,7 +50,7 @@ const MIGRATIONS: readonly Migration[] = [
       -- Valores iniciales del sistema
       INSERT OR IGNORE INTO settings (key, value) VALUES
         ('app.version', '1.0.0'),
-        ('app.name', 'HomePiNAS Dashboard'),
+        ('app.name', 'HomeVault Dashboard'),
         ('setup.completed', 'false');
     `,
   },

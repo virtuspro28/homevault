@@ -1,6 +1,6 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- *  HomePiNAS Dashboard — Ruta /api/health
+ *  HomeVault Dashboard — Ruta /api/health
  * ═══════════════════════════════════════════════════════════════
  *
  *  Endpoint de salud del sistema.

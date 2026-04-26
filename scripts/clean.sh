@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # ═══════════════════════════════════════════════════════════════════
-# HomePiNAS Dashboard — Script de Limpieza
+# HomeVault Dashboard — Script de Limpieza
 # ═══════════════════════════════════════════════════════════════════
 # Limpia artefactos de compilación y cachés (CUIDADO: destructivo)
 
 echo "╔═══════════════════════════════════════════════════════════════╗"
-echo "║  HomePiNAS Dashboard — Limpieza                              ║"
+echo "║  HomeVault Dashboard — Limpieza                              ║"
 echo "╚═══════════════════════════════════════════════════════════════╝"
 echo
 

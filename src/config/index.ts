@@ -1,6 +1,6 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- *  HomePiNAS Dashboard — Configuración Centralizada
+ *  HomeVault Dashboard — Configuración Centralizada
  * ═══════════════════════════════════════════════════════════════
  *
  *  Fuente única de verdad para todas las constantes del sistema.
@@ -127,7 +127,7 @@ export const config: AppConfig = Object.freeze({
   paths: Object.freeze({
     root: PROJECT_ROOT,
     data: dataDir,
-    database: path.join(dataDir, "homepinas.db"),
+    database: path.join(dataDir, "homevault.db"),
     logs: path.join(dataDir, "logs"),
   }),
 
@@ -154,7 +154,7 @@ export const config: AppConfig = Object.freeze({
   }),
 
   auth: Object.freeze({
-    jwtSecret: process.env["JWT_SECRET"] ?? "homepinas-default-secret-change-me",
+    jwtSecret: process.env["JWT_SECRET"] ?? "homevault-default-secret-change-me",
   }),
 
   logger: Object.freeze({

@@ -1,6 +1,6 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- *  HomePiNAS Dashboard — Módulo de Seguridad Perimetral
+ *  HomeVault Dashboard — Módulo de Seguridad Perimetral
  * ═══════════════════════════════════════════════════════════════
  *
  *  Responsabilidades:

@@ -223,7 +223,7 @@ export default function AppStore() {
                       <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                     </div>
                     <p className="text-xs font-bold text-slate-400">
-                      Fuente: {selectedApp.source === 'casaos' ? 'CasaOS AppStore oficial' : 'Catálogo local de HomePiNAS'}
+                      Fuente: {selectedApp.source === 'casaos' ? 'CasaOS AppStore oficial' : 'Catálogo local de HomeVault'}
                     </p>
                   </div>
                   <div className="bg-white/5 p-4 rounded-2xl flex items-center space-x-3">

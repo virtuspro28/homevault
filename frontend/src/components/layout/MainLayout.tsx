@@ -37,7 +37,7 @@ export default function MainLayout() {
 
   const showNativeNotification = (message: string, level: string) => {
     if ("Notification" in window && Notification.permission === "granted") {
-      new Notification(`HomePiNAS - ${level}`, {
+      new Notification(`HomeVault - ${level}`, {
         body: message,
         icon: '/favicon.ico'
       });
@@ -222,7 +222,7 @@ export default function MainLayout() {
               </div>
               <h2 className="text-3xl font-black text-white uppercase tracking-tight mb-4">¿Estás seguro?</h2>
               <p className="text-slate-400 mb-10 leading-relaxed uppercase text-xs font-bold tracking-widest">
-                Estas a punto de {showConfirm === 'reboot' ? 'reiniciar' : 'apagar'} el sistema HomePiNAS. 
+                Estas a punto de {showConfirm === 'reboot' ? 'reiniciar' : 'apagar'} el sistema HomeVault. 
                 Los servicios activos (Plex, Pi-hole, etc.) se detendrán.
               </p>
               <div className="grid grid-cols-2 gap-6">

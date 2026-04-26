@@ -1,6 +1,6 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- *  HomePiNAS Dashboard — Router Principal
+ *  HomeVault Dashboard — Router Principal
  * ═══════════════════════════════════════════════════════════════
  *
  *  Orquesta todos los sub-routers bajo el prefijo /api.

@@ -137,7 +137,7 @@ export default function UserManager() {
             Gestión de Usuarios
           </h1>
           <p className="mt-2 text-slate-400 max-w-2xl">
-            Controla quién tiene acceso a tu HomePiNAS y define sus niveles de privilegios y cuotas de disco.
+            Controla quién tiene acceso a tu HomeVault y define sus niveles de privilegios y cuotas de disco.
           </p>
         </div>
         <button

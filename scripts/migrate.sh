@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # ═══════════════════════════════════════════════════════════════════
-# HomePiNAS Dashboard — Script de Migración de Base de Datos
+# HomeVault Dashboard — Script de Migración de Base de Datos
 # ═══════════════════════════════════════════════════════════════════
 # Ejecuta todas las migraciones pendientes y valida la integridad
 
 set -e
 
 echo "╔═══════════════════════════════════════════════════════════════╗"
-echo "║  HomePiNAS Dashboard — Migraciones de BD                     ║"
+echo "║  HomeVault Dashboard — Migraciones de BD                     ║"
 echo "╚═══════════════════════════════════════════════════════════════╝"
 echo
 
@@ -28,7 +28,7 @@ if [ -f ".env" ]; then
 fi
 
 # Usar DATABASE_URL por defecto si no está configurado
-DATABASE_URL="${DATABASE_URL:-file:./data/homepinas.db}"
+DATABASE_URL="${DATABASE_URL:-file:./data/homevault.db}"
 
 # Crear directorio data si no existe
 mkdir -p "$(dirname "${DATABASE_URL#file:}")"

@@ -225,7 +225,7 @@ router.get("/logs", requireAuth, async (_req: Request, res: Response) => {
       return;
     }
 
-    const { stdout } = await execAsync("journalctl -u homepinas -n 50 --no-pager");
+    const { stdout } = await execAsync("journalctl -u homevault -n 50 --no-pager");
     res.json({ success: true, data: stdout });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });

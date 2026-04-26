@@ -1,6 +1,6 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- *  HomePiNAS Dashboard — Monitor del Sistema Multi-Plataforma
+ *  HomeVault Dashboard — Monitor del Sistema Multi-Plataforma
  * ═══════════════════════════════════════════════════════════════
  *
  *  Recopila métricas de hardware usando SOLO módulos nativos de Node.

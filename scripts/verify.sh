@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # ═══════════════════════════════════════════════════════════════════
-# HomePiNAS Dashboard — Testing Rápido Post-Correcciones
+# HomeVault Dashboard — Testing Rápido Post-Correcciones
 # ═══════════════════════════════════════════════════════════════════
 # Este script verifica que todas las correcciones fueron aplicadas
 
 set -e
 
 echo "╔═══════════════════════════════════════════════════════════════╗"
-echo "║  HomePiNAS Dashboard — Verificación de Correcciones         ║"
+echo "║  HomeVault Dashboard — Verificación de Correcciones         ║"
 echo "╚═══════════════════════════════════════════════════════════════╝"
 echo
 
@@ -58,7 +58,7 @@ check_content "Dockerfile" "HEALTHCHECK"
 check_content "Dockerfile" "ENTRYPOINT"
 
 # docker-compose
-check_content "docker-compose.yml" "homepinas-dashboard"
+check_content "docker-compose.yml" "homevault-dashboard"
 check_content "docker-compose.yml" "DATABASE_URL"
 check_content "docker-compose.yml" "backup-cron"
 

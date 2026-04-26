@@ -93,7 +93,7 @@ export const UpsService = {
       await prisma.powerEvent.create({
         data: { type: "ON_BATTERY", message: "CORTE DE LUZ: El sistema está funcionando con batería." }
       });
-      NotificationService.sendAlert("Corte de luz detectado. HomePiNAS funcionando con batería.", "CRITICAL");
+      NotificationService.sendAlert("Corte de luz detectado. HomeVault funcionando con batería.", "CRITICAL");
     }
 
     if (lastStatus?.includes("OB") && stats.status === "OL") {

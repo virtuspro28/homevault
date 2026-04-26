@@ -1,4 +1,4 @@
-# HomePiNAS Dashboard - Multi-arquitectura Dockerfile
+# HomeVault Dashboard - Multi-arquitectura Dockerfile
 # Soporta: ARM64, ARMHF, x86_64
 
 FROM node:20-alpine AS builder
@@ -60,7 +60,7 @@ RUN mkdir -p /app/data && \
 ENV NODE_ENV=production \
     PORT=3000 \
     LOG_LEVEL=info \
-    DATABASE_URL=file:/app/data/homepinas.db
+    DATABASE_URL=file:/app/data/homevault.db
 
 # Exponer puerto
 EXPOSE 3000

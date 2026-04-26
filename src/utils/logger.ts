@@ -1,6 +1,6 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- *  HomePiNAS Dashboard — Logger Estructurado
+ *  HomeVault Dashboard — Logger Estructurado
  * ═══════════════════════════════════════════════════════════════
  *
  *  Logger propio ultra-ligero. No usa winston, pino ni bunyan.

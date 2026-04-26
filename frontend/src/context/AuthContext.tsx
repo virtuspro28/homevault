@@ -71,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
             <ShieldCheck className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-blue-500" />
           </div>
-          <p className="mt-6 text-slate-500 font-black uppercase tracking-[0.3em] text-xs">HomePiNAS Secure Auth</p>
+          <p className="mt-6 text-slate-500 font-black uppercase tracking-[0.3em] text-xs">HomeVault Secure Auth</p>
         </div>
       ) : children}
     </AuthContext.Provider>

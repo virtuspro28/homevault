@@ -30,9 +30,9 @@ function validatePath(relativeOrPath: string): string {
   }
 
   // Security: Prevent path traversal
-  // Allow paths within CONFIG_ROOT or /etc/homepinas (if it was a real Linux system)
+  // Allow paths within CONFIG_ROOT or /etc/homevault (if it was a real Linux system)
   const isInData = absolutePath.startsWith(path.normalize(config.paths.data));
-  const isInEtc = absolutePath.startsWith(path.normalize('/etc/homepinas'));
+  const isInEtc = absolutePath.startsWith(path.normalize('/etc/homevault'));
 
   if (!isInData && !isInEtc && !config.platform.isWindows) {
     log.warn(`Blocked access to unauthorized config path: ${absolutePath}`);

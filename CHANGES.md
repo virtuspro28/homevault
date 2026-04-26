@@ -1,4 +1,4 @@
-# 📋 Resumen de Correcciones - HomePiNAS Dashboard
+# 📋 Resumen de Correcciones - HomeVault Dashboard
 
 ## Fecha: Abril 2026
 ## Versión: 1.0.0 - Release Inicial
@@ -168,7 +168,7 @@
 
 ### Base de Datos
 - **Motor**: SQLite (better-sqlite3)
-- **Ubicación**: `./data/homepinas.db`
+- **Ubicación**: `./data/homevault.db`
 - **WAL**: Habilitado para concurrencia
 - **Integridad**: PRAGMA foreign_keys = ON
 - **Caché**: Adaptativo según RAM disponible
@@ -346,12 +346,12 @@ Ninguna - Se utilizan las existentes en package.json
 
 - 🐛 **Bugs**: [GitHub Issues](https://github.com/)
 - 💬 **Discusiones**: [GitHub Discussions](https://github.com/)
-- 📧 **Email**: support@homepinas.dev
-- 🔒 **Seguridad**: security@homepinas.dev
+- 📧 **Email**: support@homevault.dev
+- 🔒 **Seguridad**: security@homevault.dev
 
 ---
 
 **Generado**: Abril 2026  
-**Por**: HomePiNAS Team  
+**Por**: HomeVault Team  
 **Versión**: 1.0.0  
 **Status**: ✅ Listo para producción

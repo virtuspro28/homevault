@@ -18,16 +18,16 @@ echo " |  __  |/ _ \| '_ \` _ \ / _ \  ___/| | . \` | / /\ \  \___ \ "
 echo " | |  | | (_) | | | | | |  __/ |    | | |\  |/ ____ \ ____) |"
 echo " |_|  |_|\___/|_| |_| |_|\___|_|    |_|_| \_/_/    \_\_____/ "
 echo -e "${NC}"
-echo -e "${BOLD}Iniciando instalación de HomePiNAS...${NC}\n"
+echo -e "${BOLD}Iniciando instalación de HomeVault...${NC}\n"
 
-INSTALL_DIR="/opt/homepinas"
+INSTALL_DIR="/opt/homevault"
 FRONTEND_DIR="$INSTALL_DIR/frontend"
 FRONTEND_DIST="$FRONTEND_DIR/dist"
 DATA_DIR="$INSTALL_DIR/data"
-DB_FILE="$DATA_DIR/homepinas.db"
+DB_FILE="$DATA_DIR/homevault.db"
 BACKEND_PORT=3000
-SERVICE_NAME="homepinas"
-NGINX_SITE="/etc/nginx/sites-available/homepinas"
+SERVICE_NAME="homevault"
+NGINX_SITE="/etc/nginx/sites-available/homevault"
 
 log_step() {
   echo -e "${CYAN}$1${NC}"
@@ -132,7 +132,7 @@ chmod 664 "$DB_FILE"
 
 cat <<EOF > "/etc/systemd/system/${SERVICE_NAME}.service"
 [Unit]
-Description=HomePiNAS Dashboard (Backend API)
+Description=HomeVault Dashboard (Backend API)
 After=network.target docker.service
 Wants=docker.service
 
@@ -172,7 +172,7 @@ server {
     listen [::]:80 default_server;
     server_name _;
 
-    root /opt/homepinas/frontend/dist;
+    root /opt/homevault/frontend/dist;
     index index.html;
     server_tokens off;
     client_max_body_size 5G;
@@ -229,14 +229,14 @@ server {
 }
 EOF
 
-ln -sf "$NGINX_SITE" /etc/nginx/sites-enabled/homepinas
+ln -sf "$NGINX_SITE" /etc/nginx/sites-enabled/homevault
 nginx -t
 systemctl enable nginx
 systemctl restart nginx
 
 LOCAL_IP="$(hostname -I | awk '{print $1}')"
 echo ""
-echo -e "${GREEN}${BOLD}HomePiNAS ha sido instalado correctamente.${NC}"
+echo -e "${GREEN}${BOLD}HomeVault ha sido instalado correctamente.${NC}"
 echo -e "Accede desde: ${BOLD}http://${LOCAL_IP}${NC}"
 echo -e "Base de datos SQLite: ${BOLD}${DB_FILE}${NC}"
 echo -e "Logs del backend: ${BOLD}journalctl -u ${SERVICE_NAME} -f${NC}"

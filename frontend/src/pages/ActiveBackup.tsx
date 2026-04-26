@@ -66,7 +66,7 @@ export default function ActiveBackup() {
         </div>
         <div className="flex items-center space-x-3">
           <a
-            href="/agents/homepinas-agent.exe"
+            href="/agents/homevault-agent.exe"
             className="flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-blue-900/20 active:scale-95 whitespace-nowrap"
           >
             <Download className="w-5 h-5 mr-2" />

@@ -1,4 +1,4 @@
-[2m16:07:14.971[0m ℹ️  [32mINFO [0m[2m [DATABASE][0m Abriendo base de datos: C:\Users\portatil toshiba\Desktop\proyecto homepinas\data\homepinas.db
+[2m16:07:14.971[0m ℹ️  [32mINFO [0m[2m [DATABASE][0m Abriendo base de datos: C:\Users\portatil toshiba\Desktop\proyecto homevault\data\homevault.db
 [2m16:07:15.007[0m 🔍 [36mDEBUG[0m[2m [DATABASE][0m SQL: PRAGMA journal_mode = WAL
 [2m16:07:15.010[0m 🔍 [36mDEBUG[0m[2m [DATABASE][0m SQL: PRAGMA synchronous = NORMAL
 [2m16:07:15.012[0m 🔍 [36mDEBUG[0m[2m [DATABASE][0m SQL: PRAGMA cache_size = -2000
@@ -10,11 +10,11 @@
 [2m16:07:15.022[0m 🔍 [36mDEBUG[0m[2m [DATABASE][0m SQL: PRAGMA cache_size
 [2m16:07:15.023[0m 🔍 [36mDEBUG[0m[2m [DATABASE][0m SQL: PRAGMA foreign_keys
 [2m16:07:15.023[0m 🔍 [36mDEBUG[0m[2m [DATABASE][0m PRAGMAs aplicados {"journal_mode":"wal","synchronous":"1","cache_size":"-2000","foreign_keys":"1"}
-[2m16:07:15.024[0m ℹ️  [32mINFO [0m[2m [DATABASE][0m Base de datos inicializada correctamente {"path":"C:\\Users\\portatil toshiba\\Desktop\\proyecto homepinas\\data\\homepinas.db","memoryTier":"normal","cacheSize":-2000}
+[2m16:07:15.024[0m ℹ️  [32mINFO [0m[2m [DATABASE][0m Base de datos inicializada correctamente {"path":"C:\\Users\\portatil toshiba\\Desktop\\proyecto homevault\\data\\homevault.db","memoryTier":"normal","cacheSize":-2000}
 [2m16:07:15.065[0m ℹ️  [32mINFO [0m[2m [ROUTER][0m Rutas API registradas: /api/health, /api/system/*, /api/docker, /api/files, /api/auth, /api/samba, /api/backup, /api/users, /api/store, /api/settings, /api/network, /api/vpn, /api/proxy, /api/security, /api/ups, /api/cloud, /api/hardware
 
 ═══════════════════════════════════════════════════════
-  🏠 HomePiNAS Dashboard v1.0.0
+  🏠 HomeVault Dashboard v1.0.0
 ═══════════════════════════════════════════════════════
 
   ▸ Servidor:       http://0.0.0.0:3000
@@ -25,7 +25,7 @@
   ▸ Memoria:        12123 MB (tier: normal)
   ▸ Hostname:       Tiny-M920Q
   ▸ Node.js:        v24.14.1
-  ▸ Base de datos:  C:\Users\portatil toshiba\Desktop\proyecto homepinas\data\homepinas.db
+  ▸ Base de datos:  C:\Users\portatil toshiba\Desktop\proyecto homevault\data\homevault.db
 
 [2m16:07:15.110[0m ℹ️  [32mINFO [0m[2m [SERVER][0m ✅ Servidor listo. API disponible en /api/*
 ═══════════════════════════════════════════════════════

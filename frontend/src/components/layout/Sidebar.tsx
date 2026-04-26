@@ -53,7 +53,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
       <div className="p-6">
         <h1 className="text-xl font-black text-white flex items-center space-x-2">
           <Server className="w-6 h-6 text-blue-500" />
-          <span>HomePiNAS</span>
+          <span>HomeVault</span>
         </h1>
       </div>
       
