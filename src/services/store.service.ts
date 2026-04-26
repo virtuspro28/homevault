@@ -290,18 +290,24 @@ export const StoreService = {
       const now = Date.now();
       
       // Intentar obtener de memoria o disco (Caché rápido)
-      const diskCache = await readCasaOsCache();
-      const casaOsApps = (inMemoryCasaOsCatalog && now - inMemoryCasaOsCatalog.updatedAt < CASAOS_CACHE_TTL_MS)
-        ? inMemoryCasaOsCatalog.apps
-        : (diskCache && now - diskCache.updatedAt < CASAOS_CACHE_TTL_MS)
-          ? diskCache.apps
-          : [];
+      let casaOsApps: AppInventoryItem[] = [];
+      try {
+        const diskCache = await readCasaOsCache();
+        casaOsApps = (inMemoryCasaOsCatalog && now - inMemoryCasaOsCatalog.updatedAt < CASAOS_CACHE_TTL_MS)
+          ? inMemoryCasaOsCatalog.apps
+          : (diskCache && now - diskCache.updatedAt < CASAOS_CACHE_TTL_MS)
+            ? diskCache.apps
+            : [];
 
-      // Si no hay caché de CasaOS o está expirada, disparamos una sincronización en segundo plano
-      if (casaOsApps.length === 0 || (inMemoryCasaOsCatalog && now - inMemoryCasaOsCatalog.updatedAt > CASAOS_CACHE_TTL_MS)) {
-        log.info("Iniciando sincronización de AppStore en segundo plano...");
-        this.getCasaOsCatalog().catch(err => log.warn("Error en sync de Store (background):", err.message));
+        // Si no hay caché de CasaOS o está expirada, disparamos una sincronización en segundo plano
+        if (casaOsApps.length === 0 || (inMemoryCasaOsCatalog && now - inMemoryCasaOsCatalog.updatedAt > CASAOS_CACHE_TTL_MS)) {
+          log.info("Iniciando sincronización de AppStore en segundo plano...");
+          this.getCasaOsCatalog().catch(err => log.warn("Error en sync de Store (background):", err.message));
+        }
+      } catch (e) {
+        log.warn("Error accediendo a caché de CasaOS:", e);
       }
+
 
       const merged = new Map<string, AppInventoryItem>();
 

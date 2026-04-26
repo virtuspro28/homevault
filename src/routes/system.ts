@@ -201,51 +201,56 @@ router.get("/stats", async (_req: Request, res: Response) => {
     const mainDisk = stats.disks[0] || { totalGB: 0, usedGB: 0, freeGB: 0, usagePercent: 0 };
     const healthyDisks = stats.disks.length; // Por ahora asumimos todos sanos si aparecen en df
 
-    // Obtener info de docker
+    // Obtener info de docker de forma segura
     let activeContainers = 0;
     try {
-      const { getContainers } = await import("../services/docker.service.js");
-      const containers = await getContainers();
-      activeContainers = containers.filter(c => c.state === 'running').length;
-    } catch {
-      // Ignorar si docker falla
+      // Intentar importar sin bloquear
+      const dockerModule = await import("../services/docker.service.js").catch(() => null);
+      if (dockerModule && dockerModule.getContainers) {
+        const containers = await dockerModule.getContainers();
+        activeContainers = Array.isArray(containers) ? containers.filter(c => c.state === 'running').length : 0;
+      }
+    } catch (e) {
+      log.warn("Error leyendo contenedores para stats:", e);
     }
 
     // Formatear uptime
-    const uptimeSec = stats.uptime.system;
+    const uptimeSec = stats.uptime?.system || 0;
     const days = Math.floor(uptimeSec / 86400);
     const hours = Math.floor((uptimeSec % 86400) / 3600);
     const uptimeFormatted = days > 0 ? `${days}d ${hours}h` : `${hours}h`;
 
-    // Mapear al formato que espera el Dashboard.tsx
+    // Mapear al formato que espera el Dashboard.tsx (Asegurando valores por defecto)
+
     const dashboardStats = {
       cpu: {
-        usage: stats.cpu.usagePercent,
-        cores: stats.cpu.cores
+        usage: stats.cpu?.usagePercent || 0,
+        cores: stats.cpu?.cores || 1
       },
       ram: {
-        percent: stats.memory.usagePercent,
-        usedGb: (stats.memory.usedMB / 1024).toFixed(1),
-        total: (stats.memory.totalMB / 1024).toFixed(1)
+        percent: stats.memory?.usagePercent || 0,
+        usedGb: ((stats.memory?.usedMB || 0) / 1024).toFixed(1),
+        total: ((stats.memory?.totalMB || 0) / 1024).toFixed(1)
       },
       storage: {
-        percent: mainDisk.usagePercent,
-        total: mainDisk.totalGB,
-        used: mainDisk.usedGB,
-        totalGb: mainDisk.totalGB,
-        freeGb: mainDisk.freeGB,
-        healthyDisks: healthyDisks
+        percent: mainDisk.usagePercent || 0,
+        total: mainDisk.totalGB || 0,
+        used: mainDisk.usedGB || 0,
+        totalGb: mainDisk.totalGB || 0,
+        freeGb: mainDisk.freeGB || 0,
+        healthyDisks: healthyDisks || 1
       },
       docker: {
         active: activeContainers
       },
       security: {
-        blockedToday: 0 // TODO: Implementar con Fail2Ban service
+        blockedToday: 0
       },
       system: {
-        uptimeFormatted
+        uptimeFormatted: uptimeFormatted || "---"
       }
     };
+
 
     res.status(200).json({
       success: true,
