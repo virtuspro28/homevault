@@ -1,27 +1,33 @@
 import { useState } from 'react';
 import { Server, Lock, User, AlertCircle, ShieldAlert } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
-export default function Setup() {
+interface SetupProps {
+  onSetupComplete?: () => void;
+}
+
+export default function Setup({ onSetupComplete }: SetupProps) {
   const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    // Validación Básica
-    if (password.length < 6) {
-      setError("La contraseña maestra debe tener al menos 6 caracteres.");
+    if (password.length < 12) {
+      setError('La contraseña maestra debe tener al menos 12 caracteres.');
       return;
     }
+
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password)) {
+      setError('La contraseña debe incluir mayúsculas, minúsculas y números.');
+      return;
+    }
+
     if (password !== confirmPassword) {
-      setError("Las contraseñas no coinciden. Revisa la escritura.");
+      setError('Las contraseñas no coinciden. Revisa la escritura.');
       return;
     }
 
@@ -33,8 +39,7 @@ export default function Setup() {
         headers: {
           'Content-Type': 'application/json'
         },
-        // Al ser la creación inicial, credentials: 'omit' valdría, 
-        // pero la configuramos por convención corporativa de HomePiNAS.
+        credentials: 'include',
         body: JSON.stringify({ username, password })
       });
 
@@ -44,10 +49,8 @@ export default function Setup() {
         throw new Error(data.error || 'Fallo durante la inicialización');
       }
 
-      // Éxito absoluto. El API dice "Configurada con éxito".
-      // Redirigimos al Login para que arranque normal (el State global App re-comprobará /status también o lo pillará la ruta)
-      navigate('/login', { replace: true });
-
+      onSetupComplete?.();
+      window.location.assign('/login');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error desconocido de red');
     } finally {
@@ -57,7 +60,6 @@ export default function Setup() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4">
-      {/* Tarjeta Glassmorfismo Setup Principal */}
       <div className="w-full max-w-md bg-slate-900/60 backdrop-blur-xl border border-blue-900/50 p-8 rounded-3xl shadow-[0_0_80px_-15px_rgba(59,130,246,0.2)]">
         <div className="flex flex-col items-center mb-6">
           <div className="w-16 h-16 bg-blue-500/10 flex items-center justify-center rounded-2xl mb-4 border border-blue-500/20 shadow-inner">
@@ -68,6 +70,9 @@ export default function Setup() {
           </h2>
           <p className="text-slate-400 text-sm mt-2 text-center">
             Se ha detectado una base de datos nueva. Configure obligatoriamente la cuenta de administración maestra.
+          </p>
+          <p className="text-slate-500 text-xs mt-2 text-center">
+            Usa una clave de 12+ caracteres con mayúsculas, minúsculas y números.
           </p>
         </div>
 
