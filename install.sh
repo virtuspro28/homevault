@@ -81,10 +81,15 @@ if [ -d "./src" ] && [ -f "./package.json" ] && [ -d "./frontend" ]; then
     ./ "$INSTALL_DIR/"
 else
   if [ ! -d "$INSTALL_DIR/.git" ]; then
+    echo -e "${YELLOW}La carpeta existe pero no es un repositorio Git. Limpiando para re-instalación...${NC}"
+    rm -rf "$INSTALL_DIR"
     git clone https://github.com/virtuspro28/dashboard.git "$INSTALL_DIR"
   else
-    git -C "$INSTALL_DIR" pull --ff-only
+    echo -e "${BLUE}Actualizando código desde GitHub...${NC}"
+    git -C "$INSTALL_DIR" fetch --all
+    git -C "$INSTALL_DIR" reset --hard origin/main
   fi
+
 fi
 
 cd "$INSTALL_DIR"
