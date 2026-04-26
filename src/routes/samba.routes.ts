@@ -20,6 +20,15 @@ router.get('/shares', async (req, res) => {
   }
 });
 
+router.get('/protocol/status', async (_req, res) => {
+  try {
+    const status = await SambaService.getProtocolStatus();
+    res.json({ success: true, data: status });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 /**
  * POST /api/samba/shares
  * Añade un nuevo recurso compartido Samba

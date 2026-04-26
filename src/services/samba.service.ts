@@ -19,10 +19,51 @@ export interface SambaShare {
   guestOk: boolean;
 }
 
+export interface ProtocolStatus {
+  protocol: "smb" | "nfs";
+  active: boolean;
+  enabled: boolean;
+}
+
 /**
  * Servicio para gestionar compartidos de Samba y NFS.
  */
 export const SambaService = {
+  async getProtocolStatus(): Promise<ProtocolStatus[]> {
+    if (appConfig.platform.isWindows) {
+      return [
+        { protocol: "smb", active: true, enabled: true },
+        { protocol: "nfs", active: false, enabled: false },
+      ];
+    }
+
+    const inspectService = async (protocol: "smb" | "nfs", serviceName: string): Promise<ProtocolStatus> => {
+      let active = false;
+      let enabled = false;
+
+      try {
+        const { stdout } = await execAsync(`systemctl is-active ${serviceName}`);
+        active = stdout.trim() === "active";
+      } catch {
+        active = false;
+      }
+
+      try {
+        const { stdout } = await execAsync(`systemctl is-enabled ${serviceName}`);
+        enabled = stdout.trim() === "enabled";
+      } catch {
+        enabled = false;
+      }
+
+      return { protocol, active, enabled };
+    };
+
+    return Promise.all([
+      inspectService("smb", "smbd"),
+      inspectService("nfs", "nfs-kernel-server"),
+    ]);
+  },
+
   /**
    * Lista los recursos compartidos definidos en smb.conf
    */

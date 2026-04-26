@@ -6,30 +6,19 @@ import { SnapRaidService } from "../services/snapraid.service.js";
 
 const router = Router();
 
-// Aplicamos el middleware requireAuth a nivel de enrutador.
 router.use(requireAuth);
 
 router.get("/disks", getDisks);
 
-/**
- * GET /api/storage/pools
- * Lista los pools de almacenamiento configurados
- */
 router.get("/pools", async (_req, res) => {
   try {
-    // Por ahora devolvemos un array vacío o simulado si no hay lógica de detección real implementada aún
-    // En el futuro esto leerá de la DB o de archivos de config de mergerfs/zfs
-    const pools: any[] = []; 
+    const pools = await SnapRaidService.listPools();
     res.json({ success: true, data: pools });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
-/**
- * GET /api/storage/pool/status
- * Obtiene el estado de sincronización y protección del Pool
- */
 router.get("/pool/status", async (_req, res) => {
   try {
     const status = await SnapRaidService.getStatus();
@@ -39,23 +28,15 @@ router.get("/pool/status", async (_req, res) => {
   }
 });
 
-/**
- * POST /api/storage/pool/sync
- * Dispara una sincronización de paridad
- */
 router.post("/pool/sync", async (_req, res) => {
   try {
-    SnapRaidService.runSync(); // No esperamos, corre en background
-    res.json({ success: true, message: "Sincronización iniciada en segundo plano" });
+    SnapRaidService.runSync();
+    res.json({ success: true, message: "Sincronizacion iniciada en segundo plano" });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
-/**
- * POST /api/storage/pool/persist
- * Configura MergerFS en fstab
- */
 router.post("/pool/persist-pool", async (_req, res) => {
   try {
     await SnapRaidService.persistMergerFSPool();
@@ -65,11 +46,21 @@ router.post("/pool/persist-pool", async (_req, res) => {
   }
 });
 
-/**
- * GET /api/storage/health
- * Obtiene el estado de salud SMART de los discos físicos
- */
-router.get("/health", async (req, res) => {
+router.post("/pool/create", async (req, res) => {
+  try {
+    const { disks, parityDisk, mountPoint } = req.body;
+    const pool = await SnapRaidService.createPool({
+      disks: Array.isArray(disks) ? disks : [],
+      parityDisk,
+      mountPoint,
+    });
+    res.json({ success: true, data: pool, message: "Pool configurado correctamente" });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get("/health", async (_req, res) => {
   try {
     const health = await DiskService.getHealthStatus();
     res.json({ success: true, data: health });

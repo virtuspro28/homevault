@@ -20,11 +20,19 @@ interface Share {
   guestOk: boolean;
 }
 
+interface ProtocolState {
+  protocol: 'smb' | 'nfs';
+  active: boolean;
+  enabled: boolean;
+}
+
 const SharedFolders: React.FC = () => {
   const [shares, setShares] = useState<Share[]>([]);
   const [loading, setLoading] = useState(true);
-  const [smbEnabled, setSmbEnabled] = useState(true);
-  const [nfsEnabled, setNfsEnabled] = useState(true);
+  const [protocols, setProtocols] = useState<Record<'smb' | 'nfs', ProtocolState>>({
+    smb: { protocol: 'smb', active: false, enabled: false },
+    nfs: { protocol: 'nfs', active: false, enabled: false },
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newShare, setNewShare] = useState({ name: '', path: '', readOnly: false, type: 'SMB' });
 
@@ -35,10 +43,20 @@ const SharedFolders: React.FC = () => {
   const fetchShares = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/samba/shares');
-      const data = await res.json();
-      if (data.success) {
-        setShares(data.data);
+      const [sharesRes, protocolsRes] = await Promise.all([
+        fetch('/api/samba/shares', { credentials: 'include' }),
+        fetch('/api/samba/protocol/status', { credentials: 'include' }),
+      ]);
+      const [sharesData, protocolsData] = await Promise.all([sharesRes.json(), protocolsRes.json()]);
+      if (sharesData.success) {
+        setShares(sharesData.data);
+      }
+      if (protocolsData.success) {
+        const nextState = { ...protocols };
+        (protocolsData.data as ProtocolState[]).forEach((entry) => {
+          nextState[entry.protocol] = entry;
+        });
+        setProtocols(nextState);
       }
     } catch (err) {
       console.error('Error fetching shares');
@@ -54,6 +72,7 @@ const SharedFolders: React.FC = () => {
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(newShare)
       });
       const data = await res.json();
@@ -72,7 +91,7 @@ const SharedFolders: React.FC = () => {
   const handleDeleteShare = async (name: string) => {
     if (!confirm(`¿Eliminar el recurso [${name}]?`)) return;
     try {
-      const res = await fetch(`/api/samba/shares/${name}`, { method: 'DELETE' });
+      const res = await fetch(`/api/samba/shares/${name}`, { method: 'DELETE', credentials: 'include' });
       const data = await res.json();
       if (data.success) fetchShares();
     } catch (err) {
@@ -85,12 +104,12 @@ const SharedFolders: React.FC = () => {
       const res = await fetch('/api/samba/protocol/toggle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ protocol, enabled: !current })
       });
       const data = await res.json();
       if (data.success) {
-        if (protocol === 'smb') setSmbEnabled(!current);
-        else setNfsEnabled(!current);
+        await fetchShares();
       }
     } catch (err) {
       alert('Error toggling protocol');
@@ -129,8 +148,8 @@ const SharedFolders: React.FC = () => {
               <p className="text-xs text-slate-500">Compatible con Windows, macOS y Android</p>
             </div>
           </div>
-          <button onClick={() => toggleProtocol('smb', smbEnabled)}>
-            {smbEnabled ? <ToggleRight className="w-10 h-10 text-green-500" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
+          <button onClick={() => toggleProtocol('smb', protocols.smb.enabled)}>
+            {protocols.smb.enabled ? <ToggleRight className="w-10 h-10 text-green-500" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
           </button>
         </div>
         <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 flex items-center justify-between">
@@ -143,8 +162,8 @@ const SharedFolders: React.FC = () => {
               <p className="text-xs text-slate-500">Alto rendimiento para servidores Linux</p>
             </div>
           </div>
-          <button onClick={() => toggleProtocol('nfs', nfsEnabled)}>
-            {nfsEnabled ? <ToggleRight className="w-10 h-10 text-purple-500" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
+          <button onClick={() => toggleProtocol('nfs', protocols.nfs.enabled)}>
+            {protocols.nfs.enabled ? <ToggleRight className="w-10 h-10 text-purple-500" /> : <ToggleLeft className="w-10 h-10 text-slate-600" />}
           </button>
         </div>
       </div>
