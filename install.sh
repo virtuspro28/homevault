@@ -100,8 +100,10 @@ touch "$DB_FILE"
 
 
 log_step "[5/7] Instalando dependencias, generando Prisma y compilando..."
-npm install
+# Limpiar instalaciones previas para asegurar frescura
+rm -rf dist frontend/dist
 
+npm install
 cd "$FRONTEND_DIR"
 npm install
 npm run build
@@ -109,7 +111,11 @@ cd "$INSTALL_DIR"
 
 npx prisma generate
 npx prisma db push
-npm run build
+
+# Compilación del backend con verificación estricta
+echo -e "${CYAN}Compilando Backend...${NC}"
+npm run build || { echo -e "${RED}Error crítico: la compilación del backend falló.${NC}"; exit 1; }
+
 
 log_step "[6/7] Ajustando permisos y servicio del backend..."
 chmod 755 /opt
