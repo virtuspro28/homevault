@@ -143,7 +143,7 @@ export default function AppStore() {
             key={app.id}
             whileHover={{ y: -5 }}
             className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-6 rounded-[2rem] group hover:border-blue-500/30 transition-all cursor-pointer"
-            onClick={() => setSelectedApp(app)}
+            onClick={() => { setSelectedApp(app); setInstallLog(''); }}
           >
             <div className="flex items-start justify-between mb-4 gap-3">
               <div className="p-4 bg-slate-950 rounded-2xl border border-white/5 group-hover:border-blue-500/50 transition-colors min-w-[64px] min-h-[64px] flex items-center justify-center">
@@ -249,15 +249,25 @@ export default function AppStore() {
                   </div>
                 )}
 
-                {installing ? (
+                {(installing || installLog) ? (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-black text-blue-400 uppercase tracking-widest animate-pulse">Desplegando contenedor...</span>
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
+                      <span className="text-xs font-black text-blue-400 uppercase tracking-widest">
+                        {installing ? 'Desplegando contenedor...' : 'Resultado de la instalación'}
+                      </span>
+                      {installing && <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>}
                     </div>
                     <pre className="p-6 bg-slate-950 rounded-2xl text-[10px] font-mono text-emerald-400 h-64 overflow-y-auto leading-relaxed border border-white/5">
                       {installLog}
                     </pre>
+                    {!installing && (
+                      <button
+                        onClick={() => setSelectedApp(null)}
+                        className="w-full flex items-center justify-center space-x-3 px-8 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-black transition-all"
+                      >
+                        <span>Cerrar</span>
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div className="flex flex-col gap-4">
