@@ -210,9 +210,10 @@ router.get("/stats", async (_req: Request, res: Response) => {
         const containers = await dockerModule.getContainers();
         activeContainers = Array.isArray(containers) ? containers.filter(c => c.state === 'running').length : 0;
       }
-    } catch (e) {
-      log.warn("Error leyendo contenedores para stats:", e);
+    } catch (e: any) {
+      log.warn(`Error leyendo contenedores para stats: ${e?.message || e}`);
     }
+
 
     // Formatear uptime
     const uptimeSec = stats.uptime?.system || 0;

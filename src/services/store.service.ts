@@ -304,9 +304,10 @@ export const StoreService = {
           log.info("Iniciando sincronización de AppStore en segundo plano...");
           this.getCasaOsCatalog().catch(err => log.warn("Error en sync de Store (background):", err.message));
         }
-      } catch (e) {
-        log.warn("Error accediendo a caché de CasaOS:", e);
+      } catch (e: any) {
+        log.warn(`Error accediendo a caché de CasaOS: ${e?.message || e}`);
       }
+
 
 
       const merged = new Map<string, AppInventoryItem>();
