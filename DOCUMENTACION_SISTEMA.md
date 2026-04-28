@@ -71,4 +71,3 @@ No uses `sudo npm start`. La forma correcta en Linux es añadir tu usuario de co
    ```
    *(Si el comando de arriba no arroja "permission denied", el problema está resuelto).*
 4. Vuelve a arrancar HomeVault. Ahora la aplicación podrá interactuar libremente con Docker sin chocar con bloqueos del kernel.
-El proyecto ha sido renombrado de HomePiNAS a HomeVault en abril de 2026. 

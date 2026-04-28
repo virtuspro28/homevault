@@ -85,7 +85,7 @@ else
     if [ -d "$INSTALL_DIR" ]; then
         rm -rf "$INSTALL_DIR"
     fi
-    git clone https://github.com/virtuspro28/dashboard.git "$INSTALL_DIR"
+    git clone https://github.com/virtuspro28/homevault.git "$INSTALL_DIR"
   else
     echo -e "${BLUE}Actualizando código desde GitHub...${NC}"
     git -C "$INSTALL_DIR" fetch --all

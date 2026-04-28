@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: homevault-dashboard
+    container_name: homevault
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -18,14 +18,14 @@ services:
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
       # Configuración del servidor
       API_CORS_ORIGIN: ${API_CORS_ORIGIN:-*}
-      STORAGE_BASE_PATH: ${STORAGE_BASE_PATH:-/mnt/storage}
+      STORAGE_BASE_PATH: ${STORAGE_BASE_PATH:-/opt/homevault/data}
     volumes:
       # Persistencia de base de datos
       - ./data:/data
       # Persistencia de logs
       - ./logs:/app/logs
       # Acceso a rutas de almacenamiento (si existen en el host)
-      - /mnt/storage:/mnt/storage:ro
+      - /opt/homevault/data:/opt/homevault/data:ro
       # Socket de Docker (para gestión de contenedores)
       - /var/run/docker.sock:/var/run/docker.sock
     networks:

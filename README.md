@@ -1,7 +1,7 @@
 # 🏠 HomeVault - High-Performance Raspberry Pi NAS & Home Server
 
-[![Licence](https://img.shields.io/github/license/virtuspro28/dashboard?style=for-the-badge)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Production--Ready-emerald?style=for-the-badge)](https://github.com/virtuspro28/dashboard)
+[![Licence](https://img.shields.io/github/license/virtuspro28/homevault?style=for-the-badge)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-Production--Ready-emerald?style=for-the-badge)](https://github.com/virtuspro28/homevault)
 
 HomeVault is an all-in-one, high-performance dashboard designed specifically for the Raspberry Pi ecosystem. It bridges the gap between raw command-line administration and high-end enterprise NAS solutions, offering a beautiful glassmorphism interface coupled with robust system control.
 
@@ -10,7 +10,7 @@ HomeVault is an all-in-one, high-performance dashboard designed specifically for
 ## 📸 Visual Showcase
 
 ### Interactive Dashboard
-![Dashboard Showcase](docs/assets/demo_shots.webp)
+![Dashboard Showcase](docs/assets/demo_shots.png)
 
 *Main panel showing real-time hardware telemetry and storage status.*
 
@@ -56,10 +56,10 @@ Deploy HomeVault on your Raspberry Pi (Debian/Raspberry Pi OS) with the **One-Co
 
 ```bash
 # Sencillo (si ya tienes sudo)
-curl -sSL https://raw.githubusercontent.com/virtuspro28/dashboard/main/install.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/virtuspro28/homevault/main/install.sh | sudo bash
 
 # Si eres ROOT directamente (y no tienes sudo instalado)
-curl -sSL https://raw.githubusercontent.com/virtuspro28/dashboard/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/virtuspro28/homevault/main/install.sh | bash
 ```
 
 
@@ -67,8 +67,8 @@ curl -sSL https://raw.githubusercontent.com/virtuspro28/dashboard/main/install.s
 
 1. **Clone the repo**:
    ```bash
-   git clone https://github.com/virtuspro28/dashboard.git
-   cd dashboard
+   git clone https://github.com/virtuspro28/homevault.git
+   cd homevault
    ```
 
 2. **Configure environment**:

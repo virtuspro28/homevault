@@ -1,5 +1,5 @@
 {
-  "name": "homevault-dashboard",
+  "name": "homevault",
   "version": "1.0.1",
   "description": "Panel de control web para servidor NAS doméstico — Multi-arquitectura (ARM64/ARMHF/x86_64)",
   "main": "dist/index.js",
