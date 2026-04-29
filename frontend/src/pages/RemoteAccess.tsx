@@ -61,6 +61,12 @@ interface DdnsProfile {
   lastCheckedAt?: string;
 }
 
+const FALLBACK_DDNS_PROVIDERS: DdnsProviderOption[] = [
+  { id: 'duckdns', name: 'DuckDNS' },
+  { id: 'noip', name: 'No-IP' },
+  { id: 'custom', name: 'Manual / Custom URL' },
+];
+
 export default function RemoteAccess() {
   const [status, setStatus] = useState<VpnStatus | null>(null);
   const [clients, setClients] = useState<VpnClient[]>([]);
@@ -94,33 +100,59 @@ export default function RemoteAccess() {
     setLoading(true);
     setError(null);
     try {
-      const [statusRes, clientsRes, domainsRes, ddnsRes, providersRes] = await Promise.all([
-        fetch('/api/vpn/status', { credentials: 'include' }),
-        fetch('/api/vpn/clients', { credentials: 'include' }),
-        fetch('/api/proxy/domains', { credentials: 'include' }),
-        fetch('/api/vpn/ddns/profiles', { credentials: 'include' }),
-        fetch('/api/vpn/ddns/providers', { credentials: 'include' }),
+      const [statusRes, clientsRes, domainsRes, ddnsRes, providersRes] = await Promise.allSettled([
+        fetch('/api/vpn/status', { credentials: 'include' }).then(async (res) => {
+          const json = await res.json();
+          if (!res.ok || !json.success) throw new Error(json.error || 'No se pudo leer WireGuard');
+          return json.data as VpnStatus;
+        }),
+        fetch('/api/vpn/clients', { credentials: 'include' }).then(async (res) => {
+          const json = await res.json();
+          if (!res.ok || !json.success) throw new Error(json.error || 'No se pudo leer los clientes VPN');
+          return json.data as VpnClient[];
+        }),
+        fetch('/api/proxy/domains', { credentials: 'include' }).then(async (res) => {
+          const json = await res.json();
+          if (!res.ok || !json.success) throw new Error(json.error || 'No se pudo leer los dominios proxy');
+          return json.data as ProxyDomain[];
+        }),
+        fetch('/api/vpn/ddns/profiles', { credentials: 'include' }).then(async (res) => {
+          const json = await res.json();
+          if (!res.ok || !json.success) throw new Error(json.error || 'No se pudo leer DDNS');
+          return json.data as DdnsProfile[];
+        }),
+        fetch('/api/vpn/ddns/providers', { credentials: 'include' }).then(async (res) => {
+          const json = await res.json();
+          if (!res.ok || !json.success) throw new Error(json.error || 'No se pudo leer proveedores DDNS');
+          return json.data as DdnsProviderOption[];
+        }),
       ]);
 
-      const [statusJson, clientsJson, domainsJson, ddnsJson, providersJson] = await Promise.all([
-        statusRes.json(),
-        clientsRes.json(),
-        domainsRes.json(),
-        ddnsRes.json(),
-        providersRes.json(),
-      ]);
+      const nextErrors: string[] = [];
 
-      if (!statusRes.ok || !statusJson.success) throw new Error(statusJson.error || 'No se pudo leer WireGuard');
-      if (!clientsRes.ok || !clientsJson.success) throw new Error(clientsJson.error || 'No se pudo leer los clientes VPN');
-      if (!domainsRes.ok || !domainsJson.success) throw new Error(domainsJson.error || 'No se pudo leer los dominios proxy');
-      if (!ddnsRes.ok || !ddnsJson.success) throw new Error(ddnsJson.error || 'No se pudo leer DDNS');
-      if (!providersRes.ok || !providersJson.success) throw new Error(providersJson.error || 'No se pudo leer proveedores DDNS');
+      if (statusRes.status === 'fulfilled') {
+        setStatus(statusRes.value);
+      } else {
+        nextErrors.push(statusRes.reason instanceof Error ? statusRes.reason.message : 'WireGuard no disponible');
+      }
 
-      setStatus(statusJson.data);
-      setClients(clientsJson.data);
-      setDomains(domainsJson.data);
-      setDdnsProfiles(ddnsJson.data);
-      setDdnsProviders(providersJson.data);
+      setClients(clientsRes.status === 'fulfilled' ? clientsRes.value : []);
+      setDomains(domainsRes.status === 'fulfilled' ? domainsRes.value : []);
+      setDdnsProfiles(ddnsRes.status === 'fulfilled' ? ddnsRes.value : []);
+      setDdnsProviders(
+        providersRes.status === 'fulfilled' && providersRes.value.length > 0
+          ? providersRes.value
+          : FALLBACK_DDNS_PROVIDERS,
+      );
+
+      if (clientsRes.status === 'rejected') nextErrors.push(clientsRes.reason instanceof Error ? clientsRes.reason.message : 'Clientes VPN no disponibles');
+      if (domainsRes.status === 'rejected') nextErrors.push(domainsRes.reason instanceof Error ? domainsRes.reason.message : 'Dominios proxy no disponibles');
+      if (ddnsRes.status === 'rejected') nextErrors.push(ddnsRes.reason instanceof Error ? ddnsRes.reason.message : 'DDNS no disponible');
+      if (providersRes.status === 'rejected') nextErrors.push(providersRes.reason instanceof Error ? providersRes.reason.message : 'Proveedores DDNS no disponibles');
+
+      if (nextErrors.length > 0) {
+        setError(nextErrors.join(' | '));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
@@ -242,6 +274,9 @@ export default function RemoteAccess() {
 
   const openCreateDdns = () => {
     resetDdnsForm();
+    if (ddnsProviders.length === 0) {
+      setDdnsProviders(FALLBACK_DDNS_PROVIDERS);
+    }
     setShowAddDdns(true);
   };
 

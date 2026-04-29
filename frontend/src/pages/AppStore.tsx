@@ -70,6 +70,10 @@ interface AppFormState {
   privileged: boolean;
 }
 
+const EMPTY_PORT: PortMapping = { host: '', container: '', protocol: 'tcp', label: 'Web UI' };
+const EMPTY_VOLUME: VolumeMapping = { host: '', container: '/config', label: 'Config' };
+const EMPTY_ENV: EnvVar = { key: 'TZ', value: 'Europe/Madrid', label: 'Timezone' };
+
 function AppIcon({ app }: { app: StoreApp }) {
   if (app.icon.startsWith('http://') || app.icon.startsWith('https://')) {
     return (
@@ -96,9 +100,9 @@ function toFormState(app?: StoreApp): AppFormState {
     category: app?.category ?? 'General',
     developer: app?.developer ?? '',
     icon: app?.icon ?? 'Package',
-    ports: app?.ports?.length ? app.ports.map((port) => ({ ...port, protocol: port.protocol ?? 'tcp' })) : [{ host: '', container: '', protocol: 'tcp', label: 'Web UI' }],
-    volumes: app?.volumes?.length ? app.volumes.map((volume) => ({ ...volume })) : [{ host: '', container: '/config', label: 'Config' }],
-    env: app?.env?.length ? app.env.map((item) => ({ ...item })) : [{ key: 'TZ', value: 'Europe/Madrid', label: 'Timezone' }],
+    ports: app?.ports?.length ? app.ports.map((port) => ({ ...port, protocol: port.protocol ?? 'tcp' })) : [{ ...EMPTY_PORT }],
+    volumes: app?.volumes?.length ? app.volumes.map((volume) => ({ ...volume })) : [{ ...EMPTY_VOLUME }],
+    env: app?.env?.length ? app.env.map((item) => ({ ...item })) : [{ ...EMPTY_ENV }],
     networkMode: app?.networkMode ?? '',
     privileged: Boolean(app?.privileged),
   };
@@ -142,6 +146,24 @@ function sanitizeAppPayload(state: AppFormState) {
 
 function SectionTitle({ children }: { children: ReactNode }) {
   return <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">{children}</p>;
+}
+
+function EmptyStateButton({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="px-4 py-2 rounded-xl bg-white/5 text-sm font-bold text-slate-300"
+    >
+      {label}
+    </button>
+  );
 }
 
 export default function AppStore() {
@@ -302,8 +324,13 @@ export default function AppStore() {
     onChange: (updater: (current: AppFormState) => AppFormState) => void,
   ) => (
     <div className="space-y-3">
+      {form.ports.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-5 text-sm text-slate-400">
+          No hay puertos definidos para esta app.
+        </div>
+      )}
       {form.ports.map((port, index) => (
-        <div key={`port-${index}`} className="grid grid-cols-1 md:grid-cols-[1fr_1fr_120px_120px_44px] gap-3">
+        <div key={`port-${index}`} className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_120px_44px] gap-3 items-start">
           <input
             value={port.label ?? ''}
             onChange={(event) =>
@@ -313,7 +340,7 @@ export default function AppStore() {
               }))
             }
             placeholder="Etiqueta"
-            className="bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
+            className="min-w-0 bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
           />
           <input
             value={port.host}
@@ -324,7 +351,7 @@ export default function AppStore() {
               }))
             }
             placeholder="Puerto host"
-            className="bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
+            className="min-w-0 bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
           />
           <input
             value={port.container}
@@ -335,7 +362,7 @@ export default function AppStore() {
               }))
             }
             placeholder="Puerto contenedor"
-            className="bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
+            className="min-w-0 bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
           />
           <select
             value={port.protocol ?? 'tcp'}
@@ -345,7 +372,7 @@ export default function AppStore() {
                 ports: current.ports.map((item, itemIndex) => itemIndex === index ? { ...item, protocol: event.target.value as Protocol } : item),
               }))
             }
-            className="bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
+            className="min-w-0 bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
           >
             <option value="tcp">tcp</option>
             <option value="udp">udp</option>
@@ -358,24 +385,21 @@ export default function AppStore() {
                 ports: current.ports.filter((_, itemIndex) => itemIndex !== index),
               }))
             }
-            className="p-3 rounded-xl bg-red-500/10 text-red-300"
+            className="h-[46px] p-3 rounded-xl bg-red-500/10 text-red-300"
           >
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
       ))}
-      <button
-        type="button"
+      <EmptyStateButton
+        label="Añadir puerto"
         onClick={() =>
           onChange((current) => ({
             ...current,
-            ports: [...current.ports, { host: '', container: '', protocol: 'tcp', label: '' }],
+            ports: [...current.ports, { ...EMPTY_PORT, label: '' }],
           }))
         }
-        className="px-4 py-2 rounded-xl bg-white/5 text-sm font-bold text-slate-300"
-      >
-        Añadir puerto
-      </button>
+      />
     </div>
   );
 
@@ -384,8 +408,13 @@ export default function AppStore() {
     onChange: (updater: (current: AppFormState) => AppFormState) => void,
   ) => (
     <div className="space-y-3">
+      {form.volumes.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-5 text-sm text-slate-400">
+          No hay volúmenes definidos para esta app.
+        </div>
+      )}
       {form.volumes.map((volume, index) => (
-        <div key={`volume-${index}`} className="grid grid-cols-1 md:grid-cols-[180px_1fr_1fr_44px] gap-3">
+        <div key={`volume-${index}`} className="grid grid-cols-1 xl:grid-cols-[180px_minmax(0,1fr)_minmax(0,1fr)_44px] gap-3 items-start">
           <input
             value={volume.label ?? ''}
             onChange={(event) =>
@@ -395,7 +424,7 @@ export default function AppStore() {
               }))
             }
             placeholder="Etiqueta"
-            className="bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
+            className="min-w-0 bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
           />
           <input
             value={volume.host}
@@ -406,7 +435,7 @@ export default function AppStore() {
               }))
             }
             placeholder="/ruta/host"
-            className="bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
+            className="min-w-0 bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
           />
           <input
             value={volume.container}
@@ -417,7 +446,7 @@ export default function AppStore() {
               }))
             }
             placeholder="/ruta/contenedor"
-            className="bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
+            className="min-w-0 bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
           />
           <button
             type="button"
@@ -427,24 +456,21 @@ export default function AppStore() {
                 volumes: current.volumes.filter((_, itemIndex) => itemIndex !== index),
               }))
             }
-            className="p-3 rounded-xl bg-red-500/10 text-red-300"
+            className="h-[46px] p-3 rounded-xl bg-red-500/10 text-red-300"
           >
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
       ))}
-      <button
-        type="button"
+      <EmptyStateButton
+        label="Añadir volumen"
         onClick={() =>
           onChange((current) => ({
             ...current,
-            volumes: [...current.volumes, { host: '', container: '', label: '' }],
+            volumes: [...current.volumes, { ...EMPTY_VOLUME, label: '' }],
           }))
         }
-        className="px-4 py-2 rounded-xl bg-white/5 text-sm font-bold text-slate-300"
-      >
-        Añadir volumen
-      </button>
+      />
     </div>
   );
 
@@ -453,8 +479,13 @@ export default function AppStore() {
     onChange: (updater: (current: AppFormState) => AppFormState) => void,
   ) => (
     <div className="space-y-3">
+      {form.env.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-5 text-sm text-slate-400">
+          No hay variables definidas para esta app.
+        </div>
+      )}
       {form.env.map((envItem, index) => (
-        <div key={`env-${index}`} className="grid grid-cols-1 md:grid-cols-[160px_180px_1fr_44px] gap-3">
+        <div key={`env-${index}`} className="grid grid-cols-1 xl:grid-cols-[180px_180px_minmax(0,1fr)_44px] gap-3 items-start">
           <input
             value={envItem.label ?? ''}
             onChange={(event) =>
@@ -464,7 +495,7 @@ export default function AppStore() {
               }))
             }
             placeholder="Etiqueta"
-            className="bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
+            className="min-w-0 bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
           />
           <input
             value={envItem.key}
@@ -475,7 +506,7 @@ export default function AppStore() {
               }))
             }
             placeholder="Clave"
-            className="bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
+            className="min-w-0 bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
           />
           <input
             value={envItem.value}
@@ -486,7 +517,7 @@ export default function AppStore() {
               }))
             }
             placeholder="Valor"
-            className="bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
+            className="min-w-0 bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
           />
           <button
             type="button"
@@ -496,24 +527,21 @@ export default function AppStore() {
                 env: current.env.filter((_, itemIndex) => itemIndex !== index),
               }))
             }
-            className="p-3 rounded-xl bg-red-500/10 text-red-300"
+            className="h-[46px] p-3 rounded-xl bg-red-500/10 text-red-300"
           >
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
       ))}
-      <button
-        type="button"
+      <EmptyStateButton
+        label="Añadir variable"
         onClick={() =>
           onChange((current) => ({
             ...current,
-            env: [...current.env, { key: '', value: '', label: '' }],
+            env: [...current.env, { ...EMPTY_ENV, key: '', value: '', label: '' }],
           }))
         }
-        className="px-4 py-2 rounded-xl bg-white/5 text-sm font-bold text-slate-300"
-      >
-        Añadir variable
-      </button>
+      />
     </div>
   );
 
@@ -654,7 +682,7 @@ export default function AppStore() {
               initial={{ scale: 0.96, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.96, opacity: 0 }}
-              className="relative w-full max-w-5xl max-h-[92vh] overflow-y-auto bg-slate-900 border border-white/10 rounded-[2.5rem] p-8 shadow-2xl"
+              className="relative w-full max-w-6xl max-h-[92vh] overflow-x-hidden overflow-y-auto bg-slate-900 border border-white/10 rounded-[2.5rem] p-6 md:p-8 shadow-2xl"
             >
               <div className="flex justify-between items-start mb-8 gap-4">
                 <div className="flex items-center space-x-4">
@@ -694,7 +722,7 @@ export default function AppStore() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 2xl:grid-cols-2 gap-8">
                   <div className="space-y-6">
                     <div>
                       <SectionTitle>Asignación de puertos</SectionTitle>
@@ -712,14 +740,14 @@ export default function AppStore() {
                       {renderEnvRows(installForm, updateInstallForm)}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                       <div>
                         <SectionTitle>Network mode</SectionTitle>
                         <input
                           value={installForm.networkMode}
                           onChange={(event) => updateInstallForm((current) => ({ ...current, networkMode: event.target.value }))}
                           placeholder="bridge, host..."
-                          className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm"
+                          className="w-full min-w-0 bg-white/5 border border-white/10 p-4 rounded-xl text-sm"
                         />
                       </div>
                       <div className="flex items-end">
