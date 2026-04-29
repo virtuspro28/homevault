@@ -16,6 +16,8 @@ NC='\033[0m'
 INSTALL_DIR="/opt/homevault"
 SERVICE_NAME="homevault"
 NGINX_SITE="/etc/nginx/sites-available/homevault"
+LEGACY_SERVICE_NAME="homepinas"
+LEGACY_NGINX_SITE="/etc/nginx/sites-available/homepinas"
 
 if [ "${EUID}" -ne 0 ]; then
   echo -e "${RED}Error: Este script debe ejecutarse con privilegios de ROOT.${NC}"
@@ -29,14 +31,21 @@ echo -e "${YELLOW}[1/4] Deteniendo y eliminando el servicio de sistema...${NC}"
 if systemctl is-active --quiet "$SERVICE_NAME"; then
     systemctl stop "$SERVICE_NAME"
 fi
+if systemctl is-active --quiet "$LEGACY_SERVICE_NAME"; then
+    systemctl stop "$LEGACY_SERVICE_NAME"
+fi
 systemctl disable "$SERVICE_NAME" || true
+systemctl disable "$LEGACY_SERVICE_NAME" || true
 rm -f "/etc/systemd/system/${SERVICE_NAME}.service"
+rm -f "/etc/systemd/system/${LEGACY_SERVICE_NAME}.service"
 systemctl daemon-reload
 
 # 2. Eliminar configuración de Nginx
 echo -e "${YELLOW}[2/4] Eliminando configuración de Nginx...${NC}"
 rm -f "/etc/nginx/sites-enabled/homevault"
+rm -f "/etc/nginx/sites-enabled/homepinas"
 rm -f "$NGINX_SITE"
+rm -f "$LEGACY_NGINX_SITE"
 systemctl restart nginx || true
 
 # 3. Eliminar archivos de la aplicación

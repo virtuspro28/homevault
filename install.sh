@@ -11,12 +11,12 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 echo -e "${BLUE}${BOLD}"
-echo "  _    _                      _____  _ _   _          _____ "
-echo " | |  | |                    |  __ \(_) \ | |   /\    / ____|"
-echo " | |__| | ___  _ __ ___   ___| |__) |_|  \| |  /  \  | (___  "
-echo " |  __  |/ _ \| '_ \` _ \ / _ \  ___/| | . \` | / /\ \  \___ \ "
-echo " | |  | | (_) | | | | | |  __/ |    | | |\  |/ ____ \ ____) |"
-echo " |_|  |_|\___/|_| |_| |_|\___|_|    |_|_| \_/_/    \_\_____/ "
+echo "  _    _                      __      __         _ _   "
+echo " | |  | |                     \ \    / /        | | |  "
+echo " | |__| | ___  _ __ ___   ___  \ \  / /_ _ _   _| | |_ "
+echo " |  __  |/ _ \| '_ \` _ \ / _ \  \ \/ / _\` | | | | | __|"
+echo " | |  | | (_) | | | | | |  __/   \  / (_| | |_| | | |_ "
+echo " |_|  |_|\___/|_| |_| |_|\___|    \/ \__,_|\__,_|_|\__|"
 echo -e "${NC}"
 echo -e "${BOLD}Iniciando instalación de HomeVault...${NC}\n"
 
@@ -31,6 +31,21 @@ NGINX_SITE="/etc/nginx/sites-available/homevault"
 
 log_step() {
   echo -e "${CYAN}$1${NC}"
+}
+
+disable_nginx_conflict_site() {
+  local site_path="$1"
+  local site_name
+  site_name="$(basename "$site_path")"
+
+  if [ "$site_name" = "homevault" ]; then
+    return 0
+  fi
+
+  if [ -L "$site_path" ] || [ -f "$site_path" ]; then
+    echo -e "${YELLOW}Desactivando sitio Nginx en conflicto: ${site_name}${NC}"
+    rm -f "$site_path"
+  fi
 }
 
 if [ "${EUID}" -ne 0 ]; then
@@ -166,10 +181,20 @@ done
 log_step "[7/7] Configurando Nginx para SPA + proxy API..."
 rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default
 
+if [ -d /etc/nginx/sites-enabled ]; then
+  while IFS= read -r enabled_site; do
+    [ -n "$enabled_site" ] || continue
+
+    if grep -Eq 'default_server|server_name[[:space:]]+_;' "$enabled_site"; then
+      disable_nginx_conflict_site "$enabled_site"
+    fi
+  done < <(find /etc/nginx/sites-enabled -maxdepth 1 \( -type l -o -type f \))
+fi
+
 cat <<EOF > "$NGINX_SITE"
 server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
+    listen 80;
+    listen [::]:80;
     server_name _;
 
     root /opt/homevault/frontend/dist;
