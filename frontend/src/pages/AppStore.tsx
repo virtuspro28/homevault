@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import {
   ShoppingBag,
   Search,
@@ -9,8 +10,33 @@ import {
   X,
   Globe,
   Package,
+  Pencil,
+  Trash2,
+  Server,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getErrorMessage } from '../lib/errors';
+
+type Protocol = 'tcp' | 'udp';
+
+interface PortMapping {
+  host: string;
+  container: string;
+  protocol?: Protocol;
+  label?: string;
+}
+
+interface VolumeMapping {
+  host: string;
+  container: string;
+  label?: string;
+}
+
+interface EnvVar {
+  key: string;
+  value: string;
+  label?: string;
+}
 
 interface StoreApp {
   id: string;
@@ -19,10 +45,29 @@ interface StoreApp {
   icon: string;
   image?: string;
   category: string;
-  ports: string[];
-  source?: 'local' | 'casaos';
+  source?: 'local' | 'custom';
   developer?: string;
   isInstalled?: boolean;
+  ports: PortMapping[];
+  volumes: VolumeMapping[];
+  env: EnvVar[];
+  networkMode?: string;
+  privileged?: boolean;
+}
+
+interface AppFormState {
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+  category: string;
+  developer: string;
+  icon: string;
+  ports: PortMapping[];
+  volumes: VolumeMapping[];
+  env: EnvVar[];
+  networkMode: string;
+  privileged: boolean;
 }
 
 function AppIcon({ app }: { app: StoreApp }) {
@@ -42,6 +87,63 @@ function AppIcon({ app }: { app: StoreApp }) {
   return <Database className="w-6 h-6 text-blue-400" />;
 }
 
+function toFormState(app?: StoreApp): AppFormState {
+  return {
+    id: app?.id ?? '',
+    name: app?.name ?? '',
+    description: app?.description ?? '',
+    image: app?.image ?? '',
+    category: app?.category ?? 'General',
+    developer: app?.developer ?? '',
+    icon: app?.icon ?? 'Package',
+    ports: app?.ports?.length ? app.ports.map((port) => ({ ...port, protocol: port.protocol ?? 'tcp' })) : [{ host: '', container: '', protocol: 'tcp', label: 'Web UI' }],
+    volumes: app?.volumes?.length ? app.volumes.map((volume) => ({ ...volume })) : [{ host: '', container: '/config', label: 'Config' }],
+    env: app?.env?.length ? app.env.map((item) => ({ ...item })) : [{ key: 'TZ', value: 'Europe/Madrid', label: 'Timezone' }],
+    networkMode: app?.networkMode ?? '',
+    privileged: Boolean(app?.privileged),
+  };
+}
+
+function sanitizeAppPayload(state: AppFormState) {
+  return {
+    id: state.id.trim(),
+    name: state.name.trim(),
+    description: state.description.trim(),
+    image: state.image.trim(),
+    category: state.category.trim(),
+    developer: state.developer.trim(),
+    icon: state.icon.trim() || 'Package',
+    networkMode: state.networkMode.trim(),
+    privileged: state.privileged,
+    ports: state.ports
+      .map((port) => ({
+        host: port.host.trim(),
+        container: port.container.trim(),
+        protocol: port.protocol ?? 'tcp',
+        label: port.label?.trim() ?? '',
+      }))
+      .filter((port) => port.host && port.container),
+    volumes: state.volumes
+      .map((volume) => ({
+        host: volume.host.trim(),
+        container: volume.container.trim(),
+        label: volume.label?.trim() ?? '',
+      }))
+      .filter((volume) => volume.host && volume.container),
+    env: state.env
+      .map((item) => ({
+        key: item.key.trim(),
+        value: item.value,
+        label: item.label?.trim() ?? '',
+      }))
+      .filter((item) => item.key),
+  };
+}
+
+function SectionTitle({ children }: { children: ReactNode }) {
+  return <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">{children}</p>;
+}
+
 export default function AppStore() {
   const [apps, setApps] = useState<StoreApp[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,55 +151,371 @@ export default function AppStore() {
   const [selectedApp, setSelectedApp] = useState<StoreApp | null>(null);
   const [installing, setInstalling] = useState(false);
   const [installLog, setInstallLog] = useState('');
+  const [installForm, setInstallForm] = useState<AppFormState | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
+  const [editorForm, setEditorForm] = useState<AppFormState>(toFormState());
+  const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  const loadApps = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/store/apps', { credentials: 'include' });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'No se pudieron cargar las apps');
+      }
+      setApps(data.data);
+      setError(null);
+    } catch (fetchError) {
+      setError(getErrorMessage(fetchError, 'Error cargando apps'));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetch('/api/store/apps', { credentials: 'include' })
-
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) setApps(data.data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Error cargando apps:', err);
-        setLoading(false);
-      });
+    void loadApps();
   }, []);
 
-  const handleInstall = async (appId: string) => {
+  useEffect(() => {
+    if (!selectedApp) return;
+    setInstallForm(toFormState(selectedApp));
+    setInstallLog('');
+  }, [selectedApp]);
+
+  const filteredApps = useMemo(
+    () =>
+      apps.filter((app) =>
+        [app.name, app.description, app.category, app.developer ?? '']
+          .join(' ')
+          .toLowerCase()
+          .includes(filter.toLowerCase()),
+      ),
+    [apps, filter],
+  );
+
+  const customAppsCount = apps.filter((app) => app.source === 'custom').length;
+
+  const updateInstallForm = (updater: (current: AppFormState) => AppFormState) => {
+    setInstallForm((current) => (current ? updater(current) : current));
+  };
+
+  const updateEditorForm = (updater: (current: AppFormState) => AppFormState) => {
+    setEditorForm((current) => updater(current));
+  };
+
+  const handleInstall = async () => {
+    if (!selectedApp || !installForm) return;
+
     setInstalling(true);
-    setInstallLog(`Iniciando instalación de ${appId}...\n`);
+    setInstallLog(`Iniciando instalación de ${selectedApp.name}...\n`);
+    setError(null);
+
     try {
-      const res = await fetch(`/api/store/install/${appId}`, {
-
+      const payload = sanitizeAppPayload(installForm);
+      const res = await fetch(`/api/store/install/${selectedApp.id}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include'
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
       });
-
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || `Error ${res.status}`);
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || `Error ${res.status}`);
       }
 
-      const data = await res.json();
-      setInstallLog((prev) => prev + `\n✅ ${data.message}`);
-    } catch (err: any) {
-      setInstallLog((prev) => prev + `\n❌ Error: ${err.message || 'Error crítico durante la instalación.'}`);
+      setInstallLog((prev) => `${prev}\nOK ${data.message}`);
+      setFeedback(`${selectedApp.name} lanzada correctamente`);
+      await loadApps();
+    } catch (installError) {
+      setInstallLog((prev) => `${prev}\nERROR: ${getErrorMessage(installError, 'Error crítico durante la instalación.')}`);
     } finally {
       setInstalling(false);
     }
   };
 
-  const filteredApps = apps.filter((app) =>
-    app.name.toLowerCase().includes(filter.toLowerCase()) ||
-    app.description.toLowerCase().includes(filter.toLowerCase()) ||
-    app.category.toLowerCase().includes(filter.toLowerCase()),
+  const handleSaveCustomApp = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const payload = sanitizeAppPayload(editorForm);
+    const isEdit = editorMode === 'edit';
+    const url = isEdit ? `/api/store/custom-apps/${payload.id}` : '/api/store/custom-apps';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'No se pudo guardar la app');
+      }
+      setEditorOpen(false);
+      setFeedback(isEdit ? 'App personalizada actualizada' : 'App personalizada creada');
+      await loadApps();
+    } catch (saveError) {
+      setError(getErrorMessage(saveError, 'No se pudo guardar la app personalizada'));
+    }
+  };
+
+  const handleDeleteCustomApp = async (app: StoreApp) => {
+    if (app.source !== 'custom') return;
+    if (!window.confirm(`¿Eliminar la app personalizada ${app.name}?`)) return;
+
+    try {
+      const res = await fetch(`/api/store/custom-apps/${app.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'No se pudo eliminar la app');
+      }
+      setFeedback('App personalizada eliminada');
+      if (selectedApp?.id === app.id) {
+        setSelectedApp(null);
+      }
+      await loadApps();
+    } catch (deleteError) {
+      setError(getErrorMessage(deleteError, 'No se pudo eliminar la app personalizada'));
+    }
+  };
+
+  const openCreateEditor = () => {
+    setEditorMode('create');
+    setEditorForm(toFormState());
+    setEditorOpen(true);
+  };
+
+  const openEditEditor = (app: StoreApp) => {
+    setEditorMode('edit');
+    setEditorForm(toFormState(app));
+    setEditorOpen(true);
+  };
+
+  const renderPortRows = (
+    form: AppFormState,
+    onChange: (updater: (current: AppFormState) => AppFormState) => void,
+  ) => (
+    <div className="space-y-3">
+      {form.ports.map((port, index) => (
+        <div key={`port-${index}`} className="grid grid-cols-1 md:grid-cols-[1fr_1fr_120px_120px_44px] gap-3">
+          <input
+            value={port.label ?? ''}
+            onChange={(event) =>
+              onChange((current) => ({
+                ...current,
+                ports: current.ports.map((item, itemIndex) => itemIndex === index ? { ...item, label: event.target.value } : item),
+              }))
+            }
+            placeholder="Etiqueta"
+            className="bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
+          />
+          <input
+            value={port.host}
+            onChange={(event) =>
+              onChange((current) => ({
+                ...current,
+                ports: current.ports.map((item, itemIndex) => itemIndex === index ? { ...item, host: event.target.value } : item),
+              }))
+            }
+            placeholder="Puerto host"
+            className="bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
+          />
+          <input
+            value={port.container}
+            onChange={(event) =>
+              onChange((current) => ({
+                ...current,
+                ports: current.ports.map((item, itemIndex) => itemIndex === index ? { ...item, container: event.target.value } : item),
+              }))
+            }
+            placeholder="Puerto contenedor"
+            className="bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
+          />
+          <select
+            value={port.protocol ?? 'tcp'}
+            onChange={(event) =>
+              onChange((current) => ({
+                ...current,
+                ports: current.ports.map((item, itemIndex) => itemIndex === index ? { ...item, protocol: event.target.value as Protocol } : item),
+              }))
+            }
+            className="bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
+          >
+            <option value="tcp">tcp</option>
+            <option value="udp">udp</option>
+          </select>
+          <button
+            type="button"
+            onClick={() =>
+              onChange((current) => ({
+                ...current,
+                ports: current.ports.filter((_, itemIndex) => itemIndex !== index),
+              }))
+            }
+            className="p-3 rounded-xl bg-red-500/10 text-red-300"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() =>
+          onChange((current) => ({
+            ...current,
+            ports: [...current.ports, { host: '', container: '', protocol: 'tcp', label: '' }],
+          }))
+        }
+        className="px-4 py-2 rounded-xl bg-white/5 text-sm font-bold text-slate-300"
+      >
+        Añadir puerto
+      </button>
+    </div>
   );
 
-  const casaOsCount = apps.filter((app) => app.source === 'casaos').length;
+  const renderVolumeRows = (
+    form: AppFormState,
+    onChange: (updater: (current: AppFormState) => AppFormState) => void,
+  ) => (
+    <div className="space-y-3">
+      {form.volumes.map((volume, index) => (
+        <div key={`volume-${index}`} className="grid grid-cols-1 md:grid-cols-[180px_1fr_1fr_44px] gap-3">
+          <input
+            value={volume.label ?? ''}
+            onChange={(event) =>
+              onChange((current) => ({
+                ...current,
+                volumes: current.volumes.map((item, itemIndex) => itemIndex === index ? { ...item, label: event.target.value } : item),
+              }))
+            }
+            placeholder="Etiqueta"
+            className="bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
+          />
+          <input
+            value={volume.host}
+            onChange={(event) =>
+              onChange((current) => ({
+                ...current,
+                volumes: current.volumes.map((item, itemIndex) => itemIndex === index ? { ...item, host: event.target.value } : item),
+              }))
+            }
+            placeholder="/ruta/host"
+            className="bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
+          />
+          <input
+            value={volume.container}
+            onChange={(event) =>
+              onChange((current) => ({
+                ...current,
+                volumes: current.volumes.map((item, itemIndex) => itemIndex === index ? { ...item, container: event.target.value } : item),
+              }))
+            }
+            placeholder="/ruta/contenedor"
+            className="bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
+          />
+          <button
+            type="button"
+            onClick={() =>
+              onChange((current) => ({
+                ...current,
+                volumes: current.volumes.filter((_, itemIndex) => itemIndex !== index),
+              }))
+            }
+            className="p-3 rounded-xl bg-red-500/10 text-red-300"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() =>
+          onChange((current) => ({
+            ...current,
+            volumes: [...current.volumes, { host: '', container: '', label: '' }],
+          }))
+        }
+        className="px-4 py-2 rounded-xl bg-white/5 text-sm font-bold text-slate-300"
+      >
+        Añadir volumen
+      </button>
+    </div>
+  );
+
+  const renderEnvRows = (
+    form: AppFormState,
+    onChange: (updater: (current: AppFormState) => AppFormState) => void,
+  ) => (
+    <div className="space-y-3">
+      {form.env.map((envItem, index) => (
+        <div key={`env-${index}`} className="grid grid-cols-1 md:grid-cols-[160px_180px_1fr_44px] gap-3">
+          <input
+            value={envItem.label ?? ''}
+            onChange={(event) =>
+              onChange((current) => ({
+                ...current,
+                env: current.env.map((item, itemIndex) => itemIndex === index ? { ...item, label: event.target.value } : item),
+              }))
+            }
+            placeholder="Etiqueta"
+            className="bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
+          />
+          <input
+            value={envItem.key}
+            onChange={(event) =>
+              onChange((current) => ({
+                ...current,
+                env: current.env.map((item, itemIndex) => itemIndex === index ? { ...item, key: event.target.value } : item),
+              }))
+            }
+            placeholder="Clave"
+            className="bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
+          />
+          <input
+            value={envItem.value}
+            onChange={(event) =>
+              onChange((current) => ({
+                ...current,
+                env: current.env.map((item, itemIndex) => itemIndex === index ? { ...item, value: event.target.value } : item),
+              }))
+            }
+            placeholder="Valor"
+            className="bg-white/5 border border-white/10 p-3 rounded-xl text-sm"
+          />
+          <button
+            type="button"
+            onClick={() =>
+              onChange((current) => ({
+                ...current,
+                env: current.env.filter((_, itemIndex) => itemIndex !== index),
+              }))
+            }
+            className="p-3 rounded-xl bg-red-500/10 text-red-300"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() =>
+          onChange((current) => ({
+            ...current,
+            env: [...current.env, { key: '', value: '', label: '' }],
+          }))
+        }
+        className="px-4 py-2 rounded-xl bg-white/5 text-sm font-bold text-slate-300"
+      >
+        Añadir variable
+      </button>
+    </div>
+  );
 
   if (loading) {
     return (
@@ -109,7 +527,7 @@ export default function AppStore() {
 
   return (
     <div className="space-y-8 pb-12">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-white/5">
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-slate-900/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-white/5">
         <div className="flex items-center space-x-4">
           <div className="p-4 bg-blue-500/10 rounded-2xl">
             <ShoppingBag className="w-8 h-8 text-blue-400" />
@@ -117,47 +535,72 @@ export default function AppStore() {
           <div>
             <h1 className="text-2xl font-black text-white">App Store</h1>
             <p className="text-sm text-slate-500 font-bold uppercase tracking-widest mt-1">
-              Marketplace de aplicaciones NAS
+              Catálogo instalable y editable
             </p>
             <p className="text-xs text-slate-500 mt-2">
-              {apps.length} apps disponibles. {casaOsCount} importadas del catálogo oficial de CasaOS.
+              {apps.length} apps disponibles. {customAppsCount} personalizadas.
             </p>
           </div>
         </div>
 
-        <div className="relative w-full md:w-72">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-          <input
-            type="text"
-            placeholder="Buscar apps, categorías o descripción..."
-            className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          />
+        <div className="flex flex-col md:flex-row gap-3 w-full xl:w-auto">
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <input
+              type="text"
+              placeholder="Buscar apps, categorías o imagen..."
+              className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+            />
+          </div>
+          <button
+            onClick={openCreateEditor}
+            className="px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black transition-all flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Nueva app
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {error && (
+        <div className="rounded-[2rem] border border-red-500/20 bg-red-500/10 px-6 py-4 text-sm text-red-200">
+          {error}
+        </div>
+      )}
+
+      {feedback && (
+        <div className="rounded-[2rem] border border-emerald-500/20 bg-emerald-500/10 px-6 py-4 text-sm text-emerald-200">
+          {feedback}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         {filteredApps.map((app) => (
           <motion.div
             key={app.id}
             whileHover={{ y: -5 }}
             className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-6 rounded-[2rem] group hover:border-blue-500/30 transition-all cursor-pointer"
-            onClick={() => { setSelectedApp(app); setInstallLog(''); }}
+            onClick={() => {
+              setSelectedApp(app);
+              setInstallLog('');
+            }}
           >
             <div className="flex items-start justify-between mb-4 gap-3">
               <div className="p-4 bg-slate-950 rounded-2xl border border-white/5 group-hover:border-blue-500/50 transition-colors min-w-[64px] min-h-[64px] flex items-center justify-center">
                 <AppIcon app={app} />
               </div>
-              <div className="flex flex-wrap items-center justify-end gap-2">
-                <div className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-black text-slate-500 uppercase tracking-widest">
+              <div className="flex flex-col items-end gap-2">
+                <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-black text-slate-500 uppercase tracking-widest">
                   {app.category}
-                </div>
-                <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${app.source === 'casaos' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-blue-500/10 text-blue-400'}`}>
-                  {app.source === 'casaos' ? 'CasaOS' : 'Local'}
-                </div>
+                </span>
+                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${app.isInstalled ? 'bg-emerald-500/10 text-emerald-300' : 'bg-white/5 text-slate-400'}`}>
+                  {app.isInstalled ? 'Instalada' : 'No instalada'}
+                </span>
               </div>
             </div>
+
             <h3 className="text-lg font-black text-white mb-2">{app.name}</h3>
             <p className="text-xs text-slate-500 leading-relaxed line-clamp-3 min-h-[54px] font-bold">
               {app.description}
@@ -165,19 +608,40 @@ export default function AppStore() {
 
             <div className="mt-6 flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                {app.source === 'casaos' ? <Globe className="w-3 h-3 text-slate-600" /> : <Package className="w-3 h-3 text-slate-600" />}
+                {app.source === 'custom' ? <Package className="w-3 h-3 text-amber-500" /> : <Globe className="w-3 h-3 text-slate-600" />}
                 <span className="text-[10px] font-black text-slate-600 uppercase">
-                  {app.source === 'casaos' ? 'CasaOS AppStore' : 'Catálogo interno'}
+                  {app.source === 'custom' ? 'Personalizada' : 'Catálogo HomeVault'}
                 </span>
               </div>
-              <ChevronRight className="w-5 h-5 text-slate-700 group-hover:text-blue-500 transition-colors" />
+              {app.source === 'custom' && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      openEditEditor(app);
+                    }}
+                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      void handleDeleteCustomApp(app);
+                    }}
+                    className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-300"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </div>
           </motion.div>
         ))}
       </div>
 
       <AnimatePresence>
-        {selectedApp && (
+        {selectedApp && installForm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
@@ -187,10 +651,10 @@ export default function AppStore() {
               className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
             />
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.96, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-2xl bg-slate-900 border border-white/10 rounded-[3rem] p-8 shadow-2xl overflow-hidden"
+              exit={{ scale: 0.96, opacity: 0 }}
+              className="relative w-full max-w-5xl max-h-[92vh] overflow-y-auto bg-slate-900 border border-white/10 rounded-[2.5rem] p-8 shadow-2xl"
             >
               <div className="flex justify-between items-start mb-8 gap-4">
                 <div className="flex items-center space-x-4">
@@ -198,10 +662,8 @@ export default function AppStore() {
                     <AppIcon app={selectedApp} />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-black text-white">{selectedApp.name}</h2>
-                    <p className="text-sm text-blue-400 font-bold uppercase tracking-widest mt-1">
-                      {selectedApp.source === 'casaos' ? 'Importada desde CasaOS' : 'Instalador de un clic'}
-                    </p>
+                    <h2 className="text-2xl font-black text-white">Instalar {selectedApp.name}</h2>
+                    <p className="text-sm text-blue-400 font-bold uppercase tracking-widest mt-1">{selectedApp.image}</p>
                   </div>
                 </div>
                 <button
@@ -212,18 +674,14 @@ export default function AppStore() {
                 </button>
               </div>
 
-              <div className="space-y-6">
-                <p className="text-slate-400 leading-relaxed font-bold">
-                  {selectedApp.description}
-                </p>
-
+              <div className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-white/5 p-4 rounded-2xl flex items-center space-x-3">
                     <div className="p-2 bg-emerald-500/20 rounded-lg">
                       <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                     </div>
                     <p className="text-xs font-bold text-slate-400">
-                      Fuente: {selectedApp.source === 'casaos' ? 'CasaOS AppStore oficial' : 'Catálogo local de HomeVault'}
+                      Fuente: {selectedApp.source === 'custom' ? 'App personalizada' : 'Catálogo local de HomeVault'}
                     </p>
                   </div>
                   <div className="bg-white/5 p-4 rounded-2xl flex items-center space-x-3">
@@ -236,69 +694,165 @@ export default function AppStore() {
                   </div>
                 </div>
 
-                {selectedApp.ports.length > 0 && (
-                  <div className="bg-slate-950/60 border border-white/5 rounded-2xl p-4">
-                    <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">Puertos</p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedApp.ports.map((port) => (
-                        <span key={port} className="px-3 py-1 rounded-full bg-white/5 text-xs font-bold text-slate-300">
-                          {port}
-                        </span>
-                      ))}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <div>
+                      <SectionTitle>Asignación de puertos</SectionTitle>
+                      {renderPortRows(installForm, updateInstallForm)}
+                    </div>
+                    <div>
+                      <SectionTitle>Volúmenes</SectionTitle>
+                      {renderVolumeRows(installForm, updateInstallForm)}
                     </div>
                   </div>
-                )}
 
-                {(installing || installLog) ? (
+                  <div className="space-y-6">
+                    <div>
+                      <SectionTitle>Variables de entorno</SectionTitle>
+                      {renderEnvRows(installForm, updateInstallForm)}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <SectionTitle>Network mode</SectionTitle>
+                        <input
+                          value={installForm.networkMode}
+                          onChange={(event) => updateInstallForm((current) => ({ ...current, networkMode: event.target.value }))}
+                          placeholder="bridge, host..."
+                          className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm"
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <label className="flex items-center gap-3 px-4 py-4 rounded-xl border border-white/10 bg-white/5 text-sm font-bold text-slate-300 w-full">
+                          <input
+                            type="checkbox"
+                            checked={installForm.privileged}
+                            onChange={(event) => updateInstallForm((current) => ({ ...current, privileged: event.target.checked }))}
+                          />
+                          Ejecutar como `privileged`
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-white/5 bg-slate-950/60 p-5">
+                      <div className="flex items-center gap-3 mb-3">
+                        <Server className="w-4 h-4 text-blue-400" />
+                        <p className="text-xs font-black uppercase tracking-widest text-slate-500">Resumen</p>
+                      </div>
+                      <p className="text-sm text-slate-300 leading-relaxed">{selectedApp.description}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {(installing || installLog) && (
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between">
                       <span className="text-xs font-black text-blue-400 uppercase tracking-widest">
                         {installing ? 'Desplegando contenedor...' : 'Resultado de la instalación'}
                       </span>
-                      {installing && <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>}
                     </div>
-                    <pre className="p-6 bg-slate-950 rounded-2xl text-[10px] font-mono text-emerald-400 h-64 overflow-y-auto leading-relaxed border border-white/5">
+                    <pre className="p-6 bg-slate-950 rounded-2xl text-[10px] font-mono text-emerald-400 h-56 overflow-y-auto leading-relaxed border border-white/5">
                       {installLog}
                     </pre>
-                    {!installing && (
-                      <button
-                        onClick={() => setSelectedApp(null)}
-                        className="w-full flex items-center justify-center space-x-3 px-8 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-black transition-all"
-                      >
-                        <span>Cerrar</span>
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-4">
-                    <button
-                      onClick={() => handleInstall(selectedApp.id)}
-                      className="w-full flex items-center justify-center space-x-3 px-8 py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black transition-all shadow-lg shadow-blue-600/20 mt-4 group"
-                    >
-                      <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-                      <span>Comenzar Instalación</span>
-                    </button>
                   </div>
                 )}
+
+                <div className="flex flex-col md:flex-row gap-4">
+                  <button
+                    onClick={() => setSelectedApp(null)}
+                    className="w-full flex items-center justify-center space-x-3 px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-black transition-all"
+                  >
+                    <span>Cancelar</span>
+                  </button>
+                  <button
+                    onClick={() => void handleInstall()}
+                    disabled={installing}
+                    className="w-full flex items-center justify-center space-x-3 px-8 py-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white rounded-2xl font-black transition-all"
+                  >
+                    <Plus className="w-5 h-5" />
+                    <span>{installing ? 'Instalando...' : 'Instalar'}</span>
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
-    </div>
-  );
-}
 
-function ChevronRight(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
-    </svg>
+      <AnimatePresence>
+        {editorOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setEditorOpen(false)}
+              className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
+            />
+            <motion.form
+              initial={{ scale: 0.96, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.96, opacity: 0 }}
+              onSubmit={handleSaveCustomApp}
+              className="relative w-full max-w-5xl max-h-[92vh] overflow-y-auto bg-slate-900 border border-white/10 rounded-[2.5rem] p-8 shadow-2xl space-y-8"
+            >
+              <div className="flex justify-between items-start gap-4">
+                <div>
+                  <h2 className="text-2xl font-black text-white">{editorMode === 'edit' ? 'Editar app personalizada' : 'Nueva app personalizada'}</h2>
+                  <p className="text-sm text-slate-500 font-bold uppercase tracking-widest mt-1">
+                    Define imagen, puertos, volúmenes y variables para que luego sea instalable desde la tienda.
+                  </p>
+                </div>
+                <button type="button" onClick={() => setEditorOpen(false)} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all">
+                  <X className="w-5 h-5 text-slate-400" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input value={editorForm.name} onChange={(event) => updateEditorForm((current) => ({ ...current, name: event.target.value }))} placeholder="Nombre" className="bg-white/5 border border-white/10 p-4 rounded-xl text-sm" required />
+                <input value={editorForm.id} onChange={(event) => updateEditorForm((current) => ({ ...current, id: event.target.value }))} placeholder="ID único" className="bg-white/5 border border-white/10 p-4 rounded-xl text-sm" required disabled={editorMode === 'edit'} />
+                <input value={editorForm.image} onChange={(event) => updateEditorForm((current) => ({ ...current, image: event.target.value }))} placeholder="Imagen Docker" className="bg-white/5 border border-white/10 p-4 rounded-xl text-sm md:col-span-2" required />
+                <input value={editorForm.category} onChange={(event) => updateEditorForm((current) => ({ ...current, category: event.target.value }))} placeholder="Categoría" className="bg-white/5 border border-white/10 p-4 rounded-xl text-sm" />
+                <input value={editorForm.developer} onChange={(event) => updateEditorForm((current) => ({ ...current, developer: event.target.value }))} placeholder="Desarrollador" className="bg-white/5 border border-white/10 p-4 rounded-xl text-sm" />
+                <input value={editorForm.icon} onChange={(event) => updateEditorForm((current) => ({ ...current, icon: event.target.value }))} placeholder="Icono o URL" className="bg-white/5 border border-white/10 p-4 rounded-xl text-sm md:col-span-2" />
+                <textarea value={editorForm.description} onChange={(event) => updateEditorForm((current) => ({ ...current, description: event.target.value }))} placeholder="Descripción" className="bg-white/5 border border-white/10 p-4 rounded-xl text-sm md:col-span-2 min-h-28" />
+              </div>
+
+              <div>
+                <SectionTitle>Puertos</SectionTitle>
+                {renderPortRows(editorForm, updateEditorForm)}
+              </div>
+
+              <div>
+                <SectionTitle>Volúmenes</SectionTitle>
+                {renderVolumeRows(editorForm, updateEditorForm)}
+              </div>
+
+              <div>
+                <SectionTitle>Variables de entorno</SectionTitle>
+                {renderEnvRows(editorForm, updateEditorForm)}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input value={editorForm.networkMode} onChange={(event) => updateEditorForm((current) => ({ ...current, networkMode: event.target.value }))} placeholder="Network mode opcional" className="bg-white/5 border border-white/10 p-4 rounded-xl text-sm" />
+                <label className="flex items-center gap-3 px-4 py-4 rounded-xl border border-white/10 bg-white/5 text-sm font-bold text-slate-300">
+                  <input type="checkbox" checked={editorForm.privileged} onChange={(event) => updateEditorForm((current) => ({ ...current, privileged: event.target.checked }))} />
+                  Ejecutar como `privileged`
+                </label>
+              </div>
+
+              <div className="flex flex-col md:flex-row gap-4">
+                <button type="button" onClick={() => setEditorOpen(false)} className="w-full px-6 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-black">
+                  Cancelar
+                </button>
+                <button type="submit" className="w-full px-6 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black">
+                  {editorMode === 'edit' ? 'Guardar cambios' : 'Crear app'}
+                </button>
+              </div>
+            </motion.form>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

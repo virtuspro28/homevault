@@ -1,15 +1,16 @@
-import { useEffect, useRef } from 'react';
-import { Terminal as TerminalIcon, Shield } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Terminal as TerminalIcon, Shield, AlertCircle } from 'lucide-react';
 import { Terminal } from 'xterm';
-// @ts-ignore
 import { FitAddon } from '@xterm/addon-fit';
-import { io } from 'socket.io-client';
+import { io, type Socket } from 'socket.io-client';
 import 'xterm/css/xterm.css';
 
 export default function TerminalPage() {
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<Terminal | null>(null);
-  const socketRef = useRef<any>(null);
+  const socketRef = useRef<Socket | null>(null);
+  const fitAddonRef = useRef<FitAddon | null>(null);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!terminalRef.current) return;
@@ -27,6 +28,7 @@ export default function TerminalPage() {
     });
 
     const fitAddon = new FitAddon();
+    fitAddonRef.current = fitAddon;
     term.loadAddon(fitAddon);
     term.open(terminalRef.current);
     fitAddon.fit();
@@ -35,9 +37,23 @@ export default function TerminalPage() {
 
     // Conectar Socket.io
     const socket = io('/terminal', {
-      auth: { token: localStorage.getItem('token') }
+      withCredentials: true,
     });
     socketRef.current = socket;
+
+    socket.on('connect', () => {
+      setConnectionError(null);
+      fitAddon.fit();
+      socket.emit('resize', { cols: term.cols, rows: term.rows });
+    });
+
+    socket.on('connect_error', (error) => {
+      setConnectionError(error.message || 'No se pudo abrir la terminal');
+    });
+
+    socket.on('error', (error) => {
+      setConnectionError(typeof error === 'string' ? error : 'La terminal devolvió un error');
+    });
 
     socket.on('output', (data: string) => {
       term.write(data);
@@ -47,9 +63,17 @@ export default function TerminalPage() {
       socket.emit('input', data);
     });
 
-    window.addEventListener('resize', () => fitAddon.fit());
+    const handleResize = () => {
+      fitAddon.fit();
+      if (socket.connected) {
+        socket.emit('resize', { cols: term.cols, rows: term.rows });
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    window.setTimeout(handleResize, 100);
 
     return () => {
+      window.removeEventListener('resize', handleResize);
       socket.disconnect();
       term.dispose();
     };
@@ -72,6 +96,12 @@ export default function TerminalPage() {
       </div>
 
       <div className="flex-1 bg-slate-950 border border-white/5 rounded-[2.5rem] overflow-hidden p-6 h-full min-h-[500px]">
+         {connectionError && (
+           <div className="mb-4 flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+             <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+             <span>{connectionError}</span>
+           </div>
+         )}
          <div ref={terminalRef} className="w-full h-full" />
       </div>
     </div>

@@ -31,18 +31,22 @@ export default function FileManager() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [error, setError] = useState<string | null>(null);
 
   const fetchFiles = useCallback(async (path: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/files/list?path=${encodeURIComponent(path)}`);
+      const res = await fetch(`/api/files/list?path=${encodeURIComponent(path)}`, { credentials: 'include' });
       const data = await res.json();
-      if (data.success) {
-        setFiles(data.files);
-        setCurrentPath(path);
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'No se pudo cargar el directorio');
       }
+      setFiles(data.data);
+      setCurrentPath(path);
+      setError(null);
     } catch (err) {
       console.error('Error fetching files:', err);
+      setError(err instanceof Error ? err.message : 'No se pudo cargar el explorador');
     } finally {
       setLoading(false);
     }
@@ -53,7 +57,7 @@ export default function FileManager() {
   }, [fetchFiles]);
 
   const handleNavigate = (path: string) => {
-    fetchFiles(path);
+    void fetchFiles(path);
   };
 
   const goBack = () => {
@@ -81,6 +85,76 @@ export default function FileManager() {
 
   const filteredFiles = files.filter(f => f.name.toLowerCase().includes(filter.toLowerCase()));
 
+  const handleCreateFolder = async () => {
+    const name = window.prompt('Nombre de la nueva carpeta');
+    if (!name) return;
+
+    try {
+      const res = await fetch('/api/files/mkdir', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ path: currentPath, name }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'No se pudo crear la carpeta');
+      }
+      await fetchFiles(currentPath);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo crear la carpeta');
+    }
+  };
+
+  const handleDelete = async (file: FileItem) => {
+    const confirmed = window.confirm(`¿Eliminar ${file.name}?`);
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`/api/files/delete?path=${encodeURIComponent(file.path)}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'No se pudo eliminar el elemento');
+      }
+      await fetchFiles(currentPath);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo eliminar el elemento');
+    }
+  };
+
+  const handleRename = async (file: FileItem) => {
+    const nextName = window.prompt('Nuevo nombre', file.name);
+    if (!nextName || nextName === file.name) return;
+
+    const parentPath = file.path.includes('/')
+      ? file.path.slice(0, file.path.lastIndexOf('/'))
+      : '';
+    const newPath = [parentPath, nextName].filter(Boolean).join('/');
+
+    try {
+      const res = await fetch('/api/files/rename', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ oldPath: file.path, newPath }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'No se pudo renombrar el elemento');
+      }
+      await fetchFiles(currentPath);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo renombrar el elemento');
+    }
+  };
+
+  const handleDownload = (file: FileItem) => {
+    window.open(`/api/files/download?path=${encodeURIComponent(file.path)}`, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <div className="space-y-8 pb-12">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-white/5">
@@ -105,13 +179,18 @@ export default function FileManager() {
                onChange={(e) => setFilter(e.target.value)}
              />
           </div>
-          <button className="p-3 bg-blue-600 text-white rounded-2xl hover:bg-blue-500 transition-all">
+          <button onClick={handleCreateFolder} className="p-3 bg-blue-600 text-white rounded-2xl hover:bg-blue-500 transition-all">
              <Plus className="w-5 h-5" />
           </button>
         </div>
       </div>
 
       <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-6">
+        {error && (
+          <div className="mb-4 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {error}
+          </div>
+        )}
         <div className="flex items-center justify-between mb-6 px-4">
            <div className="flex items-center space-x-4 text-xs font-black text-slate-500 uppercase tracking-widest">
               {currentPath && (
@@ -178,9 +257,35 @@ export default function FileManager() {
                       ? "flex mt-4 space-x-1 opacity-0 group-hover:opacity-100 transition-opacity" 
                       : "flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity"
                     }>
-                       <button className="p-2 hover:bg-blue-500/20 text-blue-400 rounded-lg"><Download className="w-4 h-4" /></button>
-                       <button className="p-2 hover:bg-amber-500/20 text-amber-400 rounded-lg"><Edit2 className="w-4 h-4" /></button>
-                       <button className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                       {!file.isDirectory && (
+                         <button
+                           onClick={(event) => {
+                             event.stopPropagation();
+                             handleDownload(file);
+                           }}
+                           className="p-2 hover:bg-blue-500/20 text-blue-400 rounded-lg"
+                         >
+                           <Download className="w-4 h-4" />
+                         </button>
+                       )}
+                       <button
+                         onClick={(event) => {
+                           event.stopPropagation();
+                           void handleRename(file);
+                         }}
+                         className="p-2 hover:bg-amber-500/20 text-amber-400 rounded-lg"
+                       >
+                         <Edit2 className="w-4 h-4" />
+                       </button>
+                       <button
+                         onClick={(event) => {
+                           event.stopPropagation();
+                           void handleDelete(file);
+                         }}
+                         className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg"
+                       >
+                         <Trash2 className="w-4 h-4" />
+                       </button>
                     </div>
                  </motion.div>
                ))}

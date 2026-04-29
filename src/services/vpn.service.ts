@@ -6,6 +6,7 @@ import { PrismaClient } from "@prisma/client";
 import QRCode from "qrcode";
 import { logger } from "../utils/logger.js";
 import { config as appConfig } from "../config/index.js";
+import { DdnsService } from "./ddns.service.js";
 
 const execAsync = promisify(exec);
 const log = logger.child("vpn-service");
@@ -70,6 +71,11 @@ async function readServerPublicKey(): Promise<string | null> {
 async function resolveEndpoint(): Promise<string> {
   if (WG_ENDPOINT) {
     return WG_ENDPOINT;
+  }
+
+  const ddnsHostname = await DdnsService.getPreferredHostname();
+  if (ddnsHostname) {
+    return `${ddnsHostname}:${WG_PORT}`;
   }
 
   if (appConfig.platform.isWindows) {

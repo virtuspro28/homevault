@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireAuth, requireAdmin } from "../middlewares/authMiddleware.js";
 import { VpnService } from "../services/vpn.service.js";
+import { DdnsService } from "../services/ddns.service.js";
 
 const router = Router();
 
@@ -88,6 +89,74 @@ router.delete("/clients/:id", requireAdmin, async (req, res) => {
     }
     await VpnService.deleteClient(clientId);
     res.json({ success: true, message: "Cliente eliminado" });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get("/ddns/providers", async (_req, res) => {
+  try {
+    res.json({ success: true, data: DdnsService.getProviderOptions() });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get("/ddns/profiles", async (_req, res) => {
+  try {
+    const profiles = await DdnsService.listProfiles();
+    res.json({ success: true, data: profiles });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.post("/ddns/profiles", requireAdmin, async (req, res) => {
+  try {
+    const profile = await DdnsService.createProfile(req.body);
+    res.status(201).json({ success: true, data: profile });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.put("/ddns/profiles/:id", requireAdmin, async (req, res) => {
+  try {
+    const id = req.params["id"];
+    if (!id || Array.isArray(id)) {
+      res.status(400).json({ success: false, error: "ID de perfil requerido" });
+      return;
+    }
+    const profile = await DdnsService.updateProfile(id, req.body);
+    res.json({ success: true, data: profile });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.post("/ddns/profiles/:id/sync", requireAdmin, async (req, res) => {
+  try {
+    const id = req.params["id"];
+    if (!id || Array.isArray(id)) {
+      res.status(400).json({ success: false, error: "ID de perfil requerido" });
+      return;
+    }
+    const profile = await DdnsService.syncProfile(id);
+    res.json({ success: true, data: profile });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.delete("/ddns/profiles/:id", requireAdmin, async (req, res) => {
+  try {
+    const id = req.params["id"];
+    if (!id || Array.isArray(id)) {
+      res.status(400).json({ success: false, error: "ID de perfil requerido" });
+      return;
+    }
+    await DdnsService.deleteProfile(id);
+    res.json({ success: true, message: "Perfil DDNS eliminado" });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
   }

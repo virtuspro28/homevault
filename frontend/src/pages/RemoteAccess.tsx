@@ -41,14 +41,48 @@ interface ProxyDomain {
   sslEnabled: boolean;
 }
 
+interface DdnsProviderOption {
+  id: 'duckdns' | 'noip' | 'custom';
+  name: string;
+}
+
+interface DdnsProfile {
+  id: string;
+  name: string;
+  provider: 'duckdns' | 'noip' | 'custom';
+  domain: string;
+  username?: string;
+  password?: string;
+  token?: string;
+  updateUrl?: string;
+  enabled: boolean;
+  lastStatus?: 'success' | 'error';
+  lastMessage?: string;
+  lastCheckedAt?: string;
+}
+
 export default function RemoteAccess() {
   const [status, setStatus] = useState<VpnStatus | null>(null);
   const [clients, setClients] = useState<VpnClient[]>([]);
   const [domains, setDomains] = useState<ProxyDomain[]>([]);
+  const [ddnsProfiles, setDdnsProfiles] = useState<DdnsProfile[]>([]);
+  const [ddnsProviders, setDdnsProviders] = useState<DdnsProviderOption[]>([]);
   const [showAddClient, setShowAddClient] = useState(false);
   const [newClientName, setNewClientName] = useState('');
   const [showAddDomain, setShowAddDomain] = useState(false);
+  const [showAddDdns, setShowAddDdns] = useState(false);
   const [domainForm, setDomainForm] = useState({ domain: '', targetPort: '8080' });
+  const [editingDdnsId, setEditingDdnsId] = useState<string | null>(null);
+  const [ddnsForm, setDdnsForm] = useState({
+    name: '',
+    provider: 'duckdns' as DdnsProviderOption['id'],
+    domain: '',
+    username: '',
+    password: '',
+    token: '',
+    updateUrl: '',
+    enabled: true,
+  });
   const [busyId, setBusyId] = useState<string | null>(null);
   const [qrClientId, setQrClientId] = useState<string | null>(null);
   const [qrData, setQrData] = useState<string | null>(null);
@@ -60,25 +94,33 @@ export default function RemoteAccess() {
     setLoading(true);
     setError(null);
     try {
-      const [statusRes, clientsRes, domainsRes] = await Promise.all([
+      const [statusRes, clientsRes, domainsRes, ddnsRes, providersRes] = await Promise.all([
         fetch('/api/vpn/status', { credentials: 'include' }),
         fetch('/api/vpn/clients', { credentials: 'include' }),
         fetch('/api/proxy/domains', { credentials: 'include' }),
+        fetch('/api/vpn/ddns/profiles', { credentials: 'include' }),
+        fetch('/api/vpn/ddns/providers', { credentials: 'include' }),
       ]);
 
-      const [statusJson, clientsJson, domainsJson] = await Promise.all([
+      const [statusJson, clientsJson, domainsJson, ddnsJson, providersJson] = await Promise.all([
         statusRes.json(),
         clientsRes.json(),
         domainsRes.json(),
+        ddnsRes.json(),
+        providersRes.json(),
       ]);
 
       if (!statusRes.ok || !statusJson.success) throw new Error(statusJson.error || 'No se pudo leer WireGuard');
       if (!clientsRes.ok || !clientsJson.success) throw new Error(clientsJson.error || 'No se pudo leer los clientes VPN');
       if (!domainsRes.ok || !domainsJson.success) throw new Error(domainsJson.error || 'No se pudo leer los dominios proxy');
+      if (!ddnsRes.ok || !ddnsJson.success) throw new Error(ddnsJson.error || 'No se pudo leer DDNS');
+      if (!providersRes.ok || !providersJson.success) throw new Error(providersJson.error || 'No se pudo leer proveedores DDNS');
 
       setStatus(statusJson.data);
       setClients(clientsJson.data);
       setDomains(domainsJson.data);
+      setDdnsProfiles(ddnsJson.data);
+      setDdnsProviders(providersJson.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
@@ -184,6 +226,104 @@ export default function RemoteAccess() {
     }
   };
 
+  const resetDdnsForm = () => {
+    setEditingDdnsId(null);
+    setDdnsForm({
+      name: '',
+      provider: 'duckdns',
+      domain: '',
+      username: '',
+      password: '',
+      token: '',
+      updateUrl: '',
+      enabled: true,
+    });
+  };
+
+  const openCreateDdns = () => {
+    resetDdnsForm();
+    setShowAddDdns(true);
+  };
+
+  const openEditDdns = (profile: DdnsProfile) => {
+    setEditingDdnsId(profile.id);
+    setDdnsForm({
+      name: profile.name,
+      provider: profile.provider,
+      domain: profile.domain,
+      username: profile.username ?? '',
+      password: profile.password ?? '',
+      token: profile.token ?? '',
+      updateUrl: profile.updateUrl ?? '',
+      enabled: profile.enabled,
+    });
+    setShowAddDdns(true);
+  };
+
+  const saveDdnsProfile = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const isEditing = Boolean(editingDdnsId);
+    setBusyId(isEditing ? `ddns-edit-${editingDdnsId}` : 'create-ddns');
+    setError(null);
+    try {
+      const res = await fetch(isEditing ? `/api/vpn/ddns/profiles/${editingDdnsId}` : '/api/vpn/ddns/profiles', {
+        method: isEditing ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(ddnsForm),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || 'No se pudo guardar el perfil DDNS');
+      setShowAddDdns(false);
+      resetDdnsForm();
+      setFeedback(isEditing ? 'Perfil DDNS actualizado' : 'Perfil DDNS creado');
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const syncDdnsProfile = async (id: string) => {
+    setBusyId(`ddns-sync-${id}`);
+    setError(null);
+    try {
+      const res = await fetch(`/api/vpn/ddns/profiles/${id}/sync`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || 'No se pudo actualizar el DDNS');
+      setFeedback('Perfil DDNS sincronizado');
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const deleteDdnsProfile = async (id: string) => {
+    if (!window.confirm('Se eliminará el perfil DDNS seleccionado.')) return;
+    setBusyId(`ddns-delete-${id}`);
+    setError(null);
+    try {
+      const res = await fetch(`/api/vpn/ddns/profiles/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || 'No se pudo eliminar el DDNS');
+      setFeedback('Perfil DDNS eliminado');
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   const issueSsl = async (id: string) => {
     setBusyId(id);
     setError(null);
@@ -249,6 +389,13 @@ export default function RemoteAccess() {
           >
             <Shield className="w-5 h-5" />
             <span>Nuevo Proxy</span>
+          </button>
+          <button
+            onClick={openCreateDdns}
+            className="flex items-center space-x-2 px-5 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black transition-all border border-white/10"
+          >
+            <Globe className="w-5 h-5" />
+            <span>Nuevo DDNS</span>
           </button>
         </div>
       </div>
@@ -413,6 +560,61 @@ export default function RemoteAccess() {
                 )}
               </div>
             </section>
+
+            <section className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-8 rounded-[2.5rem]">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-cyan-400" />
+                  DDNS
+                </h2>
+                <span className="text-xs text-slate-500 font-bold uppercase tracking-widest">{ddnsProfiles.length} perfiles</span>
+              </div>
+
+              <div className="space-y-4">
+                {ddnsProfiles.map((profile) => {
+                  const syncing = busyId === `ddns-sync-${profile.id}`;
+                  const deleting = busyId === `ddns-delete-${profile.id}`;
+                  return (
+                    <div key={profile.id} className="bg-slate-950/50 border border-white/5 p-5 rounded-[2rem] flex flex-col gap-4">
+                      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        <div>
+                          <p className="text-white font-black">{profile.name}</p>
+                          <p className="text-xs text-slate-400 font-mono mt-1">{profile.domain}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <span className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border bg-white/5 text-slate-300 border-white/10">
+                            {profile.provider}
+                          </span>
+                          <span className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border ${profile.lastStatus === 'success' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : profile.lastStatus === 'error' ? 'bg-red-500/10 text-red-300 border-red-500/20' : 'bg-amber-500/10 text-amber-200 border-amber-500/20'}`}>
+                            {profile.lastStatus === 'success' ? 'OK' : profile.lastStatus === 'error' ? 'Error' : 'Sin comprobar'}
+                          </span>
+                          <button onClick={() => openEditDdns(profile)} className="px-4 py-2 rounded-xl bg-white/5 text-slate-200 border border-white/10 text-sm font-bold">
+                            Editar
+                          </button>
+                          <button onClick={() => void syncDdnsProfile(profile.id)} disabled={syncing} className="px-4 py-2 rounded-xl bg-blue-500/10 text-blue-300 border border-blue-500/20 text-sm font-bold">
+                            {syncing ? 'Sincronizando...' : 'Actualizar'}
+                          </button>
+                          <button onClick={() => void deleteDdnsProfile(profile.id)} disabled={deleting} className="px-4 py-2 rounded-xl bg-red-500/10 text-red-300 border border-red-500/20 text-sm font-bold">
+                            Eliminar
+                          </button>
+                        </div>
+                      </div>
+                      <div className="text-xs text-slate-400">
+                        <p>Último resultado: {profile.lastMessage || 'Sin ejecuciones todavía'}</p>
+                        <p className="mt-1">Última comprobación: {profile.lastCheckedAt ? new Date(profile.lastCheckedAt).toLocaleString() : 'Nunca'}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {ddnsProfiles.length === 0 && (
+                  <div className="py-16 text-center border-2 border-dashed border-white/5 rounded-[2rem]">
+                    <Globe className="w-10 h-10 text-slate-700 mx-auto mb-3" />
+                    <p className="text-slate-500 font-bold">No hay perfiles DDNS configurados todavía</p>
+                  </div>
+                )}
+              </div>
+            </section>
           </div>
 
           <div className="space-y-8">
@@ -525,6 +727,87 @@ export default function RemoteAccess() {
               </div>
               <button disabled={busyId === 'create-domain'} className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl transition-all">
                 {busyId === 'create-domain' ? 'Guardando...' : 'Crear proxy'}
+              </button>
+            </motion.form>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showAddDdns && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAddDdns(false)} className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" />
+            <motion.form
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onSubmit={saveDdnsProfile}
+              className="relative w-full max-w-2xl bg-slate-900 border border-white/10 rounded-[2.5rem] p-8 shadow-2xl space-y-6"
+            >
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-black text-white">{editingDdnsId ? 'Editar perfil DDNS' : 'Nuevo perfil DDNS'}</h2>
+                <button type="button" onClick={() => setShowAddDdns(false)} className="p-2 hover:bg-white/5 rounded-xl transition-all">
+                  <X className="w-5 h-5 text-slate-500" />
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Nombre</label>
+                  <input value={ddnsForm.name} onChange={(event) => setDdnsForm((current) => ({ ...current, name: event.target.value }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="Casa principal" required />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Proveedor</label>
+                  <select value={ddnsForm.provider} onChange={(event) => setDdnsForm((current) => ({ ...current, provider: event.target.value as DdnsProviderOption['id'] }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                    {ddnsProviders.map((provider) => (
+                      <option key={provider.id} value={provider.id}>{provider.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Dominio</label>
+                  <input value={ddnsForm.domain} onChange={(event) => setDdnsForm((current) => ({ ...current, domain: event.target.value }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="mihost.duckdns.org" required />
+                </div>
+                {ddnsForm.provider === 'duckdns' && (
+                  <div className="md:col-span-2">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Token</label>
+                    <input value={ddnsForm.token} onChange={(event) => setDdnsForm((current) => ({ ...current, token: event.target.value }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="token de DuckDNS" required />
+                  </div>
+                )}
+                {ddnsForm.provider === 'noip' && (
+                  <>
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Usuario</label>
+                      <input value={ddnsForm.username} onChange={(event) => setDdnsForm((current) => ({ ...current, username: event.target.value }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" required />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Contraseña</label>
+                      <input value={ddnsForm.password} onChange={(event) => setDdnsForm((current) => ({ ...current, password: event.target.value }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" type="password" required />
+                    </div>
+                  </>
+                )}
+                {ddnsForm.provider === 'custom' && (
+                  <>
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Usuario</label>
+                      <input value={ddnsForm.username} onChange={(event) => setDdnsForm((current) => ({ ...current, username: event.target.value }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Token / Password</label>
+                      <input value={ddnsForm.token} onChange={(event) => setDdnsForm((current) => ({ ...current, token: event.target.value }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">URL de actualización</label>
+                      <input value={ddnsForm.updateUrl} onChange={(event) => setDdnsForm((current) => ({ ...current, updateUrl: event.target.value }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://ejemplo/update?domain={domain}&token={token}" required />
+                    </div>
+                  </>
+                )}
+                <label className="md:col-span-2 flex items-center gap-3 px-4 py-4 rounded-xl border border-white/10 bg-white/5 text-sm font-bold text-slate-300">
+                  <input type="checkbox" checked={ddnsForm.enabled} onChange={(event) => setDdnsForm((current) => ({ ...current, enabled: event.target.checked }))} />
+                  Perfil habilitado para usarse como endpoint preferido
+                </label>
+              </div>
+              <button disabled={busyId === 'create-ddns' || busyId === `ddns-edit-${editingDdnsId}`} className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl transition-all">
+                {editingDdnsId ? 'Guardar perfil' : 'Crear perfil'}
               </button>
             </motion.form>
           </div>
