@@ -1,29 +1,32 @@
-import { Server, Socket } from "socket.io";
-import { exec, spawn } from 'node:child_process';
-import { promisify } from 'node:util';
+import type { Server, Socket } from "socket.io";
+import { exec, spawn } from "node:child_process";
+import type { ChildProcessWithoutNullStreams } from "node:child_process";
+import { promisify } from "node:util";
 import { logger } from "../utils/logger.js";
 import { config } from "../config/index.js";
+import { attachSocketAuth } from "./socket-auth.js";
 
 const execAsync = promisify(exec);
 const log = logger.child("monitor-socket");
 
 export function setupMonitorSocket(io: Server) {
-  io.on("connection", (socket: Socket) => {
+  const monitorNamespace = io.of("/monitor");
+  attachSocketAuth(monitorNamespace, false);
+
+  monitorNamespace.on("connection", (socket: Socket) => {
     let statsInterval: NodeJS.Timeout | null = null;
-    let logProcess: any = null;
+    let logProcess: ChildProcessWithoutNullStreams | null = null;
 
     log.debug(`Client connected to monitor: ${socket.id}`);
 
-    // Docker Stats
     socket.on("docker:stats:subscribe", () => {
       if (statsInterval) return;
-      
+
       log.info(`Broadcasting stats for client ${socket.id}`);
-      
+
       const fetchStats = async () => {
         try {
           if (config.platform.isWindows) {
-            // Mock stats for Windows testing
             const mock = [
               { ID: "e1234", Name: "Plex", CPUPerc: "2.5%", MemUsage: "450MiB", MemPerc: "12%", NetIO: "1MB/2MB", BlockIO: "0B/0B", PIDs: "12" },
               { ID: "a9876", Name: "Pi-hole", CPUPerc: "0.5%", MemUsage: "80MiB", MemPerc: "2%", NetIO: "500KB/100KB", BlockIO: "0B/0B", PIDs: "5" }
@@ -33,17 +36,20 @@ export function setupMonitorSocket(io: Server) {
           }
 
           const { stdout } = await execAsync('docker stats --no-stream --format "{{json .}}"');
-          const lines = stdout.trim().split('\n').filter(l => l.length > 0);
-          const stats = lines.map(l => JSON.parse(l));
+          const lines = stdout.trim().split("\n").filter((line) => line.length > 0);
+          const stats = lines.map((line) => JSON.parse(line));
           socket.emit("docker:stats:data", stats);
-        } catch (err: any) {
-          log.error(`Error fetching docker stats: ${err.message}`);
-          socket.emit("docker:stats:error", err.message);
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : String(error);
+          log.error(`Error fetching docker stats: ${message}`);
+          socket.emit("docker:stats:error", message);
         }
       };
 
-      fetchStats();
-      statsInterval = setInterval(fetchStats, 2000);
+      void fetchStats();
+      statsInterval = setInterval(() => {
+        void fetchStats();
+      }, 2000);
     });
 
     socket.on("docker:stats:unsubscribe", () => {
@@ -54,29 +60,28 @@ export function setupMonitorSocket(io: Server) {
       }
     });
 
-    // Docker Logs
     socket.on("docker:logs:subscribe", (containerId: string) => {
       if (logProcess) {
         logProcess.kill();
       }
 
       log.info(`Streaming logs for container ${containerId} to client ${socket.id}`);
-      
-      logProcess = spawn('docker', ['logs', '-f', '--tail', '100', containerId]);
 
-      logProcess.stdout.on('data', (data: Buffer) => {
+      logProcess = spawn("docker", ["logs", "-f", "--tail", "100", containerId]) as ChildProcessWithoutNullStreams;
+
+      logProcess.stdout.on("data", (data: Buffer) => {
         socket.emit(`docker:logs:data:${containerId}`, data.toString());
       });
 
-      logProcess.stderr.on('data', (data: Buffer) => {
+      logProcess.stderr.on("data", (data: Buffer) => {
         socket.emit(`docker:logs:data:${containerId}`, data.toString());
       });
 
-      logProcess.on('error', (err: Error) => {
-        socket.emit(`docker:logs:error:${containerId}`, err.message);
+      logProcess.on("error", (error: Error) => {
+        socket.emit(`docker:logs:error:${containerId}`, error.message);
       });
 
-      logProcess.on('close', () => {
+      logProcess.on("close", () => {
         log.info(`Logs stream closed for ${containerId}`);
       });
     });

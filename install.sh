@@ -30,7 +30,34 @@ SERVICE_NAME="homevault"
 NGINX_SITE="/etc/nginx/sites-available/homevault"
 
 log_step() {
-  echo -e "${CYAN}$1${NC}"
+  echo -e "${CYAN}${BOLD}$1${NC}"
+}
+
+log_info() {
+  echo -e "${BLUE}ℹ️  $1${NC}"
+}
+
+log_success() {
+  echo -e "${GREEN}✅ $1${NC}"
+}
+
+log_warn() {
+  echo -e "${YELLOW}⚠️  $1${NC}"
+}
+
+log_error() {
+  echo -e "${RED}❌ $1${NC}"
+}
+
+detect_local_ip() {
+  local detected_ip
+  detected_ip="$(hostname -I 2>/dev/null | awk '{print $1}')"
+
+  if [ -z "$detected_ip" ]; then
+    detected_ip="127.0.0.1"
+  fi
+
+  echo "$detected_ip"
 }
 
 disable_nginx_conflict_site() {
@@ -43,13 +70,13 @@ disable_nginx_conflict_site() {
   fi
 
   if [ -L "$site_path" ] || [ -f "$site_path" ]; then
-    echo -e "${YELLOW}Desactivando sitio Nginx en conflicto: ${site_name}${NC}"
+    log_warn "Desactivando sitio Nginx en conflicto: ${site_name}"
     rm -f "$site_path"
   fi
 }
 
 if [ "${EUID}" -ne 0 ]; then
-  echo -e "${RED}Error: Este script debe ejecutarse con privilegios de ROOT.${NC}"
+  log_error "Este script debe ejecutarse con privilegios de ROOT."
   exit 1
 fi
 
@@ -63,27 +90,27 @@ else
   exit 1
 fi
 
-log_step "[1/7] Actualizando sistema e instalando dependencias base..."
+log_step "📦 [1/7] Actualizando sistema e instalando dependencias base..."
 apt-get update -y
 apt-get install -y build-essential curl git rsync util-linux python3-minimal nginx mergerfs snapraid smartmontools wireguard htop ufw --no-install-recommends || true
 
 if ! command -v docker >/dev/null 2>&1; then
-  log_step "[2/7] Instalando Docker Engine..."
+  log_step "🐳 [2/7] Instalando Docker Engine..."
   curl -fsSL https://get.docker.com | sh
   systemctl enable --now docker
 else
-  echo -e "${GREEN}Docker ya está instalado.${NC}"
+  log_success "Docker ya está instalado."
 fi
 
 if ! command -v node >/dev/null 2>&1; then
-  log_step "[3/7] Instalando Node.js 20 LTS..."
+  log_step "🟢 [3/7] Instalando Node.js 20 LTS..."
   curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
   apt-get install -y nodejs
 else
-  echo -e "${GREEN}Node.js ya está instalado ($(node -v)).${NC}"
+  log_success "Node.js ya está instalado ($(node -v))."
 fi
 
-log_step "[4/7] Desplegando archivos de la aplicación..."
+log_step "📁 [4/7] Desplegando archivos de la aplicación..."
 
 if [ -d "./src" ] && [ -f "./package.json" ] && [ -d "./frontend" ]; then
   mkdir -p "$INSTALL_DIR"
@@ -102,7 +129,7 @@ else
     fi
     git clone https://github.com/virtuspro28/homevault.git "$INSTALL_DIR"
   else
-    echo -e "${BLUE}Actualizando código desde GitHub...${NC}"
+    log_info "Actualizando código desde GitHub..."
     git -C "$INSTALL_DIR" fetch --all
     git -C "$INSTALL_DIR" reset --hard origin/main
   fi
@@ -114,7 +141,7 @@ cd "$INSTALL_DIR"
 touch "$DB_FILE"
 
 
-log_step "[5/7] Instalando dependencias, generando Prisma y compilando..."
+log_step "🛠️  [5/7] Instalando dependencias, generando Prisma y compilando..."
 # Limpiar instalaciones previas para asegurar frescura
 rm -rf dist frontend/dist
 
@@ -128,11 +155,11 @@ npx prisma generate
 npx prisma db push --accept-data-loss
 
 # Compilación del backend con verificación estricta
-echo -e "${CYAN}Compilando Backend...${NC}"
-npm run build || { echo -e "${RED}Error crítico: la compilación del backend falló.${NC}"; exit 1; }
+log_info "Compilando backend..."
+npm run build || { log_error "Error crítico: la compilación del backend falló."; exit 1; }
 
 
-log_step "[6/7] Ajustando permisos y servicio del backend..."
+log_step "🔐 [6/7] Ajustando permisos y servicio del backend..."
 chmod 755 /opt
 chmod 755 "$INSTALL_DIR"
 chmod 755 "$FRONTEND_DIR"
@@ -169,16 +196,16 @@ systemctl daemon-reload
 systemctl enable "$SERVICE_NAME"
 systemctl restart "$SERVICE_NAME"
 
-echo -e "${CYAN}Esperando al backend...${NC}"
+log_info "Esperando al backend..."
 for _ in $(seq 1 15); do
   if curl -fsS "http://127.0.0.1:${BACKEND_PORT}/api/health" >/dev/null 2>&1; then
-    echo -e "${GREEN}Backend operativo en puerto ${BACKEND_PORT}.${NC}"
+    log_success "Backend operativo en puerto ${BACKEND_PORT}."
     break
   fi
   sleep 1
 done
 
-log_step "[7/7] Configurando Nginx para SPA + proxy API..."
+log_step "🌐 [7/7] Configurando Nginx para SPA + proxy API..."
 rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default
 
 if [ -d /etc/nginx/sites-enabled ]; then
@@ -259,9 +286,10 @@ nginx -t
 systemctl enable nginx
 systemctl restart nginx
 
-LOCAL_IP="$(hostname -I | awk '{print $1}')"
+LOCAL_IP="$(detect_local_ip)"
 echo ""
-echo -e "${GREEN}${BOLD}HomeVault ha sido instalado correctamente.${NC}"
-echo -e "Accede desde: ${BOLD}http://${LOCAL_IP}${NC}"
-echo -e "Base de datos SQLite: ${BOLD}${DB_FILE}${NC}"
-echo -e "Logs del backend: ${BOLD}journalctl -u ${SERVICE_NAME} -f${NC}"
+echo -e "${GREEN}${BOLD}🎉 HomeVault ha sido instalado correctamente.${NC}"
+echo -e "${GREEN}${BOLD}🚀 HomeVault está listo. Accede en: http://${LOCAL_IP}:3000${NC}"
+echo -e "${BLUE}🌍 Acceso recomendado por Nginx: ${BOLD}http://${LOCAL_IP}${NC}"
+echo -e "${CYAN}🗄️  Base de datos SQLite: ${BOLD}${DB_FILE}${NC}"
+echo -e "${CYAN}📜 Logs del backend: ${BOLD}journalctl -u ${SERVICE_NAME} -f${NC}"
