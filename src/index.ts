@@ -22,6 +22,7 @@ import express from "express";
 import type { Request, Response, NextFunction } from "express";
 import { Server as SocketServer } from "socket.io";
 import path from "node:path";
+import fs from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import cookieParser from "cookie-parser";
 
@@ -79,6 +80,19 @@ async function initStorageRoot(): Promise<void> {
   }
 }
 
+async function ensureFrontendDistReady(frontendPath: string): Promise<void> {
+  const indexPath = path.join(frontendPath, "index.html");
+
+  try {
+    await fs.access(frontendPath);
+    await fs.access(indexPath);
+    log.info(`Frontend estatico detectado en ${frontendPath}`);
+  } catch (error: unknown) {
+    log.errorWithStack(`No se encontró el build del frontend en ${indexPath}`, error);
+    process.exit(1);
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════
    FASE 2: Configuración de Express
    ═══════════════════════════════════════════════════════════════ */
@@ -120,7 +134,7 @@ app.get("/health", (_req: Request, res: Response) => {
 const frontendPath = path.join(__dirname, "../frontend/dist");
 app.use(express.static(frontendPath));
 
-app.get("*", (req: Request, res: Response) => {
+app.get("*", (_req: Request, res: Response) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
 
@@ -173,7 +187,7 @@ setupMonitorSocket(io);
 
 getDatabase();
 
-void initStorageRoot().then(() => {
+void Promise.all([initStorageRoot(), ensureFrontendDistReady(frontendPath)]).then(() => {
   httpServer.listen(config.server.port, () => {
     const p = config.platform;
 
