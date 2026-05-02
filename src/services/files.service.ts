@@ -5,6 +5,16 @@ import { logger } from '../utils/logger.js';
 
 const log = logger.child('files-service');
 
+function normalizeRequestedPath(reqPath: string = ''): string {
+  const trimmed = String(reqPath ?? '').trim();
+
+  if (!trimmed || trimmed === '/' || trimmed === '.') {
+    return '';
+  }
+
+  return trimmed.replace(/^\/+/, '');
+}
+
 export interface FileItem {
   name: string;
   path: string; // Relative path from storage root
@@ -25,7 +35,8 @@ function isPathInside(basePath: string, targetPath: string): boolean {
  */
 export function resolveStoragePath(reqPath: string = ''): string {
   const base = path.resolve(config.storage.basePath);
-  const target = path.resolve(base, reqPath);
+  const normalizedPath = normalizeRequestedPath(reqPath);
+  const target = path.resolve(base, normalizedPath);
 
   if (!isPathInside(base, target)) {
     log.warn(`Blocked traversal attempt: ${target}`);
@@ -38,7 +49,8 @@ export function resolveStoragePath(reqPath: string = ''): string {
  * List files and directories in a given path.
  */
 export async function listFiles(reqPath: string = ''): Promise<FileItem[]> {
-  const targetPath = resolveStoragePath(reqPath);
+  const normalizedPath = normalizeRequestedPath(reqPath);
+  const targetPath = resolveStoragePath(normalizedPath);
 
   try {
     const stat = await fs.stat(targetPath);
@@ -50,7 +62,10 @@ export async function listFiles(reqPath: string = ''): Promise<FileItem[]> {
 
     const fileItems = await Promise.all(
       items.map(async (item) => {
-        const itemRelativePath = path.join(reqPath, item.name).replace(/\\/g, '/');
+        const itemRelativePath = ['/', normalizedPath, item.name]
+          .join('/')
+          .replace(/\/+/g, '/')
+          .replace(/\/$/, '') || '/';
         const fullItemPath = path.join(targetPath, item.name);
 
         try {
@@ -85,7 +100,7 @@ export async function listFiles(reqPath: string = ''): Promise<FileItem[]> {
     });
   } catch (error: any) {
     if (error.code === 'ENOENT') {
-      throw new Error(`Directory not found: ${reqPath || '/'}`);
+      throw new Error(`Directory not found: ${normalizedPath ? `/${normalizedPath}` : '/'}`);
     }
     throw error;
   }
@@ -95,7 +110,8 @@ export async function listFiles(reqPath: string = ''): Promise<FileItem[]> {
  * Create a new directory.
  */
 export async function createDirectory(reqPath: string, name: string): Promise<void> {
-  const targetPath = resolveStoragePath(path.join(reqPath, name));
+  const parentPath = normalizeRequestedPath(reqPath);
+  const targetPath = resolveStoragePath(path.join(parentPath, name));
   await fs.mkdir(targetPath, { recursive: true });
 }
 
@@ -103,7 +119,7 @@ export async function createDirectory(reqPath: string, name: string): Promise<vo
  * Delete a file or directory.
  */
 export async function deleteItem(reqPath: string): Promise<void> {
-  const targetPath = resolveStoragePath(reqPath);
+  const targetPath = resolveStoragePath(normalizeRequestedPath(reqPath));
   await fs.rm(targetPath, { recursive: true, force: true });
 }
 
@@ -111,8 +127,8 @@ export async function deleteItem(reqPath: string): Promise<void> {
  * Rename or move an item.
  */
 export async function renameItem(oldPath: string, newPath: string): Promise<void> {
-  const oldAbs = resolveStoragePath(oldPath);
-  const newAbs = resolveStoragePath(newPath);
+  const oldAbs = resolveStoragePath(normalizeRequestedPath(oldPath));
+  const newAbs = resolveStoragePath(normalizeRequestedPath(newPath));
   await fs.rename(oldAbs, newAbs);
 }
 

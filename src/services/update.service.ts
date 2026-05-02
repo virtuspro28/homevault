@@ -1,9 +1,9 @@
 import { exec } from "node:child_process";
-import { access } from "node:fs/promises";
 import { constants } from "node:fs";
+import { access } from "node:fs/promises";
 import { promisify } from "node:util";
-import { logger } from "../utils/logger.js";
 import { config } from "../config/index.js";
+import { logger } from "../utils/logger.js";
 
 const execAsync = promisify(exec);
 const log = logger.child("update-service");
@@ -15,6 +15,7 @@ interface UpdateCommandResult {
   message: string;
   restartRequired?: boolean;
   rebootRequired?: boolean;
+  error?: string;
 }
 
 interface UpdateCheckResult {
@@ -120,23 +121,9 @@ export const UpdateService = {
     const logChunks: string[] = ["Iniciando actualización OTA de HomeVault...\n"];
 
     try {
-      const { stdout: statusOutput } = await execAsync("git status --short", {
-        cwd: config.paths.root,
-        maxBuffer: COMMAND_MAX_BUFFER,
-      });
-
-      const isDirty = statusOutput.trim().length > 0;
-
-      if (isDirty) {
-        const stashName = `homevault-ota-${Date.now()}`;
-        logChunks.push("Se detectaron cambios locales. Guardando copia temporal antes de sincronizar.\n");
-        logChunks.push(await runCommand(`git stash push --include-untracked -m "${stashName}"`, "Respaldo temporal"));
-      } else {
-        logChunks.push("Repositorio limpio. No hace falta guardar cambios locales.\n");
-      }
-
+      logChunks.push(await runCommand("git reset --hard HEAD", "Descartando cambios locales antes de actualizar"));
       logChunks.push(await runCommand("git fetch origin main", "Descargando cambios"));
-      logChunks.push(await runCommand("git reset --hard origin/main", "Sincronizando rama principal"));
+      logChunks.push(await runCommand("git pull origin main", "Aplicando cambios remotos"));
       logChunks.push(await runCommand("npm install", "Dependencias backend"));
       logChunks.push(await runCommand("npm --prefix frontend install", "Dependencias frontend"));
       logChunks.push(await runCommand("npm --prefix frontend run build", "Build frontend"));
@@ -169,6 +156,7 @@ export const UpdateService = {
         success: false,
         message: error instanceof Error ? error.message : "Error desconocido durante la actualización OTA.",
         logs: logChunks.join(""),
+        error: error instanceof Error ? error.message : "Error desconocido durante la actualización OTA.",
       };
     }
   },
@@ -218,6 +206,7 @@ export const UpdateService = {
         success: false,
         message: error instanceof Error ? error.message : "Error desconocido durante la actualización del sistema.",
         logs: logChunks.join(""),
+        error: error instanceof Error ? error.message : "Error desconocido durante la actualización del sistema.",
       };
     }
   },

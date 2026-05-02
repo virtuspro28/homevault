@@ -209,18 +209,18 @@ router.get("/check-updates", requireAuth, async (_req: Request, res: Response) =
 router.post("/update/apply", requireAuth, async (_req: Request, res: Response) => {
   try {
     const result = await UpdateService.performUpdate();
-    res.status(result.success ? 200 : 500).json(result);
+    res.type("application/json").status(result.success ? 200 : 500).send(JSON.stringify(result));
   } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+    res.type("application/json").status(500).send(JSON.stringify({ success: false, error: error.message }));
   }
 });
 
 router.post("/update", requireAuth, async (_req: Request, res: Response) => {
   try {
     const result = await UpdateService.performUpdate();
-    res.status(result.success ? 200 : 500).json(result);
+    res.type("application/json").status(result.success ? 200 : 500).send(JSON.stringify(result));
   } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+    res.type("application/json").status(500).send(JSON.stringify({ success: false, error: error.message }));
   }
 });
 

@@ -55,9 +55,9 @@ const upload = multer({
 router.get("/list", async (req: Request, res: Response) => {
 
   try {
-    const targetPath = typeof req.query['path'] === 'string' ? req.query['path'] : '';
+    const targetPath = typeof req.query['path'] === 'string' ? req.query['path'] : '/';
     const items = await listFiles(targetPath);
-    res.status(200).json({ success: true, data: items });
+    res.status(200).json({ success: true, data: items, path: targetPath || '/' });
   } catch (err: any) {
     log.error(`Browse error: ${err.message}`);
     res.status(500).json({ success: false, error: err.message });

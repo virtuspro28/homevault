@@ -27,7 +27,7 @@ interface FileItem {
 
 export default function FileManager() {
   const [files, setFiles] = useState<FileItem[]>([]);
-  const [currentPath, setCurrentPath] = useState('');
+  const [currentPath, setCurrentPath] = useState('/');
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -36,13 +36,14 @@ export default function FileManager() {
   const fetchFiles = useCallback(async (path: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/files/list?path=${encodeURIComponent(path)}`, { credentials: 'include' });
+      const requestPath = path && path.trim() ? path : '/';
+      const res = await fetch(`/api/files/list?path=${encodeURIComponent(requestPath)}`, { credentials: 'include' });
       const data = await res.json();
       if (!res.ok || !data.success) {
         throw new Error(data.error || 'No se pudo cargar el directorio');
       }
-      setFiles(data.data);
-      setCurrentPath(path);
+      setFiles(Array.isArray(data.data) ? data.data : []);
+      setCurrentPath(typeof data.path === 'string' && data.path.trim() ? data.path : requestPath);
       setError(null);
     } catch (err) {
       console.error('Error fetching files:', err);
@@ -53,7 +54,7 @@ export default function FileManager() {
   }, []);
 
   useEffect(() => {
-    fetchFiles('');
+    void fetchFiles('/');
   }, [fetchFiles]);
 
   const handleNavigate = (path: string) => {
@@ -61,9 +62,13 @@ export default function FileManager() {
   };
 
   const goBack = () => {
-    const parts = currentPath.split('/');
+    if (currentPath === '/' || !currentPath) {
+      return;
+    }
+
+    const parts = currentPath.split('/').filter(Boolean);
     parts.pop();
-    handleNavigate(parts.join('/'));
+    handleNavigate(parts.length > 0 ? `/${parts.join('/')}` : '/');
   };
 
   const getIcon = (file: FileItem) => {
@@ -131,15 +136,16 @@ export default function FileManager() {
 
     const parentPath = file.path.includes('/')
       ? file.path.slice(0, file.path.lastIndexOf('/'))
-      : '';
-    const newPath = [parentPath, nextName].filter(Boolean).join('/');
+      : '/';
+    const newPath = [parentPath === '/' ? '' : parentPath, nextName].filter(Boolean).join('/');
+    const normalizedNewPath = newPath.startsWith('/') ? newPath : `/${newPath}`;
 
     try {
       const res = await fetch('/api/files/rename', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ oldPath: file.path, newPath }),
+        body: JSON.stringify({ oldPath: file.path, newPath: normalizedNewPath }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -193,12 +199,12 @@ export default function FileManager() {
         )}
         <div className="flex items-center justify-between mb-6 px-4">
            <div className="flex items-center space-x-4 text-xs font-black text-slate-500 uppercase tracking-widest">
-              {currentPath && (
+              {currentPath !== '/' && (
                 <button onClick={goBack} className="p-2 hover:bg-white/5 rounded-lg text-white transition-all">
                    <ArrowLeft className="w-4 h-4" />
                 </button>
               )}
-              <span>/ {currentPath}</span>
+              <span>{currentPath}</span>
            </div>
            <div className="flex bg-white/5 p-1 rounded-xl">
               <button 

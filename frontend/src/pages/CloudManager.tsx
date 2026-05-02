@@ -100,6 +100,9 @@ const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
   },
 ];
 
+const SELECT_CLASSNAME = "rounded-xl border border-white/10 bg-slate-950 text-white p-4 text-sm";
+const OPTION_CLASSNAME = "bg-slate-950 text-white";
+
 interface CloudRemote {
   name: string;
   provider: RemoteProvider;
@@ -539,10 +542,16 @@ export default function CloudManager() {
                         provider: event.target.value as RemoteProvider,
                       }))
                     }
-                    className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm"
+                    className={SELECT_CLASSNAME}
+                    style={{ backgroundColor: "#020617", color: "#ffffff" }}
                   >
                   {providers.map((provider) => (
-                    <option key={provider.id} value={provider.id}>
+                    <option
+                      key={provider.id}
+                      value={provider.id}
+                      className={OPTION_CLASSNAME}
+                      style={{ backgroundColor: "#020617", color: "#ffffff" }}
+                    >
                       {provider.label}
                     </option>
                   ))}
