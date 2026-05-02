@@ -1,6 +1,7 @@
 import { exec } from "node:child_process";
 import { constants } from "node:fs";
-import { access } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
+import path from "node:path";
 import { promisify } from "node:util";
 import { config } from "../config/index.js";
 import { logger } from "../utils/logger.js";
@@ -39,6 +40,17 @@ async function pathExists(targetPath: string): Promise<boolean> {
   }
 }
 
+async function getPackageVersion(): Promise<string> {
+  try {
+    const packageJsonPath = path.join(config.paths.root, "package.json");
+    const packageJson = await readFile(packageJsonPath, "utf-8");
+    const parsed = JSON.parse(packageJson) as { version?: unknown };
+    return typeof parsed.version === "string" ? parsed.version : "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
 async function runCommand(command: string, title: string): Promise<string> {
   const { stdout, stderr } = await execAsync(command, {
     cwd: config.paths.root,
@@ -63,10 +75,6 @@ async function captureFailure(command: string, title: string, error: unknown): P
 }
 
 export const UpdateService = {
-  private: {
-    currentVersion: "1.2.5",
-  },
-
   async checkForUpdates(): Promise<UpdateCheckResult> {
     try {
       const { stdout: localHash } = await execAsync("git rev-parse HEAD", {
@@ -102,7 +110,7 @@ export const UpdateService = {
       return {
         available: false,
         latestVersion: "unknown",
-        currentVersion: this.private.currentVersion,
+        currentVersion: await getPackageVersion(),
       };
     }
   },

@@ -4,6 +4,7 @@ import { config } from '../config/index.js';
 import { logger } from '../utils/logger.js';
 
 const log = logger.child('files-service');
+const DEFAULT_STORAGE_ROOT = '/opt/homevault/data';
 
 function normalizeRequestedPath(reqPath: string = ''): string {
   const trimmed = String(reqPath ?? '').trim();
@@ -24,6 +25,12 @@ export interface FileItem {
   mtime: Date;
 }
 
+function getStorageBasePath(): string {
+  const configuredBasePath = String(config.storage.basePath ?? '').trim();
+  const basePath = configuredBasePath || DEFAULT_STORAGE_ROOT;
+  return path.resolve(basePath);
+}
+
 function isPathInside(basePath: string, targetPath: string): boolean {
   const relative = path.relative(basePath, targetPath);
   return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
@@ -34,7 +41,7 @@ function isPathInside(basePath: string, targetPath: string): boolean {
  * Prevents Path Traversal Attacks.
  */
 export function resolveStoragePath(reqPath: string = ''): string {
-  const base = path.resolve(config.storage.basePath);
+  const base = getStorageBasePath();
   const normalizedPath = normalizeRequestedPath(reqPath);
   const target = path.resolve(base, normalizedPath);
 
@@ -53,6 +60,10 @@ export async function listFiles(reqPath: string = ''): Promise<FileItem[]> {
   const targetPath = resolveStoragePath(normalizedPath);
 
   try {
+    if (!normalizedPath) {
+      await fs.mkdir(targetPath, { recursive: true });
+    }
+
     const stat = await fs.stat(targetPath);
     if (!stat.isDirectory()) {
       throw new Error('Path is not a directory');
@@ -100,6 +111,10 @@ export async function listFiles(reqPath: string = ''): Promise<FileItem[]> {
     });
   } catch (error: any) {
     if (error.code === 'ENOENT') {
+      if (!normalizedPath) {
+        await fs.mkdir(targetPath, { recursive: true });
+        return [];
+      }
       throw new Error(`Directory not found: ${normalizedPath ? `/${normalizedPath}` : '/'}`);
     }
     throw error;
@@ -137,9 +152,11 @@ export async function renameItem(oldPath: string, newPath: string): Promise<void
  * Note: For very large drives, this should be optimized with an index.
  */
 export async function searchFiles(query: string, maxResults: number = 100): Promise<FileItem[]> {
-  const base = path.resolve(config.storage.basePath);
+  const base = getStorageBasePath();
   const results: FileItem[] = [];
   const lowercaseQuery = query.toLowerCase();
+
+  await fs.mkdir(base, { recursive: true });
 
   async function walk(currentPath: string) {
     if (results.length >= maxResults) return;
