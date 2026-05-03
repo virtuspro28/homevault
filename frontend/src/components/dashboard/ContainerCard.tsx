@@ -9,7 +9,7 @@ interface ContainerCardProps {
   onStart?: (id: string) => void;
   onStop?: (id: string) => void;
   onRestart?: (id: string) => void;
-  onDelete?: (id: string) => void;
+  onDelete?: (id: string, options: { deleteData: boolean }) => void;
   onDetails?: (id: string) => void;
   showExtendedActions?: boolean;
 }
@@ -26,6 +26,7 @@ export default function ContainerCard({
 }: ContainerCardProps) {
   const isRunning = container.state === 'running';
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleteData, setDeleteData] = useState(false);
   const [iconFailed, setIconFailed] = useState(false);
   const appIcon = resolveAppIconAsset(container.name, container.image);
 
@@ -131,14 +132,26 @@ export default function ContainerCard({
               <div>
                 <h3 className="text-lg font-black text-white">Eliminar contenedor</h3>
                 <p className="mt-2 text-sm text-slate-300">
-                  Se eliminará <span className="font-bold text-white">{container.name}</span>. Los datos persistentes se conservarán por ahora.
+                  Se eliminará <span className="font-bold text-white">{container.name}</span>. Puedes conservar sus datos persistentes o eliminar también su carpeta de aplicación.
                 </p>
               </div>
             </div>
+            <label className="mt-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-slate-200">
+              <input
+                type="checkbox"
+                checked={deleteData}
+                onChange={(event) => setDeleteData(event.target.checked)}
+                className="h-5 w-5 rounded accent-red-500"
+              />
+              ¿Eliminar también carpeta de datos?
+            </label>
             <div className="mt-6 flex gap-3">
               <button
                 type="button"
-                onClick={() => setConfirmingDelete(false)}
+                onClick={() => {
+                  setConfirmingDelete(false);
+                  setDeleteData(false);
+                }}
                 className="flex-1 rounded-2xl bg-white/5 px-4 py-3 font-bold text-slate-200"
               >
                 Cancelar
@@ -147,7 +160,8 @@ export default function ContainerCard({
                 type="button"
                 onClick={() => {
                   setConfirmingDelete(false);
-                  onDelete(container.id);
+                  onDelete(container.id, { deleteData });
+                  setDeleteData(false);
                 }}
                 className="flex-1 rounded-2xl bg-red-600 px-4 py-3 font-black text-white"
               >

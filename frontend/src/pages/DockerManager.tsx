@@ -115,13 +115,15 @@ export default function DockerManager() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, options: { deleteData: boolean }) => {
     setProcessingId(id);
     setErrorMsg(null);
     try {
-      const res = await fetch(`/api/containers/${id}`, {
+      const res = await fetch(`/api/docker/containers/${id}`, {
         method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
+        body: JSON.stringify(options),
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
@@ -210,7 +212,7 @@ export default function DockerManager() {
                     onStart={(containerId) => void handleAction(containerId, 'start')}
                     onStop={(containerId) => void handleAction(containerId, 'stop')}
                     onRestart={(containerId) => void handleAction(containerId, 'restart')}
-                    onDelete={(containerId) => void handleDelete(containerId)}
+                    onDelete={(containerId, options) => void handleDelete(containerId, options)}
                     onDetails={(containerId) => void selectContainer(containerId)}
                     showExtendedActions
                   />

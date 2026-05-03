@@ -134,11 +134,17 @@ router.delete("/containers/:id", async (req: Request, res: Response) => {
       return;
     }
 
-    await removeContainer(id, { deleteData: false });
+    const deleteData = req.body && typeof req.body === "object" && "deleteData" in req.body
+      ? req.body.deleteData === true
+      : false;
+
+    await removeContainer(id, { deleteData });
     res.status(200).json({
       success: true,
-      message: "Contenedor eliminado. Los datos persistentes se han conservado.",
-      data: { id, dataDeleted: false },
+      message: deleteData
+        ? "Contenedor y carpeta de datos eliminados."
+        : "Contenedor eliminado. Los datos persistentes se han conservado.",
+      data: { id, dataDeleted: deleteData },
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Error eliminando container";

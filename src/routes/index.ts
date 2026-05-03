@@ -43,7 +43,6 @@ const router = Router();
 router.use("/health", healthRouter);
 router.use("/system", systemRouter);
 router.use("/docker", dockerRouter);
-router.use("/", dockerRouter);
 router.use("/files", fsRouter);
 router.use("/auth", authRouter);
 router.use("/samba", sambaRouter);

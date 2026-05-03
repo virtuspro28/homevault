@@ -199,6 +199,7 @@ Wants=docker.service
 Type=simple
 User=root
 WorkingDirectory=$INSTALL_DIR
+EnvironmentFile=/opt/homevault/.env
 ExecStart=/usr/bin/npm start
 Restart=always
 RestartSec=10

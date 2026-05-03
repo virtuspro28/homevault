@@ -16,6 +16,7 @@ import {
   ResponsiveContainer,
   Tooltip
 } from 'recharts';
+import { io, type Socket } from 'socket.io-client';
 import NetworkHistoryChart from '../components/dashboard/NetworkHistoryChart';
 import ContainerCard from '../components/dashboard/ContainerCard';
 import UsageBar from '../components/dashboard/UsageBar';
@@ -76,22 +77,20 @@ export default function Dashboard() {
 
   useEffect(() => {
     let disposed = false;
+    let statsSocket: Socket | null = null;
     const fetchData = async () => {
       try {
-        const [statsRes, hwResponse, containersRes, remotesRes] = await Promise.all([
-          fetch('/api/system/stats', { credentials: 'include' }),
+        const [hwResponse, containersRes, remotesRes] = await Promise.all([
           fetch('/api/hardware/telemetry', { credentials: 'include' }),
           fetch('/api/docker/containers', { credentials: 'include' }),
           fetch('/api/cloud/remotes', { credentials: 'include' }),
         ]);
 
-        const statsData = await statsRes.json();
         const hwData = await hwResponse.json();
         const containersData = await containersRes.json();
         const remotesData = await remotesRes.json();
 
         if (disposed) return;
-        if (statsData.success) setStats(statsData.data);
         if (hwData.success) setHardware(hwData.data);
         if (containersData.success) setContainers(Array.isArray(containersData.data) ? containersData.data : []);
         if (remotesData.success) setRemotes(Array.isArray(remotesData.data) ? remotesData.data : []);
@@ -110,6 +109,21 @@ export default function Dashboard() {
     const interval = setInterval(() => {
       void fetchData();
     }, 5000);
+    statsSocket = io('/monitor', {
+      withCredentials: true,
+    });
+    statsSocket.emit('system:stats:subscribe');
+    statsSocket.on('system:stats:data', (payload: DashboardStats) => {
+      if (!disposed) {
+        setStats(payload);
+        setLoading(false);
+      }
+    });
+    statsSocket.on('system:stats:error', (message: string) => {
+      if (!disposed) {
+        console.error('Error fetching dashboard socket stats:', message);
+      }
+    });
     const handleContainersChanged = () => {
       void fetchData();
     };
@@ -117,6 +131,8 @@ export default function Dashboard() {
     return () => {
       disposed = true;
       clearInterval(interval);
+      statsSocket?.emit('system:stats:unsubscribe');
+      statsSocket?.disconnect();
       window.removeEventListener(CONTAINERS_CHANGED_EVENT, handleContainersChanged);
     };
   }, []);

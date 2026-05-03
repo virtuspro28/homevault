@@ -38,6 +38,36 @@ export interface RemoveContainerOptions {
   deleteData?: boolean;
 }
 
+function resolveAppDataPath(details: DockerContainerDetails): string | null {
+  const appsRoot = path.join(config.storage.basePath, "apps");
+
+  for (const mount of details.mounts) {
+    const sourcePath = mount.source.trim();
+    if (!sourcePath) {
+      continue;
+    }
+
+    const normalizedSource = path.normalize(sourcePath);
+    const relativeToAppsRoot = path.relative(appsRoot, normalizedSource);
+    const isInsideAppsRoot = relativeToAppsRoot !== ""
+      && !relativeToAppsRoot.startsWith("..")
+      && !path.isAbsolute(relativeToAppsRoot);
+
+    if (!isInsideAppsRoot) {
+      continue;
+    }
+
+    const [appDirectory] = relativeToAppsRoot.split(path.sep);
+    if (!appDirectory) {
+      continue;
+    }
+
+    return path.join(appsRoot, appDirectory);
+  }
+
+  return null;
+}
+
 function buildDockerError(error: any): Error {
   const message = error?.stderr || error?.message || "Error de Docker desconocido.";
   if (message.includes("permission denied") || message.includes("acceso denegado")) {
@@ -126,7 +156,10 @@ export async function removeContainer(id: string, options: RemoveContainerOption
     await execAsync(`docker rm ${id}`);
 
     if (deleteData) {
-      const dataPath = path.join(config.storage.basePath, "apps", details.container.name);
+      const dataPath = resolveAppDataPath(details);
+      if (!dataPath) {
+        throw new Error(`No se encontró una carpeta de datos de app asociada al contenedor ${details.container.name}.`);
+      }
       await fs.rm(dataPath, { recursive: true, force: true });
     }
   } catch (error: any) {
