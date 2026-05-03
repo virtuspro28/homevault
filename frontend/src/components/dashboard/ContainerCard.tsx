@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Play, Square, Loader2, Box, RotateCcw, Terminal, Trash2, AlertTriangle, ExternalLink } from 'lucide-react';
+import { Play, Square, Loader2, Box, RotateCw, Terminal, Trash2, AlertTriangle, ExternalLink } from 'lucide-react';
 import type { ContainerInfo } from '../../types/docker';
 import { resolveAppIconAsset } from '../../lib/appIcons';
 
@@ -37,7 +37,6 @@ export default function ContainerCard({
   onRestart,
   onDelete,
   onDetails,
-  showExtendedActions = false,
 }: ContainerCardProps) {
   const isRunning = container.state === 'running';
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -88,70 +87,59 @@ export default function ContainerCard({
           </div>
         </div>
 
-        <div className={showExtendedActions ? 'grid grid-cols-5 gap-2 w-full' : 'flex space-x-3'}>
-          {isRunning ? (
-            <button
-              onClick={() => onStop?.(container.id)}
-              disabled={isProcessing}
-              className={showExtendedActions
-                ? 'flex items-center justify-center py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl font-medium transition-colors disabled:opacity-50'
-                : 'flex-1 flex items-center justify-center py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl font-medium transition-colors disabled:opacity-50'}
-            >
-              {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : showExtendedActions ? <Square className="w-4 h-4" /> : <><Square className="w-4 h-4 mr-2" /> Apagar</>}
-            </button>
-          ) : (
-            <button
-              onClick={() => onStart?.(container.id)}
-              disabled={isProcessing}
-              className={showExtendedActions
-                ? 'flex items-center justify-center py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-xl font-medium transition-colors disabled:opacity-50'
-                : 'flex-1 flex items-center justify-center py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-xl font-medium transition-colors disabled:opacity-50'}
-            >
-              {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : showExtendedActions ? <Play className="w-4 h-4" /> : <><Play className="w-4 h-4 mr-2" /> Iniciar</>}
-            </button>
-          )}
+        <div id="container-actions-grid" className="grid grid-cols-5 gap-2 w-full mt-4">
+          {/* 1. START/STOP */}
+          <button
+            onClick={() => container.state === 'running' ? onStop?.(container.id) : onStart?.(container.id)}
+            disabled={isProcessing}
+            className={`flex items-center justify-center p-2 rounded-lg transition-colors ${container.state === 'running' ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}
+          >
+            {isProcessing ? <Loader2 size={18} className="animate-spin" /> : container.state === 'running' ? <Square size={18} /> : <Play size={18} />}
+          </button>
 
-          {showExtendedActions && (
-            <>
-              <button
-                onClick={() => onRestart?.(container.id)}
-                disabled={isProcessing}
-                className="flex items-center justify-center py-2.5 bg-white/5 hover:bg-amber-500/10 text-slate-300 hover:text-amber-300 border border-white/10 rounded-xl font-medium transition-colors disabled:opacity-50"
-              >
-                {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
-              </button>
-              <button
-                onClick={() => onDetails?.(container.id)}
-                className="flex items-center justify-center py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 rounded-xl font-medium transition-colors"
-              >
-                <Terminal className="w-4 h-4" />
-              </button>
-              {/* BOTÓN WEB UI - INYECCIÓN FORZOSA */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const url = resolveContainerWebUiUrl(container);
-                  window.open(url, '_blank');
-                }}
-                disabled={container.state !== 'running'}
-                className={`flex items-center justify-center p-2 rounded-lg transition-all duration-200 ${
-                  container.state === 'running'
-                    ? 'bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/40 border border-indigo-500/30'
-                    : 'bg-gray-500/10 text-gray-500 cursor-not-allowed border border-transparent'
-                }`}
-                title="Abrir Interfaz Web"
-              >
-                <ExternalLink size={18} />
-              </button>
-              <button
-                onClick={() => setConfirmingDelete(true)}
-                disabled={isProcessing}
-                className="flex items-center justify-center py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-500/20 rounded-xl font-medium transition-colors disabled:opacity-50"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </>
-          )}
+          {/* 2. RESTART */}
+          <button 
+            onClick={() => onRestart?.(container.id)} 
+            disabled={isProcessing}
+            className="flex items-center justify-center p-2 rounded-lg bg-gray-500/10 text-gray-400 hover:bg-gray-500/20"
+          >
+            {isProcessing ? <Loader2 size={18} className="animate-spin" /> : <RotateCw size={18} />}
+          </button>
+
+          {/* 3. TERMINAL */}
+          <button 
+            onClick={() => onDetails?.(container.id)} 
+            className="flex items-center justify-center p-2 rounded-lg bg-gray-500/10 text-gray-400 hover:bg-gray-500/20"
+          >
+            <Terminal size={18} />
+          </button>
+
+          {/* 4. WEB UI (EL BOTÓN QUE FALTA) */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const url = resolveContainerWebUiUrl(container);
+              window.open(url, '_blank');
+            }}
+            disabled={container.state !== 'running'}
+            className={`flex items-center justify-center p-2 rounded-lg border transition-all ${
+              container.state === 'running' 
+              ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/40 hover:bg-indigo-500/30' 
+              : 'bg-gray-500/5 text-gray-600 border-transparent cursor-not-allowed'
+            }`}
+            title="Abrir Interfaz Web"
+          >
+            <ExternalLink size={18} />
+          </button>
+
+          {/* 5. DELETE */}
+          <button 
+            onClick={() => setConfirmingDelete(true)} 
+            disabled={isProcessing}
+            className="flex items-center justify-center p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20"
+          >
+            <Trash2 size={18} />
+          </button>
         </div>
       </div>
       {confirmingDelete && onDelete && (
