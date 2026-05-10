@@ -39,7 +39,7 @@ export default function StatCard({
           </div>
         </div>
         
-        <div className="p-3 bg-slate-800/50 rounded-xl border border-slate-700/50">
+        <div className="p-3 bg-slate-800/80 backdrop-blur-xl border border-white/10 shadow-xl rounded-xl border border-slate-700/50">
           <Icon className="w-6 h-6 text-blue-400" />
         </div>
       </div>

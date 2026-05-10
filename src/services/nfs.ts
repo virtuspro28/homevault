@@ -84,12 +84,17 @@ export const NfsService = {
     }
 
     const currentLines = await this.listExports();
-    if (currentLines.includes(exportLine)) {
+    // Remover configuraciones anteriores para la misma ruta
+    const otherLines = currentLines.filter((line) => !line.startsWith(`${share.path} `) && !line.startsWith(`${share.path}\t`));
+    
+    if (currentLines.includes(exportLine) && otherLines.length === currentLines.length - 1) {
       return { changed: false, line: exportLine };
     }
 
-    const nextContent = `${[...currentLines, exportLine].join("\n")}\n`;
-    await writeFile(EXPORTS_PATH, nextContent, "utf-8");
+    const nextContent = `${[...otherLines, exportLine].join("\n")}\n`;
+    const tmpFile = `/tmp/homevault_exports_${Date.now()}`;
+    await writeFile(tmpFile, nextContent, "utf-8");
+    await run(`sudo cp ${tmpFile} ${EXPORTS_PATH} && sudo rm ${tmpFile}`);
     await run("sudo exportfs -ra");
     await run(`sudo systemctl enable ${NFS_SERVICE}`);
     await run(`sudo systemctl restart ${NFS_SERVICE}`);

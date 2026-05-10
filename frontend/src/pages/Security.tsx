@@ -106,7 +106,7 @@ export default function Security() {
                 className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-6 rounded-[2rem] flex items-center justify-between group hover:border-red-500/20 transition-all"
               >
                 <div className="flex items-center space-x-6">
-                  <div className={`p-4 rounded-2xl ${rule.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-white/5 text-slate-500'}`}>
+                  <div className={`p-4 rounded-2xl ${rule.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl text-slate-500'}`}>
                     <Lock className="w-6 h-6" />
                   </div>
                   <div>
@@ -140,7 +140,7 @@ export default function Security() {
             </div>
             <div className="divide-y divide-white/5">
               {recentIps.map((log, idx) => (
-                <div key={idx} className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
+                <div key={idx} className="p-4 flex items-center justify-between hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl transition-colors">
                   <div className="flex items-center space-x-3">
                     <Globe className="w-4 h-4 text-slate-500" />
                     <div>
@@ -152,7 +152,7 @@ export default function Security() {
                 </div>
               ))}
             </div>
-            <div className="p-6 bg-white/5 text-center">
+            <div className="p-6 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl text-center">
               <button className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] hover:text-blue-300 transition-colors">
                 Ver todos los incidentes
               </button>
@@ -189,23 +189,23 @@ export default function Security() {
                   <Lock className="w-5 h-5 text-blue-500" />
                   <span>Nueva Regla de Firewall</span>
                 </h2>
-                <button onClick={() => setShowAdd(false)} className="p-2 hover:bg-white/5 rounded-xl transition-all">
+                <button onClick={() => setShowAdd(false)} className="p-2 hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl rounded-xl transition-all">
                   <X className="w-5 h-5 text-slate-500" />
                 </button>
               </div>
               <div className="space-y-6">
                 <div>
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Nombre del Servicio</label>
-                  <input type="text" className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="ex: Web Server" />
+                  <input type="text" className="w-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="ex: Web Server" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Puerto</label>
-                    <input type="number" className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm" placeholder="80" />
+                    <input type="number" className="w-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 p-4 rounded-xl text-sm" placeholder="80" />
                   </div>
                   <div>
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Protocolo</label>
-                    <select className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm appearance-none outline-none">
+                    <select className="w-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 p-4 rounded-xl text-sm appearance-none outline-none">
                       <option>TCP</option>
                       <option>UDP</option>
                     </select>

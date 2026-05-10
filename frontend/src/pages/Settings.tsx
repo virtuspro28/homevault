@@ -186,7 +186,7 @@ export default function Settings() {
             <button
               onClick={() => void loadUpdateInfo()}
               disabled={isChecking || isAppUpdating || isSystemUpdating}
-              className="rounded-xl border border-white/10 bg-white/5 p-2 text-slate-300 transition hover:border-blue-400/30 hover:text-white disabled:opacity-50"
+              className="rounded-xl border border-white/10 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl p-2 text-slate-300 transition hover:border-blue-400/30 hover:text-white disabled:opacity-50"
               title="Comprobar estado"
             >
               <RefreshCw className={`h-5 w-5 ${isChecking ? "animate-spin" : ""}`} />
@@ -226,7 +226,7 @@ export default function Settings() {
             <button
               onClick={() => void handleSystemUpdate()}
               disabled={isChecking || isAppUpdating || isSystemUpdating}
-              className="flex w-full items-center justify-center space-x-3 rounded-2xl border border-white/10 bg-white/5 px-8 py-4 font-black text-white transition-all hover:border-emerald-400/30 hover:bg-emerald-500/10 disabled:opacity-50"
+              className="flex w-full items-center justify-center space-x-3 rounded-2xl border border-white/10 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl px-8 py-4 font-black text-white transition-all hover:border-emerald-400/30 hover:bg-emerald-500/10 disabled:opacity-50"
             >
               {isSystemUpdating ? <RefreshCw className="h-5 w-5 animate-spin" /> : <ServerCog className="h-5 w-5" />}
               <span>{isSystemUpdating ? "Actualizando sistema..." : "Actualizar sistema"}</span>

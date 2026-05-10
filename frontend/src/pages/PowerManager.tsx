@@ -79,7 +79,7 @@ export default function PowerManager() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-8 flex flex-col items-center text-center">
           <div className="relative w-32 h-64 border-4 border-white/10 rounded-3xl p-2 mb-8 bg-black/20">
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-4 bg-white/10 rounded-t-lg"></div>
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-4 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-t-lg"></div>
             <div className="w-full h-full rounded-2xl overflow-hidden flex flex-col justify-end relative">
               <motion.div
                 initial={{ height: 0 }}

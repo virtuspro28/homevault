@@ -7,7 +7,6 @@ import {
   Plus,
   Info,
   Cloud,
-  PlugZap,
 } from 'lucide-react';
 import {
   PieChart,
@@ -264,18 +263,18 @@ export default function Dashboard() {
             </div>
           ) : (
             remotes.slice(0, 3).map((remote) => (
-              <div key={remote.name} className="rounded-2xl border border-white/5 bg-slate-950/50 p-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-black text-white">{remote.name}</p>
-                    <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">{remote.provider}</p>
+              <div key={remote.name} className="rounded-xl border border-gray-700/50 bg-slate-900/60 p-5 backdrop-blur-sm shadow-md transition-all hover:border-blue-500/50 group flex flex-col justify-between">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <Cloud className={`h-5 w-5 ${remote.isMounted ? 'text-blue-400' : 'text-gray-500'}`} />
+                    <div>
+                      <p className="text-[13px] font-bold text-white">{remote.name}</p>
+                      <p className="text-[10px] font-medium uppercase tracking-wider text-gray-400">{remote.provider}</p>
+                    </div>
                   </div>
-                  <PlugZap className={`h-4 w-4 ${remote.isMounted ? 'text-emerald-400' : 'text-slate-500'}`} />
+                  <div className={`w-2 h-2 rounded-full ${remote.isMounted ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-gray-600'}`} title={remote.isMounted ? 'Montada' : 'Desmontada'} />
                 </div>
-                <p className="mt-4 text-[11px] text-slate-400">{remote.mountPath}</p>
-                <p className={`mt-3 text-[10px] font-black uppercase tracking-widest ${remote.isMounted ? 'text-emerald-300' : 'text-slate-500'}`}>
-                  {remote.isMounted ? 'Montada' : 'Desmontada'}
-                </p>
+                <p className="text-[11px] text-gray-400 truncate" title={remote.mountPath}>{remote.mountPath}</p>
               </div>
             ))
           )}

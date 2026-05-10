@@ -115,7 +115,7 @@ export default function NetworkSettings() {
                 Guardar
               </button>
             </div>
-            <p className="text-[10px] text-slate-500 bg-white/5 p-3 rounded-xl border border-white/5 leading-relaxed">
+            <p className="text-[10px] text-slate-500 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl p-3 rounded-xl border border-white/5 leading-relaxed">
               Cambiar el hostname afectará a cómo accedes al NAS (ej: http://{`{hostname}`}.local). Requiere reinicio.
             </p>
           </div>

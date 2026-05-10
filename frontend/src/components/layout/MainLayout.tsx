@@ -119,7 +119,7 @@ export default function MainLayout() {
             <div className="relative">
               <button
                 onClick={() => setShowNotif(!showNotif)}
-                className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all relative"
+                className="p-2.5 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-xl transition-all relative"
               >
                 <Bell className="w-5 h-5 text-slate-400" />
                 {notifications.length > 0 && (
@@ -152,7 +152,7 @@ export default function MainLayout() {
                       {notifications.length === 0 ? (
                         <p className="text-[10px] text-slate-600 text-center py-4">No hay alertas registradas recientemente.</p>
                       ) : notifications.map((notification) => (
-                        <div key={notification.id} className="p-3 bg-white/5 rounded-2xl border border-white/5 flex items-start space-x-3">
+                        <div key={notification.id} className="p-3 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl rounded-2xl border border-white/5 flex items-start space-x-3">
                           <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
                             notification.level === 'CRITICAL' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' :
                             notification.level === 'WARNING' ? 'bg-yellow-500' : 'bg-blue-500'
@@ -171,7 +171,7 @@ export default function MainLayout() {
 
             <button
               onClick={toggleTheme}
-              className="p-2.5 bg-white/5 hover:bg-white/10 dark:hover:bg-white/10 rounded-xl transition-all group"
+              className="p-2.5 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl dark:hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-xl transition-all group"
               title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
             >
               {theme === 'dark' ? (
@@ -181,7 +181,7 @@ export default function MainLayout() {
               )}
             </button>
 
-            <div className="h-8 w-px bg-white/5"></div>
+            <div className="h-8 w-px bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl"></div>
 
             <div className="flex items-center space-x-3">
               <button
@@ -241,7 +241,7 @@ export default function MainLayout() {
               <div className="grid grid-cols-2 gap-6">
                 <button
                   onClick={() => setShowConfirm(null)}
-                  className="px-8 py-4 bg-white/5 hover:bg-white/10 rounded-2xl text-slate-300 font-bold uppercase text-xs tracking-widest"
+                  className="px-8 py-4 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-2xl text-slate-300 font-bold uppercase text-xs tracking-widest"
                 >
                   Cancelar
                 </button>
@@ -285,7 +285,7 @@ export default function MainLayout() {
               {systemMessage.isError && (
                 <button
                   onClick={() => setSystemMessage(null)}
-                  className="mt-8 px-8 py-4 bg-white/5 hover:bg-white/10 rounded-2xl text-slate-300 font-bold uppercase text-xs tracking-widest"
+                  className="mt-8 px-8 py-4 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-2xl text-slate-300 font-bold uppercase text-xs tracking-widest"
                 >
                   Cerrar
                 </button>

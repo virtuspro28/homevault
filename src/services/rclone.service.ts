@@ -14,6 +14,31 @@ const RCLONE_CONFIG_FILE = path.join(RCLONE_STATE_DIR, "rclone.conf");
 const REMOTE_PROFILES_FILE = path.join(RCLONE_STATE_DIR, "network-drives.json");
 const MOUNT_ROOT = process.env["HOMEVAULT_REMOTE_ROOT"]?.trim() || path.join(config.paths.root, "remote");
 
+let _rcloneConfigPath: string | null = null;
+async function getRcloneConfigPath(): Promise<string> {
+  if (config.platform.isWindows) return RCLONE_CONFIG_FILE;
+  if (_rcloneConfigPath) return _rcloneConfigPath;
+  try {
+    const { stdout } = await execAsync("rclone config file");
+    const match = stdout.match(/(?:\n|^)(.*?\.conf)/);
+    let realPath = match ? match[1]!.trim() : RCLONE_CONFIG_FILE;
+    if (realPath.includes("/root/")) {
+      try {
+        await fs.access(realPath, constants.R_OK);
+      } catch {
+        await execAsync(`sudo mkdir -p /etc/homevault`);
+        await execAsync(`sudo cp "${realPath}" /etc/homevault/rclone.conf || sudo touch /etc/homevault/rclone.conf`);
+        await execAsync(`sudo chmod 644 /etc/homevault/rclone.conf`);
+        realPath = "/etc/homevault/rclone.conf";
+      }
+    }
+    _rcloneConfigPath = realPath;
+    return realPath;
+  } catch {
+    return RCLONE_CONFIG_FILE;
+  }
+}
+
 export type RemoteProvider = "webdav" | "smb" | "ftp" | "sftp" | "drive" | "onedrive";
 
 export interface CloudRemote {
@@ -311,7 +336,8 @@ async function writeRcloneConfig(profiles: RemoteProfile[]): Promise<void> {
   await ensureRuntimeDirs();
   const sections = await Promise.all(profiles.map((profile) => buildRemoteSection(profile)));
   const contents = sections.map((lines) => lines.join("\n")).join("\n\n");
-  await fs.writeFile(RCLONE_CONFIG_FILE, contents, "utf-8");
+  const configPath = await getRcloneConfigPath();
+  await fs.writeFile(configPath, contents, "utf-8");
 }
 
 async function isMounted(mountPath: string): Promise<boolean> {
@@ -420,23 +446,56 @@ export const RCloneService = {
     return readProfiles();
   },
 
-  async getRemotes(): Promise<CloudRemote[]> {
-    const profiles = await readProfiles();
+  async listRemotes(): Promise<CloudRemote[]> {
+    return this.getRemotes();
+  },
 
-    return Promise.all(
-      profiles.map(async (profile) => {
-        const mounted = await isMounted(profile.mountPath);
-        return {
-          name: profile.name,
-          provider: profile.provider,
-          isMounted: mounted,
-          mountPath: profile.mountPath,
-          remotePath: profile.remotePath,
-          summary: profile.summary,
-          usage: mounted ? await getUsage(profile.mountPath) : undefined,
-        };
-      }),
-    );
+  async getRemotes(): Promise<CloudRemote[]> {
+    try {
+      const profiles = await readProfiles();
+      
+      if (!config.platform.isWindows) {
+        try {
+          const confPath = await getRcloneConfigPath();
+          const { stdout } = await execAsync(`rclone config dump --config "${confPath}"`);
+          if (stdout) {
+            const data = JSON.parse(stdout);
+            for (const [name, conf] of Object.entries(data)) {
+              if (!profiles.find(p => p.name === name)) {
+                profiles.push({
+                  name,
+                  provider: (conf as any).type as RemoteProvider,
+                  mountPath: getMountPath(name),
+                  summary: "Configured via SSH",
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                });
+              }
+            }
+          }
+        } catch (err) {
+          // ignore error to keep returning what we have
+        }
+      }
+
+      return Promise.all(
+        profiles.map(async (profile) => {
+          const mounted = await isMounted(profile.mountPath);
+          return {
+            name: profile.name,
+            provider: profile.provider,
+            isMounted: mounted,
+            mountPath: profile.mountPath,
+            remotePath: profile.remotePath,
+            summary: profile.summary,
+            usage: mounted ? await getUsage(profile.mountPath) : undefined,
+          };
+        }),
+      );
+    } catch (e) {
+      log.errorWithStack("Error in getRemotes", e);
+      return []; // Return clean JSON array
+    }
   },
 
   async saveRemote(input: Partial<RemoteProfile>): Promise<RemoteProfile> {
@@ -510,12 +569,13 @@ export const RCloneService = {
     await writeRcloneConfig(profiles);
     await fs.mkdir(profile.mountPath, { recursive: true });
 
+    const confPath = await getRcloneConfigPath();
     const mountTarget = getRemoteTarget(profile);
     const command = [
       "rclone mount",
       `"${mountTarget}"`,
       `"${profile.mountPath}"`,
-      `--config "${RCLONE_CONFIG_FILE}"`,
+      `--config "${confPath}"`,
       "--daemon",
       "--vfs-cache-mode full",
       "--dir-cache-time 5m",

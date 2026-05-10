@@ -205,7 +205,7 @@ const SharedFolders: React.FC = () => {
               </tr>
             ) : (
               shares.map((share) => (
-                <tr key={share.name} className="hover:bg-white/5 transition-colors group">
+                <tr key={share.name} className="hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl transition-colors group">
                   <td className="px-6 py-5 font-bold text-blue-400">{share.name}</td>
                   <td className="px-6 py-5">
                     <code className="text-xs bg-slate-800 px-2 py-1 rounded text-slate-400">{share.path}</code>
@@ -296,7 +296,7 @@ const SharedFolders: React.FC = () => {
                 </div>
 
                 {newShare.type === 'SMB' && (
-                  <div className="flex items-center gap-3 p-4 bg-slate-800/50 rounded-xl border border-slate-800">
+                  <div className="flex items-center gap-3 p-4 bg-slate-800/80 backdrop-blur-xl border border-white/10 shadow-xl rounded-xl border border-slate-800">
                     <input
                       type="checkbox"
                       id="ro"

@@ -47,7 +47,7 @@ const FanControlWidget: React.FC<FanControlWidgetProps> = ({ rpm, pwm, auto, cpu
         </div>
         <button 
           onClick={onManualClick}
-          className="p-2 bg-white/5 hover:bg-white/10 rounded-xl transition-all"
+          className="p-2 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-xl transition-all"
         >
           <Settings className="w-4 h-4 text-slate-400" />
         </button>

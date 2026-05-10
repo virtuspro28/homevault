@@ -423,65 +423,65 @@ export default function CloudManager() {
             <motion.div
               key={remote.name}
               whileHover={{ y: -4 }}
-              className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/40 p-8 backdrop-blur-xl"
+              className="relative overflow-hidden rounded-xl border border-gray-700/50 bg-slate-900/60 p-6 backdrop-blur-sm shadow-lg group flex flex-col"
             >
               <div className={`absolute right-0 top-0 -mr-16 -mt-16 h-32 w-32 rounded-full blur-[80px] opacity-30 ${remote.isMounted ? "bg-emerald-500" : "bg-blue-500"}`}></div>
 
               <div className="mb-6 flex items-start justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="rounded-2xl bg-white/5 p-4">
-                    <HardDrive className={`h-6 w-6 ${remote.isMounted ? "text-emerald-400" : "text-slate-400"}`} />
+                  <div className="rounded-xl border border-gray-700/50 bg-slate-800 p-3 shadow-inner">
+                    <HardDrive className={`h-6 w-6 ${remote.isMounted ? "text-emerald-400" : "text-gray-400"}`} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-black uppercase tracking-tight text-white">{remote.name}</h3>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{remote.provider}</p>
+                    <h3 className="text-lg font-bold tracking-tight text-white">{remote.name}</h3>
+                    <p className="text-[10px] font-medium uppercase tracking-widest text-gray-400">{remote.provider}</p>
                   </div>
                 </div>
-                <span className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-widest ${remote.isMounted ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300" : "border-white/10 bg-white/5 text-slate-400"}`}>
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${remote.isMounted ? "bg-emerald-500/10 text-emerald-400" : "bg-gray-800 text-gray-400"}`}>
                   {remote.isMounted ? "Montada" : "Desconectada"}
                 </span>
               </div>
 
-              <div className="space-y-3 rounded-2xl border border-white/5 bg-slate-950/60 p-4">
+              <div className="space-y-3 rounded-xl border border-gray-800 bg-slate-950/40 p-4">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Origen</p>
-                  <p className="mt-1 text-sm text-slate-300">{remote.summary}</p>
+                  <p className="text-[10px] font-medium uppercase tracking-widest text-gray-500">Origen</p>
+                  <p className="mt-1 text-[13px] text-gray-300 truncate">{remote.summary}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Montaje local</p>
-                  <p className="mt-1 break-all text-sm text-blue-300">{remote.mountPath}</p>
+                  <p className="text-[10px] font-medium uppercase tracking-widest text-gray-500">Montaje local</p>
+                  <p className="mt-1 text-[13px] text-blue-400 truncate">{remote.mountPath}</p>
                 </div>
                 {remote.remotePath && (
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Subruta remota</p>
-                    <p className="mt-1 text-sm text-slate-300">{remote.remotePath}</p>
+                    <p className="text-[10px] font-medium uppercase tracking-widest text-gray-500">Subruta remota</p>
+                    <p className="mt-1 text-[13px] text-gray-300 truncate">{remote.remotePath}</p>
                   </div>
                 )}
               </div>
 
               {remote.usage && (
-                <div className="mt-5 rounded-2xl bg-white/5 p-4">
-                  <div className="mb-2 flex items-center justify-between text-xs font-bold text-slate-400">
+                <div className="mt-5 rounded-xl border border-gray-800 bg-slate-950/40 p-4">
+                  <div className="mb-2 flex items-center justify-between text-[11px] font-semibold text-gray-400">
                     <span>Uso detectado</span>
                     <span>{Math.round((remote.usage.used / remote.usage.total) * 100)}%</span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-slate-950">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-gray-800">
                     <div className="h-full rounded-full bg-blue-500" style={{ width: `${(remote.usage.used / remote.usage.total) * 100}%` }} />
                   </div>
-                  <div className="mt-3 flex justify-between text-[11px] text-slate-400">
+                  <div className="mt-2 flex justify-between text-[10px] text-gray-500">
                     <span>{formatBytes(remote.usage.used)} usados</span>
                     <span>{formatBytes(remote.usage.free)} libres</span>
                   </div>
                 </div>
               )}
 
-              <div className="mt-6 flex flex-wrap gap-3">
+              <div className="mt-6 flex flex-wrap gap-2 mt-auto pt-4 border-t border-gray-800">
                 <button
                   onClick={() => void handleMount(remote)}
                   disabled={actionLoading === remote.name}
-                  className={`flex flex-1 items-center justify-center gap-2 rounded-2xl px-4 py-4 text-xs font-black uppercase tracking-widest transition-all ${remote.isMounted ? "border border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/20" : "bg-blue-600 text-white hover:bg-blue-500"}`}
+                  className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-[11px] font-bold uppercase tracking-wider transition-all ${remote.isMounted ? "border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20" : "bg-blue-600 text-white hover:bg-blue-500"}`}
                 >
-                  {actionLoading === remote.name ? <Loader2 className="h-4 w-4 animate-spin" /> : remote.isMounted ? <PlugZap className="h-4 w-4" /> : <HardDrive className="h-4 w-4" />}
+                  {actionLoading === remote.name ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : remote.isMounted ? <PlugZap className="h-3.5 w-3.5" /> : <HardDrive className="h-3.5 w-3.5" />}
                   <span>{remote.isMounted ? "Desmontar" : "Montar"}</span>
                 </button>
                 <button
@@ -491,15 +491,15 @@ export default function CloudManager() {
                       openEdit(profile);
                     }
                   }}
-                  className="rounded-2xl bg-white/5 p-4 text-slate-300 hover:bg-white/10"
+                  className="rounded-lg border border-gray-700 bg-slate-800 p-2 text-gray-300 hover:bg-slate-700 hover:text-white transition"
                 >
-                  <Pencil className="h-4 w-4" />
+                  <Pencil className="h-3.5 w-3.5" />
                 </button>
                 <button
                   onClick={() => void handleDelete(remote.name)}
-                  className="rounded-2xl bg-red-500/10 p-4 text-red-300 hover:bg-red-500/20"
+                  className="rounded-lg bg-red-500/10 p-2 text-red-400 hover:bg-red-500/20 transition"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
             </motion.div>

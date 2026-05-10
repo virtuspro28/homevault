@@ -69,7 +69,7 @@ export default function Logs() {
       )}
 
       <div className="bg-slate-950 border border-white/5 rounded-[2.5rem] overflow-hidden">
-        <div className="p-4 bg-white/5 border-b border-white/5 flex items-center justify-between">
+        <div className="p-4 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border-b border-white/5 flex items-center justify-between">
            <div className="flex space-x-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-red-500/20"></div>
               <div className="w-2.5 h-2.5 rounded-full bg-amber-500/20"></div>
@@ -88,7 +88,7 @@ export default function Logs() {
             <div className="text-slate-500">Sin logs disponibles.</div>
           ) : (
             logs.map((log, idx) => (
-              <div key={`${idx}-${log}`} className="hover:bg-white/5 py-0.5 rounded px-2">
+              <div key={`${idx}-${log}`} className="hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl py-0.5 rounded px-2">
                 <span className="text-slate-600 mr-4">[{idx + 1}]</span>
                 <span className="text-slate-300">{log}</span>
               </div>

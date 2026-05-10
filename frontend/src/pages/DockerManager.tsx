@@ -164,7 +164,7 @@ export default function DockerManager() {
         </div>
         <button
           onClick={() => fetchContainers(true)}
-          className="px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-slate-200 font-bold flex items-center gap-2 self-start"
+          className="px-4 py-3 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 text-slate-200 font-bold flex items-center gap-2 self-start"
         >
           <RefreshCw className="w-4 h-4" />
           Actualizar
@@ -194,7 +194,7 @@ export default function DockerManager() {
               </div>
             ))
           ) : containers.length === 0 ? (
-            <div className="col-span-1 md:col-span-2 p-8 border border-slate-800 rounded-2xl bg-slate-900/50 text-center">
+            <div className="col-span-1 md:col-span-2 p-8 border border-slate-800 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-white/10 shadow-xl text-center">
               <p className="text-slate-400 font-mono">No se detecto ningun contenedor en Docker.</p>
             </div>
           ) : (
@@ -242,26 +242,26 @@ export default function DockerManager() {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
+                <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl rounded-2xl p-4 border border-white/5">
                   <p className="text-[10px] uppercase tracking-widest text-slate-500 font-black mb-1">CPU</p>
                   <p className="text-white font-black">{stats.cpu}</p>
                 </div>
-                <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
+                <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl rounded-2xl p-4 border border-white/5">
                   <p className="text-[10px] uppercase tracking-widest text-slate-500 font-black mb-1">Memoria</p>
                   <p className="text-white font-black">{stats.memoryPercent}</p>
                   <p className="text-xs text-slate-400 mt-1">{stats.memory}</p>
                 </div>
-                <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
+                <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl rounded-2xl p-4 border border-white/5">
                   <p className="text-[10px] uppercase tracking-widest text-slate-500 font-black mb-1">Red</p>
                   <p className="text-white font-black">{stats.networkIO}</p>
                 </div>
-                <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
+                <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl rounded-2xl p-4 border border-white/5">
                   <p className="text-[10px] uppercase tracking-widest text-slate-500 font-black mb-1">PIDs</p>
                   <p className="text-white font-black">{stats.pids}</p>
                 </div>
               </div>
 
-              <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
+              <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl rounded-2xl p-4 border border-white/5">
                 <p className="text-[10px] uppercase tracking-widest text-slate-500 font-black mb-2">Politica de reinicio</p>
                 <p className="text-white font-semibold">{details.restartPolicy}</p>
                 <p className="text-xs text-slate-400 font-mono mt-3 break-all">{details.command || 'Sin comando visible'}</p>

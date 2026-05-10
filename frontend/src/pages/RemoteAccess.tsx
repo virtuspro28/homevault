@@ -416,14 +416,14 @@ export default function RemoteAccess() {
           </button>
           <button
             onClick={() => setShowAddDomain(true)}
-            className="flex items-center space-x-2 px-5 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black transition-all border border-white/10"
+            className="flex items-center space-x-2 px-5 py-3 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl text-white rounded-2xl font-black transition-all border border-white/10"
           >
             <Shield className="w-5 h-5" />
             <span>Nuevo Proxy</span>
           </button>
           <button
             onClick={openCreateDdns}
-            className="flex items-center space-x-2 px-5 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black transition-all border border-white/10"
+            className="flex items-center space-x-2 px-5 py-3 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl text-white rounded-2xl font-black transition-all border border-white/10"
           >
             <Globe className="w-5 h-5" />
             <span>Nuevo DDNS</span>
@@ -464,21 +464,21 @@ export default function RemoteAccess() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                <div className="bg-white/5 p-5 rounded-2xl border border-white/5">
+                <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl p-5 rounded-2xl border border-white/5">
                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Interface</p>
                   <p className="text-white font-black">{status?.interfaceName}</p>
                 </div>
-                <div className="bg-white/5 p-5 rounded-2xl border border-white/5">
+                <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl p-5 rounded-2xl border border-white/5">
                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Clientes</p>
                   <p className="text-white font-black">{status?.clientCount ?? 0}</p>
                 </div>
-                <div className="bg-white/5 p-5 rounded-2xl border border-white/5 md:col-span-2">
+                <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl p-5 rounded-2xl border border-white/5 md:col-span-2">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Endpoint</p>
                       <p className="text-white font-black break-all">{status?.endpoint || 'Sin resolver'}</p>
                     </div>
-                    <button onClick={copyEndpoint} className="p-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 transition-all">
+                    <button onClick={copyEndpoint} className="p-3 rounded-xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl text-slate-300 transition-all">
                       <Copy className="w-4 h-4" />
                     </button>
                   </div>
@@ -512,7 +512,7 @@ export default function RemoteAccess() {
                           </button>
                           <button
                             onClick={() => downloadConfig(client.id)}
-                            className="px-4 py-2 rounded-xl bg-white/5 text-slate-200 border border-white/10 text-sm font-bold flex items-center gap-2"
+                            className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl text-slate-200 border border-white/10 text-sm font-bold flex items-center gap-2"
                           >
                             <Download className="w-4 h-4" />
                             .conf
@@ -613,13 +613,13 @@ export default function RemoteAccess() {
                           <p className="text-xs text-slate-400 font-mono mt-1">{profile.domain}</p>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          <span className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border bg-white/5 text-slate-300 border-white/10">
+                          <span className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl text-slate-300 border-white/10">
                             {profile.provider}
                           </span>
                           <span className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border ${profile.lastStatus === 'success' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : profile.lastStatus === 'error' ? 'bg-red-500/10 text-red-300 border-red-500/20' : 'bg-amber-500/10 text-amber-200 border-amber-500/20'}`}>
                             {profile.lastStatus === 'success' ? 'OK' : profile.lastStatus === 'error' ? 'Error' : 'Sin comprobar'}
                           </span>
-                          <button onClick={() => openEditDdns(profile)} className="px-4 py-2 rounded-xl bg-white/5 text-slate-200 border border-white/10 text-sm font-bold">
+                          <button onClick={() => openEditDdns(profile)} className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl text-slate-200 border border-white/10 text-sm font-bold">
                             Editar
                           </button>
                           <button onClick={() => void syncDdnsProfile(profile.id)} disabled={syncing} className="px-4 py-2 rounded-xl bg-blue-500/10 text-blue-300 border border-blue-500/20 text-sm font-bold">
@@ -655,15 +655,15 @@ export default function RemoteAccess() {
                 <Activity className="w-4 h-4 text-blue-500" />
               </div>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                <div className="flex items-center justify-between p-4 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl rounded-2xl border border-white/5">
                   <span className="text-xs font-bold text-slate-400 uppercase">Modo</span>
                   <span className="text-xs font-black text-white">{status?.mode === 'linux' ? 'Linux real' : 'Desarrollo mock'}</span>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                <div className="flex items-center justify-between p-4 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl rounded-2xl border border-white/5">
                   <span className="text-xs font-bold text-slate-400 uppercase">Config</span>
                   <span className="text-xs font-black text-white break-all text-right">{status?.configPath}</span>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                <div className="flex items-center justify-between p-4 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl rounded-2xl border border-white/5">
                   <span className="text-xs font-bold text-slate-400 uppercase">Clave pública</span>
                   <span className="text-xs font-black text-white text-right max-w-[11rem] break-all">{status?.publicKey || 'No disponible'}</span>
                 </div>
@@ -693,7 +693,7 @@ export default function RemoteAccess() {
             >
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-black text-white">Nuevo cliente WireGuard</h2>
-                <button type="button" onClick={() => setShowAddClient(false)} className="p-2 hover:bg-white/5 rounded-xl transition-all">
+                <button type="button" onClick={() => setShowAddClient(false)} className="p-2 hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl rounded-xl transition-all">
                   <X className="w-5 h-5 text-slate-500" />
                 </button>
               </div>
@@ -703,7 +703,7 @@ export default function RemoteAccess() {
                   type="text"
                   value={newClientName}
                   onChange={(event) => setNewClientName(event.target.value)}
-                  className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="iphone-alex o portatil-salon"
                   required
                 />
@@ -729,7 +729,7 @@ export default function RemoteAccess() {
             >
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-black text-white">Nuevo proxy inverso</h2>
-                <button type="button" onClick={() => setShowAddDomain(false)} className="p-2 hover:bg-white/5 rounded-xl transition-all">
+                <button type="button" onClick={() => setShowAddDomain(false)} className="p-2 hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl rounded-xl transition-all">
                   <X className="w-5 h-5 text-slate-500" />
                 </button>
               </div>
@@ -739,7 +739,7 @@ export default function RemoteAccess() {
                   type="text"
                   value={domainForm.domain}
                   onChange={(event) => setDomainForm((current) => ({ ...current, domain: event.target.value }))}
-                  className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="nas.tudominio.com"
                   required
                 />
@@ -752,7 +752,7 @@ export default function RemoteAccess() {
                   max="65535"
                   value={domainForm.targetPort}
                   onChange={(event) => setDomainForm((current) => ({ ...current, targetPort: event.target.value }))}
-                  className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
@@ -777,18 +777,18 @@ export default function RemoteAccess() {
             >
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-black text-white">{editingDdnsId ? 'Editar perfil DDNS' : 'Nuevo perfil DDNS'}</h2>
-                <button type="button" onClick={() => setShowAddDdns(false)} className="p-2 hover:bg-white/5 rounded-xl transition-all">
+                <button type="button" onClick={() => setShowAddDdns(false)} className="p-2 hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl rounded-xl transition-all">
                   <X className="w-5 h-5 text-slate-500" />
                 </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Nombre</label>
-                  <input value={ddnsForm.name} onChange={(event) => setDdnsForm((current) => ({ ...current, name: event.target.value }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="Casa principal" required />
+                  <input value={ddnsForm.name} onChange={(event) => setDdnsForm((current) => ({ ...current, name: event.target.value }))} className="w-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="Casa principal" required />
                 </div>
                 <div>
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Proveedor</label>
-                  <select value={ddnsForm.provider} onChange={(event) => setDdnsForm((current) => ({ ...current, provider: event.target.value as DdnsProviderOption['id'] }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                  <select value={ddnsForm.provider} onChange={(event) => setDdnsForm((current) => ({ ...current, provider: event.target.value as DdnsProviderOption['id'] }))} className="w-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500">
                     {ddnsProviders.map((provider) => (
                       <option key={provider.id} value={provider.id}>{provider.name}</option>
                     ))}
@@ -796,23 +796,23 @@ export default function RemoteAccess() {
                 </div>
                 <div className="md:col-span-2">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Dominio</label>
-                  <input value={ddnsForm.domain} onChange={(event) => setDdnsForm((current) => ({ ...current, domain: event.target.value }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="mihost.duckdns.org" required />
+                  <input value={ddnsForm.domain} onChange={(event) => setDdnsForm((current) => ({ ...current, domain: event.target.value }))} className="w-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="mihost.duckdns.org" required />
                 </div>
                 {ddnsForm.provider === 'duckdns' && (
                   <div className="md:col-span-2">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Token</label>
-                    <input value={ddnsForm.token} onChange={(event) => setDdnsForm((current) => ({ ...current, token: event.target.value }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="token de DuckDNS" required />
+                    <input value={ddnsForm.token} onChange={(event) => setDdnsForm((current) => ({ ...current, token: event.target.value }))} className="w-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="token de DuckDNS" required />
                   </div>
                 )}
                 {ddnsForm.provider === 'noip' && (
                   <>
                     <div>
                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Usuario</label>
-                      <input value={ddnsForm.username} onChange={(event) => setDdnsForm((current) => ({ ...current, username: event.target.value }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" required />
+                      <input value={ddnsForm.username} onChange={(event) => setDdnsForm((current) => ({ ...current, username: event.target.value }))} className="w-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" required />
                     </div>
                     <div>
                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Contraseña</label>
-                      <input value={ddnsForm.password} onChange={(event) => setDdnsForm((current) => ({ ...current, password: event.target.value }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" type="password" required />
+                      <input value={ddnsForm.password} onChange={(event) => setDdnsForm((current) => ({ ...current, password: event.target.value }))} className="w-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" type="password" required />
                     </div>
                   </>
                 )}
@@ -820,19 +820,19 @@ export default function RemoteAccess() {
                   <>
                     <div>
                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Usuario</label>
-                      <input value={ddnsForm.username} onChange={(event) => setDdnsForm((current) => ({ ...current, username: event.target.value }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+                      <input value={ddnsForm.username} onChange={(event) => setDdnsForm((current) => ({ ...current, username: event.target.value }))} className="w-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
                     <div>
                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Token / Password</label>
-                      <input value={ddnsForm.token} onChange={(event) => setDdnsForm((current) => ({ ...current, token: event.target.value }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+                      <input value={ddnsForm.token} onChange={(event) => setDdnsForm((current) => ({ ...current, token: event.target.value }))} className="w-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
                     <div className="md:col-span-2">
                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">URL de actualización</label>
-                      <input value={ddnsForm.updateUrl} onChange={(event) => setDdnsForm((current) => ({ ...current, updateUrl: event.target.value }))} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://ejemplo/update?domain={domain}&token={token}" required />
+                      <input value={ddnsForm.updateUrl} onChange={(event) => setDdnsForm((current) => ({ ...current, updateUrl: event.target.value }))} className="w-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 p-4 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://ejemplo/update?domain={domain}&token={token}" required />
                     </div>
                   </>
                 )}
-                <label className="md:col-span-2 flex items-center gap-3 px-4 py-4 rounded-xl border border-white/10 bg-white/5 text-sm font-bold text-slate-300">
+                <label className="md:col-span-2 flex items-center gap-3 px-4 py-4 rounded-xl border border-white/10 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl text-sm font-bold text-slate-300">
                   <input type="checkbox" checked={ddnsForm.enabled} onChange={(event) => setDdnsForm((current) => ({ ...current, enabled: event.target.checked }))} />
                   Perfil habilitado para usarse como endpoint preferido
                 </label>
@@ -857,7 +857,7 @@ export default function RemoteAccess() {
             >
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-black text-white">QR del cliente</h2>
-                <button onClick={() => { setQrClientId(null); setQrData(null); }} className="p-2 hover:bg-white/5 rounded-xl transition-all">
+                <button onClick={() => { setQrClientId(null); setQrData(null); }} className="p-2 hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl rounded-xl transition-all">
                   <X className="w-5 h-5 text-slate-500" />
                 </button>
               </div>

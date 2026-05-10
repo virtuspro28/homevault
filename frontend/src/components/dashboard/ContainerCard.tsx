@@ -156,7 +156,7 @@ export default function ContainerCard({
                 </p>
               </div>
             </div>
-            <label className="mt-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-slate-200">
+            <label className="mt-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl px-4 py-4 text-sm text-slate-200">
               <input
                 type="checkbox"
                 checked={deleteData}
@@ -172,7 +172,7 @@ export default function ContainerCard({
                   setConfirmingDelete(false);
                   setDeleteData(false);
                 }}
-                className="flex-1 rounded-2xl bg-white/5 px-4 py-3 font-bold text-slate-200"
+                className="flex-1 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl px-4 py-3 font-bold text-slate-200"
               >
                 Cancelar
               </button>

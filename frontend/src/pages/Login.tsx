@@ -46,7 +46,7 @@ export default function Login({ onAuthSuccess }: LoginProps) {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4">
-      <div className="w-full max-w-md bg-slate-900/50 backdrop-blur-xl border border-slate-800 p-8 rounded-2xl shadow-2xl">
+      <div className="w-full max-w-md bg-slate-900/80 backdrop-blur-xl border border-white/10 shadow-xl backdrop-blur-xl border border-slate-800 p-8 rounded-2xl shadow-2xl">
         <div className="flex flex-col items-center mb-8">
           <div className="w-16 h-16 bg-blue-500/10 flex items-center justify-center rounded-2xl mb-4 border border-blue-500/20">
             <Server className="w-8 h-8 text-blue-400" />

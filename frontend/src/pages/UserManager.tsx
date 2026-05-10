@@ -187,7 +187,7 @@ export default function UserManager() {
                       </div>
                     </td>
                     <td className="px-6 py-5">
-                      <div className="flex items-center space-x-2 bg-slate-800/50 border border-slate-700/50 px-3 py-1 rounded-full w-fit">
+                      <div className="flex items-center space-x-2 bg-slate-800/80 backdrop-blur-xl border border-white/10 shadow-xl border border-slate-700/50 px-3 py-1 rounded-full w-fit">
                         {getRoleIcon(user.role)}
                         <span className="text-xs font-bold text-slate-300">{user.role}</span>
                       </div>

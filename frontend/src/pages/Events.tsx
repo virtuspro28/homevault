@@ -76,13 +76,13 @@ export default function Events() {
               <input 
                 type="text"
                 placeholder="Filtrar eventos..."
-                className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                className="w-full pl-11 pr-4 py-3 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
               />
            </div>
            <select 
-             className="bg-white/5 border border-white/10 px-4 py-3 rounded-2xl text-sm font-bold text-slate-300 outline-none focus:ring-2 focus:ring-blue-500"
+             className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 px-4 py-3 rounded-2xl text-sm font-bold text-slate-300 outline-none focus:ring-2 focus:ring-blue-500"
              value={levelFilter}
              onChange={(e) => setLevelFilter(e.target.value)}
            >
@@ -103,7 +103,7 @@ export default function Events() {
             </h3>
             <button 
               onClick={fetchEvents}
-              className="p-2 hover:bg-white/5 rounded-xl transition-all"
+              className="p-2 hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl rounded-xl transition-all"
             >
                <RefreshCw className="w-4 h-4 text-slate-500" />
             </button>
@@ -139,7 +139,7 @@ export default function Events() {
                           </div>
                        </td>
                        <td className="p-6">
-                          <span className="text-xs font-black text-white bg-white/5 px-2 py-1 rounded-md">{event.source}</span>
+                          <span className="text-xs font-black text-white bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl px-2 py-1 rounded-md">{event.source}</span>
                        </td>
                        <td className="p-6">
                           <p className="text-xs text-slate-300 font-medium leading-relaxed max-w-md">

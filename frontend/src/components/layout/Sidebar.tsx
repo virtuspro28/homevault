@@ -67,7 +67,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
               `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-bold text-sm ${
                 isActive
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-                  : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                  : 'text-slate-400 hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl hover:text-white'
               }`
             }
           >

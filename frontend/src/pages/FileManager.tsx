@@ -187,7 +187,7 @@ export default function FileManager() {
              <input 
                type="text"
                placeholder="Buscar en esta carpeta..."
-               className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+               className="w-full pl-11 pr-4 py-3 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                value={filter}
                onChange={(e) => setFilter(e.target.value)}
              />
@@ -207,13 +207,13 @@ export default function FileManager() {
         <div className="flex items-center justify-between mb-6 px-4">
            <div className="flex items-center space-x-4 text-xs font-black text-slate-500 uppercase tracking-widest">
               {currentPath !== '/' && (
-                <button onClick={goBack} className="p-2 hover:bg-white/5 rounded-lg text-white transition-all">
+                <button onClick={goBack} className="p-2 hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl rounded-lg text-white transition-all">
                    <ArrowLeft className="w-4 h-4" />
                 </button>
               )}
               <span>{currentPath}</span>
            </div>
-           <div className="flex bg-white/5 p-1 rounded-xl">
+           <div className="flex bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl p-1 rounded-xl">
               <button 
                 onClick={() => setViewMode('grid')}
                 className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-slate-500'}`}
@@ -244,13 +244,13 @@ export default function FileManager() {
                    animate={{ opacity: 1, scale: 1 }}
                    exit={{ opacity: 0, scale: 0.9 }}
                    className={viewMode === 'grid' 
-                    ? "flex flex-col items-center p-6 rounded-[2rem] hover:bg-white/5 transition-all group cursor-pointer border border-transparent hover:border-white/5 text-center"
-                    : "flex items-center justify-between p-4 rounded-xl hover:bg-white/5 transition-all group cursor-pointer border border-transparent hover:border-white/5"
+                    ? "flex flex-col items-center p-6 rounded-[2rem] hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl transition-all group cursor-pointer border border-transparent hover:border-white/5 text-center"
+                    : "flex items-center justify-between p-4 rounded-xl hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl transition-all group cursor-pointer border border-transparent hover:border-white/5"
                    }
                    onClick={() => file.isDirectory && handleNavigate(file.path)}
                  >
                     <div className={viewMode === 'grid' ? "mb-4" : "flex items-center space-x-4"}>
-                       <div className="p-4 bg-white/5 rounded-2xl group-hover:bg-blue-500/10 transition-all">
+                       <div className="p-4 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl rounded-2xl group-hover:bg-blue-500/10 transition-all">
                           {getIcon(file)}
                        </div>
                        {viewMode === 'list' && (

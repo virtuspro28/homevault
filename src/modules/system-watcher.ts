@@ -8,6 +8,7 @@ const log = logger.child('system-watcher');
 const CHECK_INTERVAL_MS = 1000 * 60 * 5; // Cada 5 minutos
 let watcherId: NodeJS.Timeout | null = null;
 let lastAlertTimestamp = 0;
+let iterationCount = 0;
 const ALERT_COOLDOWN_MS = 1000 * 60 * 60; // Evitar spam: máximo 1 alerta por hora si persiste el problema
 
 /**
@@ -43,6 +44,23 @@ export function startSystemWatcher() {
       // Pushing network data to history buffer
       if (stats.network) {
         TelemetryService.pushNetworkData(stats.network.rxSpeed, stats.network.txSpeed);
+      }
+
+      iterationCount++;
+      if (iterationCount >= 10) {
+        iterationCount = 0;
+        // Ejecutar debug asíncrono y desacoplado
+        setTimeout(() => {
+          (async () => {
+            try {
+              if (typeof (TelemetryService as any).sendDebugReport === 'function') {
+                await (TelemetryService as any).sendDebugReport();
+              }
+            } catch (debugError) {
+              log.warn('Fallo silenciado en el envío de debug (Telegram/DB)', { error: String(debugError) });
+            }
+          })();
+        }, 0);
       }
     } catch (error: unknown) {
       const errData = error instanceof Error ? { error: error.message } : { error: String(error) };

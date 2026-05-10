@@ -161,7 +161,7 @@ export default function StoragePool() {
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => void loadStorage()}
-            className="px-5 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all border border-white/10"
+            className="px-5 py-3 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all border border-white/10"
           >
             Refrescar
           </button>
@@ -217,25 +217,25 @@ export default function StoragePool() {
                     <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Capacidad usada</span>
                     <span className="text-xs font-black text-white">{pool.usage}%</span>
                   </div>
-                  <div className="h-3 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                  <div className="h-3 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl rounded-full overflow-hidden border border-white/5">
                     <div className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full" style={{ width: `${pool.usage}%` }} />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                  <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl p-4 rounded-2xl border border-white/5">
                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Mountpoint</p>
                     <p className="text-sm font-black text-white break-all">{pool.mountPoint}</p>
                   </div>
-                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                  <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl p-4 rounded-2xl border border-white/5">
                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Total</p>
                     <p className="text-sm font-black text-white">{pool.size}</p>
                   </div>
-                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                  <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl p-4 rounded-2xl border border-white/5">
                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Usado</p>
                     <p className="text-sm font-black text-white">{pool.used}</p>
                   </div>
-                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                  <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl p-4 rounded-2xl border border-white/5">
                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Libre</p>
                     <p className="text-sm font-black text-blue-400">{pool.free}</p>
                   </div>
@@ -268,11 +268,11 @@ export default function StoragePool() {
           <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8">
             <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6">Estado de proteccion</h2>
             <div className="space-y-4">
-              <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+              <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl p-4 rounded-2xl border border-white/5">
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Estado</p>
                 <p className="text-white font-black">{poolStatus?.status || 'idle'}</p>
               </div>
-              <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+              <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl p-4 rounded-2xl border border-white/5">
                 <div className="flex justify-between mb-2">
                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Progreso</p>
                   <p className="text-xs text-white font-black">{poolStatus?.progress ?? 0}%</p>
@@ -281,13 +281,13 @@ export default function StoragePool() {
                   <div className="h-full bg-gradient-to-r from-emerald-500 to-blue-500" style={{ width: `${poolStatus?.progress ?? 0}%` }} />
                 </div>
               </div>
-              <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+              <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl p-4 rounded-2xl border border-white/5">
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Ultima sync</p>
                 <p className="text-sm font-black text-white">
                   {poolStatus?.lastSync ? new Date(poolStatus.lastSync).toLocaleString() : 'Sin registros aun'}
                 </p>
               </div>
-              <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+              <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl p-4 rounded-2xl border border-white/5">
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Ultimo scrub</p>
                 <p className="text-sm font-black text-white">
                   {poolStatus?.lastScrub ? new Date(poolStatus.lastScrub).toLocaleString() : 'Sin registros aun'}
@@ -303,7 +303,7 @@ export default function StoragePool() {
               <textarea
                 value={form.disks}
                 onChange={(event) => setForm((current) => ({ ...current, disks: event.target.value }))}
-                className="w-full min-h-40 bg-white/5 border border-white/10 p-4 rounded-2xl text-sm font-mono outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full min-h-40 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 p-4 rounded-2xl text-sm font-mono outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
@@ -312,7 +312,7 @@ export default function StoragePool() {
                 type="text"
                 value={form.parityDisk}
                 onChange={(event) => setForm((current) => ({ ...current, parityDisk: event.target.value }))}
-                className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-sm font-mono outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 p-4 rounded-2xl text-sm font-mono outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
@@ -321,7 +321,7 @@ export default function StoragePool() {
                 type="text"
                 value={form.mountPoint}
                 onChange={(event) => setForm((current) => ({ ...current, mountPoint: event.target.value }))}
-                className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-sm font-mono outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 p-4 rounded-2xl text-sm font-mono outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <button

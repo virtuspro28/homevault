@@ -138,7 +138,7 @@ export default function ConfigEditor() {
                 className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${
                   selectedFile?.path === file.path
                     ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-                    : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
+                    : 'bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl text-slate-400 hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl hover:text-white'
                 }`}
               >
                 <div className="flex items-center space-x-3 overflow-hidden">
@@ -171,7 +171,7 @@ export default function ConfigEditor() {
           </AnimatePresence>
 
           <div className="bg-slate-950 border border-white/5 rounded-[2.5rem] overflow-hidden min-h-[600px] font-mono text-sm">
-            <div className="p-4 bg-white/5 border-b border-white/5 flex items-center space-x-2">
+            <div className="p-4 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border-b border-white/5 flex items-center space-x-2">
               <div className="flex space-x-1.5">
                 <div className="w-2.5 h-2.5 rounded-full bg-red-500/20"></div>
                 <div className="w-2.5 h-2.5 rounded-full bg-amber-500/20"></div>

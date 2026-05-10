@@ -80,7 +80,7 @@ const ResourceMonitor: React.FC = () => {
           </h1>
           <p className="text-slate-500 mt-1">Real-time Docker container performance metrics</p>
         </div>
-        <div className="flex items-center gap-4 bg-slate-900/50 px-4 py-2 rounded-xl border border-slate-800">
+        <div className="flex items-center gap-4 bg-slate-900/80 backdrop-blur-xl border border-white/10 shadow-xl px-4 py-2 rounded-xl border border-slate-800">
           <div className="flex items-center gap-2 text-sm text-green-400">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -183,7 +183,7 @@ const ResourceMonitor: React.FC = () => {
               exit={{ opacity: 0, scale: 0.95 }}
               className="w-full max-w-5xl h-[80vh] bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden flex flex-col shadow-2xl"
             >
-              <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-800/50">
+              <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-800/80 backdrop-blur-xl border border-white/10 shadow-xl">
                 <div className="flex items-center gap-3">
                   <Terminal className="text-blue-500 w-5 h-5" />
                   <span className="font-bold">Streaming Logs: {stats.find(s => s.ID === selectedLogs)?.Name || selectedLogs}</span>

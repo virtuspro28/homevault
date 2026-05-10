@@ -142,7 +142,7 @@ export default function BackupManager() {
                     <div className={`p-4 rounded-2xl ${
                       task.status === 'running' ? 'bg-blue-500/10 animate-pulse' :
                       task.status === 'success' ? 'bg-emerald-500/10' :
-                      task.status === 'failed' ? 'bg-red-500/10' : 'bg-white/5'
+                      task.status === 'failed' ? 'bg-red-500/10' : 'bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl'
                     }`}>
                       {task.taskType === 'EXTERNAL' ? <Usb className="w-6 h-6" /> : <HardDrive className="w-6 h-6" />}
                     </div>
@@ -160,7 +160,7 @@ export default function BackupManager() {
                         </span>
                       </div>
                       <div className="flex items-center space-x-3 mt-4">
-                        <span className="px-2 py-1 bg-white/5 rounded-md text-[10px] text-slate-400 uppercase">{task.schedule}</span>
+                        <span className="px-2 py-1 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl rounded-md text-[10px] text-slate-400 uppercase">{task.schedule}</span>
                         <span className={`text-[10px] font-black uppercase tracking-widest ${
                           task.status === 'success' ? 'text-emerald-500' :
                           task.status === 'failed' ? 'text-red-500' :
@@ -208,7 +208,7 @@ export default function BackupManager() {
 
           <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[2rem] overflow-hidden">
             {usbDrives.map((drive, idx) => (
-              <div key={idx} className="p-6 border-b border-white/5 last:border-0 hover:bg-white/5 transition-all">
+              <div key={idx} className="p-6 border-b border-white/5 last:border-0 hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl transition-all">
                 <div className="flex items-center space-x-3">
                   <div className="p-3 bg-blue-500/10 rounded-xl">
                     <Usb className="w-5 h-5 text-blue-500" />
