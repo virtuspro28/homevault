@@ -10,6 +10,35 @@ YELLOW='\033[1;33m'
 BOLD='\033[1m'
 NC='\033[0m'
 
+INSTALL_DIR="/opt/homevault"
+FRONTEND_DIR="$INSTALL_DIR/frontend"
+FRONTEND_DIST="$FRONTEND_DIR/dist"
+DATA_DIR="$INSTALL_DIR/data"
+REMOTE_MOUNT_DIR="$INSTALL_DIR/remote"
+DB_FILE="$DATA_DIR/homevault.db"
+BACKEND_PORT=3000
+SERVICE_NAME="homevault"
+NGINX_SITE="/etc/nginx/sites-available/homevault"
+SYSTEMD_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
+DEFAULT_REPO_URL="https://github.com/virtuspro28/homevault.git"
+
+ARCH="$(uname -m)"
+IS_PI_ARCH=0
+OPTIONAL_PI_PACKAGES=()
+
+case "$ARCH" in
+  aarch64|arm64|armv7l|armv6l)
+    IS_PI_ARCH=1
+    OPTIONAL_PI_PACKAGES=(i2c-tools libraspberrypi-bin)
+    ;;
+  x86_64|amd64)
+    IS_PI_ARCH=0
+    ;;
+  *)
+    IS_PI_ARCH=0
+    ;;
+esac
+
 echo -e "${BLUE}${BOLD}"
 echo "  _    _                      __      __         _ _   "
 echo " | |  | |                     \ \    / /        | | |  "
@@ -20,48 +49,24 @@ echo " |_|  |_|\___/|_| |_| |_|\___|    \/ \__,_|\__,_|_|\__|"
 echo -e "${NC}"
 echo -e "${BOLD}Iniciando instalación de HomeVault...${NC}\n"
 
-INSTALL_DIR="/opt/homevault"
-FRONTEND_DIR="$INSTALL_DIR/frontend"
-FRONTEND_DIST="$FRONTEND_DIR/dist"
-DATA_DIR="$INSTALL_DIR/data"
-REMOTE_MOUNT_DIR="/opt/homevault/remote"
-DB_FILE="$DATA_DIR/homevault.db"
-BACKEND_PORT=3000
-SERVICE_NAME="homevault"
-NGINX_SITE="/etc/nginx/sites-available/homevault"
-
 log_step() {
   echo -e "${CYAN}${BOLD}$1${NC}"
 }
 
 log_info() {
-  echo -e "${BLUE}ℹ️  $1${NC}"
+  echo -e "${BLUE}[INFO]${NC} $1"
 }
 
 log_success() {
-  echo -e "${GREEN}✅ $1${NC}"
+  echo -e "${GREEN}[OK]${NC} $1"
 }
 
 log_warn() {
-  echo -e "${YELLOW}⚠️  $1${NC}"
+  echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
 log_error() {
-  echo -e "${RED}❌ $1${NC}"
-}
-
-print_success_banner() {
-  local ip_address="$1"
-  echo ""
-  echo -e "${GREEN}${BOLD}╔══════════════════════════════════════════════════════════════════════╗${NC}"
-  echo -e "${GREEN}${BOLD}║                    🚀 HOMEVAULT INSTALADO CON ÉXITO                 ║${NC}"
-  echo -e "${GREEN}${BOLD}╠══════════════════════════════════════════════════════════════════════╣${NC}"
-  printf "${GREEN}${BOLD}║  Panel de control: %-48s ║${NC}\n" "http://${ip_address}:3000"
-  printf "${BLUE}${BOLD}║  Acceso por Nginx: %-49s ║${NC}\n" "http://${ip_address}"
-  printf "${CYAN}${BOLD}║  Datos persistentes: %-45s ║${NC}\n" "${DATA_DIR}"
-  printf "${CYAN}${BOLD}║  Unidades remotas: %-46s ║${NC}\n" "${REMOTE_MOUNT_DIR}"
-  echo -e "${GREEN}${BOLD}╚══════════════════════════════════════════════════════════════════════╝${NC}"
-  echo ""
+  echo -e "${RED}[ERROR]${NC} $1"
 }
 
 detect_local_ip() {
@@ -90,46 +95,153 @@ disable_nginx_conflict_site() {
   fi
 }
 
+ensure_package_installed() {
+  local package_name="$1"
+
+  if dpkg -s "$package_name" >/dev/null 2>&1; then
+    log_info "Paquete ya instalado: ${package_name}"
+    return 0
+  fi
+
+  apt-get install -y --no-install-recommends "$package_name"
+}
+
+ensure_packages_installed() {
+  local packages=("$@")
+  local missing=()
+
+  for package_name in "${packages[@]}"; do
+    if ! dpkg -s "$package_name" >/dev/null 2>&1; then
+      missing+=("$package_name")
+    fi
+  done
+
+  if [ "${#missing[@]}" -eq 0 ]; then
+    log_success "Dependencias base ya presentes."
+    return 0
+  fi
+
+  apt-get install -y --no-install-recommends "${missing[@]}"
+}
+
+ensure_line_in_file() {
+  local line="$1"
+  local file_path="$2"
+
+  touch "$file_path"
+
+  if ! grep -Fqx "$line" "$file_path"; then
+    echo "$line" >> "$file_path"
+  fi
+}
+
+write_if_changed() {
+  local target_file="$1"
+  local tmp_file
+  tmp_file="$(mktemp)"
+  cat > "$tmp_file"
+
+  if [ ! -f "$target_file" ] || ! cmp -s "$tmp_file" "$target_file"; then
+    mkdir -p "$(dirname "$target_file")"
+    cp "$tmp_file" "$target_file"
+  fi
+
+  rm -f "$tmp_file"
+}
+
+ensure_service_restarted_if_needed() {
+  local service_name="$1"
+  systemctl daemon-reload
+  systemctl enable "$service_name" >/dev/null 2>&1 || true
+  systemctl restart "$service_name"
+}
+
+print_success_banner() {
+  local ip_address="$1"
+  echo ""
+  echo -e "${GREEN}${BOLD}HomeVault instalado correctamente${NC}"
+  echo -e "${GREEN}${BOLD}Panel:${NC} http://${ip_address}:3000"
+  echo -e "${BLUE}${BOLD}Nginx:${NC} http://${ip_address}"
+  echo -e "${CYAN}${BOLD}Datos:${NC} ${DATA_DIR}"
+  echo -e "${CYAN}${BOLD}Remotas:${NC} ${REMOTE_MOUNT_DIR}"
+  echo -e "${CYAN}${BOLD}Arquitectura:${NC} ${ARCH}"
+  echo ""
+}
+
 if [ "${EUID}" -ne 0 ]; then
-  log_error "Este script debe ejecutarse con privilegios de ROOT."
+  log_error "Este script debe ejecutarse con privilegios de root."
   exit 1
 fi
 
 if [ -f /etc/os-release ]; then
   . /etc/os-release
   if [[ "${ID}" != "debian" && "${ID}" != "raspbian" && "${ID}" != "ubuntu" ]]; then
-    echo -e "${YELLOW}Aviso: distribución no validada oficialmente. Continuando igualmente...${NC}"
+    log_warn "Distribución no validada oficialmente. Continuando."
   fi
 else
-  echo -e "${RED}Error: no se pudo determinar el sistema operativo.${NC}"
+  log_error "No se pudo determinar el sistema operativo."
   exit 1
 fi
 
-log_step "📦 [1/7] Actualizando sistema e instalando dependencias base..."
-apt-get update -y
-apt-get install -y build-essential curl git rsync util-linux python3-minimal nginx mergerfs snapraid smartmontools wireguard htop ufw rclone fuse3 --no-install-recommends || true
+log_step "[1/8] Detectando plataforma"
+if [ "$IS_PI_ARCH" -eq 1 ]; then
+  log_info "Modo Raspberry Pi habilitado para ${ARCH}."
+else
+  log_info "Modo servidor genérico habilitado para ${ARCH}. Se omiten dependencias específicas de Raspberry Pi."
+fi
 
+log_step "[2/8] Actualizando índice APT e instalando dependencias base"
+apt-get update -y
+ensure_packages_installed \
+  build-essential \
+  curl \
+  git \
+  rsync \
+  util-linux \
+  python3-minimal \
+  nginx \
+  mergerfs \
+  snapraid \
+  smartmontools \
+  wireguard \
+  htop \
+  ufw \
+  rclone \
+  fuse3 \
+  nfs-kernel-server \
+  nfs-common
+
+if [ "${#OPTIONAL_PI_PACKAGES[@]}" -gt 0 ]; then
+  log_info "Instalando módulos opcionales Raspberry Pi: ${OPTIONAL_PI_PACKAGES[*]}"
+  ensure_packages_installed "${OPTIONAL_PI_PACKAGES[@]}"
+fi
+
+log_step "[3/8] Asegurando Docker Engine"
 if ! command -v docker >/dev/null 2>&1; then
-  log_step "🐳 [2/7] Instalando Docker Engine..."
   curl -fsSL https://get.docker.com | sh
   systemctl enable --now docker
 else
   log_success "Docker ya está instalado."
 fi
 
+if ! command -v docker-compose >/dev/null 2>&1 && ! docker compose version >/dev/null 2>&1; then
+  ensure_package_installed docker-compose-plugin
+fi
+
+log_step "[4/8] Asegurando Node.js 20"
 if ! command -v node >/dev/null 2>&1; then
-  log_step "🟢 [3/7] Instalando Node.js 20 LTS..."
   curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-  apt-get install -y nodejs
+  ensure_package_installed nodejs
 else
   log_success "Node.js ya está instalado ($(node -v))."
 fi
 
-log_step "📁 [4/7] Desplegando archivos de la aplicación..."
+log_step "[5/8] Desplegando código de la aplicación"
+mkdir -p "$INSTALL_DIR"
 
 if [ -d "./src" ] && [ -f "./package.json" ] && [ -d "./frontend" ]; then
-  mkdir -p "$INSTALL_DIR"
-  rsync -a --delete \
+  rsync -a \
+    --delete \
     --exclude ".git" \
     --exclude "node_modules" \
     --exclude "frontend/node_modules" \
@@ -138,58 +250,53 @@ if [ -d "./src" ] && [ -f "./package.json" ] && [ -d "./frontend" ]; then
     ./ "$INSTALL_DIR/"
 else
   if [ ! -d "$INSTALL_DIR/.git" ]; then
-    # Si la carpeta existe pero no tiene .git, la borramos para poder clonar
-    if [ -d "$INSTALL_DIR" ]; then
-        rm -rf "$INSTALL_DIR"
+    if [ -d "$INSTALL_DIR" ] && [ -n "$(find "$INSTALL_DIR" -mindepth 1 -maxdepth 1 2>/dev/null)" ]; then
+      log_warn "Se reutiliza ${INSTALL_DIR}; no se elimina contenido ajeno."
     fi
-    git clone https://github.com/virtuspro28/homevault.git "$INSTALL_DIR"
+    git clone "$DEFAULT_REPO_URL" "$INSTALL_DIR"
   else
-    log_info "Actualizando código desde GitHub..."
-    git -C "$INSTALL_DIR" fetch --all
-    git -C "$INSTALL_DIR" reset --hard origin/main
+    log_info "Repositorio ya presente en ${INSTALL_DIR}; se mantiene sin reset destructivo."
+    git -C "$INSTALL_DIR" fetch --all --prune
   fi
 fi
 
-# AHORA creamos las carpetas de datos (después de clonar)
-mkdir -p "$DATA_DIR"
-mkdir -p "$REMOTE_MOUNT_DIR"
-mkdir -p "$DATA_DIR/media" "$DATA_DIR/downloads" "$DATA_DIR/downloads/watch" "$DATA_DIR/share" "$DATA_DIR/cloud" "$DATA_DIR/sync"
+mkdir -p \
+  "$DATA_DIR" \
+  "$REMOTE_MOUNT_DIR" \
+  "$DATA_DIR/media" \
+  "$DATA_DIR/downloads" \
+  "$DATA_DIR/downloads/watch" \
+  "$DATA_DIR/share" \
+  "$DATA_DIR/cloud" \
+  "$DATA_DIR/sync" \
+  "$DATA_DIR/adguard/work" \
+  "$DATA_DIR/adguard/conf"
+
 cd "$INSTALL_DIR"
 touch "$DB_FILE"
 
-
-log_step "🛠️  [5/7] Instalando dependencias, generando Prisma y compilando..."
-# Limpiar instalaciones previas para asegurar frescura
+log_step "[6/8] Instalando dependencias y compilando"
 rm -rf dist frontend/dist
-
 npm install
-cd "$FRONTEND_DIR"
-npm install
-npm run build
-cd "$INSTALL_DIR"
-
+( cd "$FRONTEND_DIR" && npm install && npm run build )
 npx prisma generate
 npx prisma db push --accept-data-loss
+npm run build
 
-# Compilación del backend con verificación estricta
-log_info "Compilando backend..."
-npm run build || { log_error "Error crítico: la compilación del backend falló."; exit 1; }
-
-
-log_step "🔐 [6/7] Ajustando permisos y servicio del backend..."
-chmod 755 /opt
-chmod 755 "$INSTALL_DIR"
-chmod 755 "$FRONTEND_DIR"
-chmod 755 "$FRONTEND_DIST"
-find "$FRONTEND_DIST" -type d -exec chmod 755 {} \;
-find "$FRONTEND_DIST" -type f -exec chmod 644 {} \;
-chown -R root:www-data "$FRONTEND_DIST"
+log_step "[7/8] Configurando systemd y NFS"
+chmod 755 /opt "$INSTALL_DIR" "$FRONTEND_DIR"
 chmod 775 "$DATA_DIR"
 touch "$DB_FILE"
 chown root:root "$DB_FILE"
 chmod 664 "$DB_FILE"
 
-cat <<EOF > "/etc/systemd/system/${SERVICE_NAME}.service"
+if [ -d "$FRONTEND_DIST" ]; then
+  find "$FRONTEND_DIST" -type d -exec chmod 755 {} \;
+  find "$FRONTEND_DIST" -type f -exec chmod 644 {} \;
+  chown -R root:www-data "$FRONTEND_DIST"
+fi
+
+write_if_changed "$SYSTEMD_FILE" <<EOF
 [Unit]
 Description=HomeVault Dashboard (Backend API)
 After=network.target docker.service
@@ -199,7 +306,7 @@ Wants=docker.service
 Type=simple
 User=root
 WorkingDirectory=$INSTALL_DIR
-EnvironmentFile=/opt/homevault/.env
+EnvironmentFile=$INSTALL_DIR/.env
 ExecStart=/usr/bin/npm start
 Restart=always
 RestartSec=10
@@ -210,12 +317,14 @@ Environment=PORT=$BACKEND_PORT
 WantedBy=multi-user.target
 EOF
 
-systemctl daemon-reload
-systemctl enable "$SERVICE_NAME"
-systemctl restart "$SERVICE_NAME"
+ensure_line_in_file "$DATA_DIR/share *(rw,sync,no_subtree_check,no_root_squash)" "/etc/exports"
+exportfs -ra
+systemctl enable nfs-kernel-server >/dev/null 2>&1 || true
+systemctl restart nfs-kernel-server
+ensure_service_restarted_if_needed "$SERVICE_NAME"
 
 log_info "Esperando al backend..."
-for _ in $(seq 1 15); do
+for _ in $(seq 1 20); do
   if curl -fsS "http://127.0.0.1:${BACKEND_PORT}/api/health" >/dev/null 2>&1; then
     log_success "Backend operativo en puerto ${BACKEND_PORT}."
     break
@@ -223,20 +332,19 @@ for _ in $(seq 1 15); do
   sleep 1
 done
 
-log_step "🌐 [7/7] Configurando Nginx para SPA + proxy API..."
+log_step "[8/8] Configurando Nginx"
 rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default
 
 if [ -d /etc/nginx/sites-enabled ]; then
   while IFS= read -r enabled_site; do
     [ -n "$enabled_site" ] || continue
-
     if grep -Eq 'default_server|server_name[[:space:]]+_;' "$enabled_site"; then
       disable_nginx_conflict_site "$enabled_site"
     fi
   done < <(find /etc/nginx/sites-enabled -maxdepth 1 \( -type l -o -type f \))
 fi
 
-cat <<EOF > "$NGINX_SITE"
+write_if_changed "$NGINX_SITE" <<EOF
 server {
     listen 80;
     listen [::]:80;
@@ -306,5 +414,5 @@ systemctl restart nginx
 
 LOCAL_IP="$(detect_local_ip)"
 print_success_banner "$LOCAL_IP"
-echo -e "${CYAN}🗄️  Base de datos SQLite: ${BOLD}${DB_FILE}${NC}"
-echo -e "${CYAN}📜 Logs del backend: ${BOLD}journalctl -u ${SERVICE_NAME} -f${NC}"
+echo -e "${CYAN}Base de datos SQLite:${NC} ${DB_FILE}"
+echo -e "${CYAN}Logs del backend:${NC} journalctl -u ${SERVICE_NAME} -f"

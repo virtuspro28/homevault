@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAuth, requireAdmin } from '../middlewares/authMiddleware.js';
 import { SambaService } from '../services/samba.service.js';
+import { NfsService } from '../services/nfs.js';
 
 const router = Router();
 
@@ -82,12 +83,23 @@ router.post('/shares', requireAdmin, async (req, res) => {
  */
 router.post('/shares/nfs', requireAdmin, async (req, res) => {
   try {
-    const { path } = req.body;
+    const { path, clients, options } = req.body as { path?: string; clients?: string; options?: string[] };
     if (!path) {
       return res.status(400).json({ success: false, error: 'La ruta es obligatoria' });
     }
-    await SambaService.addNFSShare(path);
-    res.json({ success: true, message: 'Recurso compartido NFS añadido correctamente' });
+    const payload: { path: string; clients?: string; options?: string[] } = { path };
+    if (typeof clients === 'string' && clients.trim()) {
+      payload.clients = clients;
+    }
+    if (Array.isArray(options) && options.length > 0) {
+      payload.options = options;
+    }
+    const result = await NfsService.ensureShare(payload);
+    res.json({
+      success: true,
+      data: result,
+      message: result.changed ? 'Recurso compartido NFS añadido correctamente' : 'El recurso NFS ya estaba configurado',
+    });
   } catch (error: unknown) {
     res.status(500).json({ success: false, error: getMsg(error) });
   }

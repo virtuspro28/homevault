@@ -218,7 +218,7 @@ router.get("/check-updates", requireAuth, async (_req: Request, res: Response) =
   }
 });
 
-router.post("/update/apply", requireAuth, async (_req: Request, res: Response) => {
+router.post("/update/apply", requireAuth, requireAdmin, async (_req: Request, res: Response) => {
   try {
     const result = await UpdateService.performUpdate();
     res.type("application/json").status(result.success ? 200 : 500).send(JSON.stringify(result));
@@ -227,7 +227,7 @@ router.post("/update/apply", requireAuth, async (_req: Request, res: Response) =
   }
 });
 
-router.post("/update", requireAuth, async (_req: Request, res: Response) => {
+router.post("/update", requireAuth, requireAdmin, async (_req: Request, res: Response) => {
   try {
     const result = await UpdateService.performUpdate();
     res.type("application/json").status(result.success ? 200 : 500).send(JSON.stringify(result));
@@ -236,7 +236,7 @@ router.post("/update", requireAuth, async (_req: Request, res: Response) => {
   }
 });
 
-router.post("/update/system", requireAuth, async (_req: Request, res: Response) => {
+router.post("/update/system", requireAuth, requireAdmin, async (_req: Request, res: Response) => {
   try {
     const result = await UpdateService.updateSystemPackages();
     res.status(result.success ? 200 : 500).json(result);

@@ -9,6 +9,8 @@ import { logger } from "../utils/logger.js";
 const execAsync = promisify(exec);
 const log = logger.child("update-service");
 const COMMAND_MAX_BUFFER = 10 * 1024 * 1024;
+const DEFAULT_BRANCH = process.env["HOMEVAULT_UPDATE_BRANCH"]?.trim() || "main";
+const DEFAULT_SERVICE_NAME = process.env["HOMEVAULT_SERVICE_NAME"]?.trim() || "homevault";
 
 interface UpdateCommandResult {
   logs: string;
@@ -25,6 +27,8 @@ interface UpdateCheckResult {
   currentVersion: string;
   localCommit?: string;
   remoteCommit?: string;
+  repoUrl?: string;
+  branch?: string;
 }
 
 function formatSection(title: string): string {
@@ -74,36 +78,89 @@ async function captureFailure(command: string, title: string, error: unknown): P
   return `${formatSection(title)}$ ${command}\n${lines || "Error desconocido"}\n`;
 }
 
+async function getRemoteRepoUrl(): Promise<string | undefined> {
+  try {
+    const { stdout } = await execAsync("git remote get-url origin", {
+      cwd: config.paths.root,
+      maxBuffer: COMMAND_MAX_BUFFER,
+    });
+    return stdout.trim() || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+async function getLocalCommit(): Promise<string> {
+  const { stdout } = await execAsync("git rev-parse HEAD", {
+    cwd: config.paths.root,
+    maxBuffer: COMMAND_MAX_BUFFER,
+  });
+
+  return stdout.trim();
+}
+
+async function getRemoteCommit(branch = DEFAULT_BRANCH): Promise<string> {
+  const { stdout } = await execAsync(`git ls-remote --heads origin ${branch}`, {
+    cwd: config.paths.root,
+    maxBuffer: COMMAND_MAX_BUFFER,
+  });
+
+  return stdout.trim().split(/\s+/)[0] || "";
+}
+
+async function ensureCleanWorktree(): Promise<void> {
+  const { stdout } = await execAsync("git status --porcelain", {
+    cwd: config.paths.root,
+    maxBuffer: COMMAND_MAX_BUFFER,
+  });
+
+  if (stdout.trim().length > 0) {
+    throw new Error("Hay cambios locales sin confirmar. La auto-actualización no sobrescribe un árbol de trabajo sucio.");
+  }
+}
+
+function getFailedCommand(error: unknown): string {
+  if (error instanceof Error && "cmd" in error && typeof error.cmd === "string") {
+    return error.cmd;
+  }
+
+  return "Comando no disponible";
+}
+
+function scheduleServiceRestart(serviceName: string): void {
+  setTimeout(() => {
+    exec(`sudo systemctl restart ${serviceName}.service`, (error) => {
+      if (error) {
+        log.error("No se pudo reiniciar el servicio tras la actualización", { error: error.message, serviceName });
+      }
+    });
+  }, 4000);
+}
+
 export const UpdateService = {
   async checkForUpdates(): Promise<UpdateCheckResult> {
     try {
-      const { stdout: localHash } = await execAsync("git rev-parse HEAD", {
-        cwd: config.paths.root,
-        maxBuffer: COMMAND_MAX_BUFFER,
-      });
+      const [localCommit, remoteCommit, repoUrl, currentVersion] = await Promise.all([
+        getLocalCommit(),
+        getRemoteCommit(),
+        getRemoteRepoUrl(),
+        getPackageVersion(),
+      ]);
 
-      await execAsync("git fetch origin", {
-        cwd: config.paths.root,
-        maxBuffer: COMMAND_MAX_BUFFER,
-      });
-
-      const { stdout: remoteHash } = await execAsync("git rev-parse origin/main", {
-        cwd: config.paths.root,
-        maxBuffer: COMMAND_MAX_BUFFER,
-      });
-
-      const localCommit = localHash.trim();
-      const remoteCommit = remoteHash.trim();
-      const currentVersion = localCommit.substring(0, 7);
-      const latestVersion = remoteCommit.substring(0, 7);
-
-      return {
+      const result: UpdateCheckResult = {
         available: Boolean(remoteCommit) && localCommit !== remoteCommit,
-        latestVersion,
-        currentVersion,
+        latestVersion: remoteCommit ? remoteCommit.substring(0, 7) : currentVersion,
+        currentVersion: localCommit ? localCommit.substring(0, 7) : currentVersion,
         localCommit,
         remoteCommit,
+        branch: DEFAULT_BRANCH,
       };
+
+      if (repoUrl) {
+        result.repoUrl = repoUrl;
+      }
+
+      return result;
     } catch (error: unknown) {
       const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
       log.error("Error comprobando actualizaciones", errData);
@@ -111,6 +168,7 @@ export const UpdateService = {
         available: false,
         latestVersion: "unknown",
         currentVersion: await getPackageVersion(),
+        branch: DEFAULT_BRANCH,
       };
     }
   },
@@ -129,20 +187,18 @@ export const UpdateService = {
     const logChunks: string[] = ["Iniciando actualización OTA de HomeVault...\n"];
 
     try {
-      logChunks.push(await runCommand("git reset --hard HEAD", "Descartando cambios locales antes de actualizar"));
-      logChunks.push(await runCommand("git fetch origin main", "Descargando cambios"));
-      logChunks.push(await runCommand("git pull origin main", "Aplicando cambios remotos"));
+      await ensureCleanWorktree();
+
+      logChunks.push(await runCommand(`git fetch origin ${DEFAULT_BRANCH} --prune`, "Descargando estado remoto"));
+      logChunks.push(await runCommand(`git pull --ff-only origin ${DEFAULT_BRANCH}`, "Sincronizando repositorio"));
       logChunks.push(await runCommand("npm install --include=dev", "Dependencias backend"));
       logChunks.push(await runCommand("npm --prefix frontend install --include=dev", "Dependencias frontend"));
       logChunks.push(await runCommand("npm --prefix frontend run build", "Build frontend"));
       logChunks.push(await runCommand("npx prisma generate", "Prisma generate"));
       logChunks.push(await runCommand("npx prisma db push", "Prisma db push"));
       logChunks.push(await runCommand("npm run build", "Build backend"));
-
-      logChunks.push("Actualización aplicada correctamente. Reiniciando servicio HomeVault en 5 segundos...\n");
-      setTimeout(() => {
-        exec("sudo systemctl restart homevault.service");
-      }, 5000);
+      logChunks.push(`${formatSection("Reinicio del servicio")}Se programó reinicio de ${DEFAULT_SERVICE_NAME}.service en 4 segundos.\n`);
+      scheduleServiceRestart(DEFAULT_SERVICE_NAME);
 
       return {
         success: true,
@@ -152,13 +208,7 @@ export const UpdateService = {
       };
     } catch (error: unknown) {
       log.errorWithStack("Fallo en la actualización OTA", error);
-
-      const failedCommand =
-        error instanceof Error && "cmd" in error && typeof error.cmd === "string"
-          ? error.cmd
-          : "Comando no disponible";
-
-      logChunks.push(await captureFailure(failedCommand, "Error de actualización", error));
+      logChunks.push(await captureFailure(getFailedCommand(error), "Error de actualización", error));
 
       return {
         success: false,
@@ -189,26 +239,20 @@ export const UpdateService = {
 
       const rebootRequired = await pathExists("/var/run/reboot-required");
       if (rebootRequired) {
-        logChunks.push("\nEl sistema indica que conviene reiniciar para completar cambios del kernel o librerías base.\n");
+        logChunks.push("\nEl sistema recomienda reinicio para completar cambios del kernel o librerías base.\n");
       }
 
       return {
         success: true,
         message: rebootRequired
-          ? "Paquetes del sistema actualizados. Se recomienda reiniciar la Raspberry."
+          ? "Paquetes del sistema actualizados. Se recomienda reiniciar el host."
           : "Paquetes del sistema actualizados correctamente.",
         logs: logChunks.join(""),
         rebootRequired,
       };
     } catch (error: unknown) {
       log.errorWithStack("Fallo en la actualización del sistema", error);
-
-      const failedCommand =
-        error instanceof Error && "cmd" in error && typeof error.cmd === "string"
-          ? error.cmd
-          : "Comando no disponible";
-
-      logChunks.push(await captureFailure(failedCommand, "Error de actualización del sistema", error));
+      logChunks.push(await captureFailure(getFailedCommand(error), "Error de actualización del sistema", error));
 
       return {
         success: false,

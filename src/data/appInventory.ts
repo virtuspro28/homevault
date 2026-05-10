@@ -1,3 +1,5 @@
+import path from "node:path";
+
 export interface AppPortMapping {
   host: string;
   container: string;
@@ -45,7 +47,9 @@ export interface AppInventoryItem {
   capAdd?: string[] | undefined;
 }
 
-const DATA_ROOT = "/opt/homevault/data";
+const DATA_ROOT = (process.env["HOMEVAULT_DATA_ROOT"]?.trim()
+  || process.env["STORAGE_BASE_PATH"]?.trim()
+  || path.resolve(process.cwd(), "data")).replace(/\\/g, "/");
 const DEFAULT_TZ = "Europe/Madrid";
 const DEFAULT_PUID = "1000";
 const DEFAULT_PGID = "1000";

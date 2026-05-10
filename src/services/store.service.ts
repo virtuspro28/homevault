@@ -255,7 +255,7 @@ function getEnvValue(app: AppInventoryItem, key: string, fallback = ""): string 
 }
 
 function getImmichPostgresVolumePath(): string {
-  return "/opt/homevault/data/apps/immich/postgres";
+  return path.join(config.paths.data, "apps", "immich", "postgres").replace(/\\/g, "/");
 }
 
 function getVolumePathsForApp(app: AppInventoryItem): string[] {

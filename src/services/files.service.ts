@@ -4,7 +4,7 @@ import { config } from '../config/index.js';
 import { logger } from '../utils/logger.js';
 
 const log = logger.child('files-service');
-const DEFAULT_STORAGE_ROOT = '/opt/homevault/data';
+const DEFAULT_STORAGE_ROOT = config.paths.data;
 
 function normalizeRequestedPath(reqPath: string = ''): string {
   const trimmed = String(reqPath ?? '').trim();

@@ -12,7 +12,7 @@ const log = logger.child("rclone-service");
 const RCLONE_STATE_DIR = path.join(config.paths.data, "rclone");
 const RCLONE_CONFIG_FILE = path.join(RCLONE_STATE_DIR, "rclone.conf");
 const REMOTE_PROFILES_FILE = path.join(RCLONE_STATE_DIR, "network-drives.json");
-const MOUNT_ROOT = "/opt/homevault/remote";
+const MOUNT_ROOT = process.env["HOMEVAULT_REMOTE_ROOT"]?.trim() || path.join(config.paths.root, "remote");
 
 export type RemoteProvider = "webdav" | "smb" | "ftp" | "sftp" | "drive" | "onedrive";
 

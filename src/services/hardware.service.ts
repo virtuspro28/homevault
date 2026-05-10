@@ -46,6 +46,14 @@ export const HardwareService = {
       this.private.currentStats.power.detected = true;
       return;
     }
+
+    if (!config.platform.isARM) {
+      this.private.currentStats.fan.detected = false;
+      this.private.currentStats.power.detected = false;
+      log.info('Plataforma sin sensores Raspberry Pi dedicados. Se desactiva la detección física.');
+      return;
+    }
+
     try {
       const files = fs.readdirSync('/sys/class/hwmon');
       for (const file of files) {
@@ -175,7 +183,11 @@ export const HardwareService = {
   async getCPUTemp(): Promise<number> {
     if (config.platform.isWindows) return 45 + Math.random() * 5;
     try {
-      const tempStr = fs.readFileSync('/sys/class/thermal/thermal_zone0/temp', 'utf8');
+      const thermalPath = '/sys/class/thermal/thermal_zone0/temp';
+      if (!fs.existsSync(thermalPath)) {
+        return 50;
+      }
+      const tempStr = fs.readFileSync(thermalPath, 'utf8');
       return parseInt(tempStr) / 1000;
     } catch {
       return 50;

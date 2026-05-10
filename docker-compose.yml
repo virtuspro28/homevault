@@ -1,7 +1,9 @@
-version: '3.8'
+version: "3.8"
 
 services:
   homevault:
+    profiles:
+      - containerized
     build:
       context: .
       dockerfile: Dockerfile
@@ -13,35 +15,49 @@ services:
       NODE_ENV: production
       PORT: 3000
       LOG_LEVEL: info
-      # Base de datos SQLite persistente
       DATABASE_URL: file:/data/homevault.db
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
-      # Configuración del servidor
       API_CORS_ORIGIN: ${API_CORS_ORIGIN:-*}
-      STORAGE_BASE_PATH: ${STORAGE_BASE_PATH:-/opt/homevault/data}
+      DATA_DIR: /data
+      STORAGE_BASE_PATH: ${STORAGE_BASE_PATH:-/data}
+      HOMEVAULT_UPDATE_BRANCH: ${HOMEVAULT_UPDATE_BRANCH:-main}
+      HOMEVAULT_SERVICE_NAME: ${HOMEVAULT_SERVICE_NAME:-homevault}
     volumes:
-      # Persistencia de base de datos
       - ./data:/data
-      # Persistencia de logs
       - ./logs:/app/logs
-      # Acceso a rutas de almacenamiento (si existen en el host)
-      - /opt/homevault/data:/opt/homevault/data:ro
-      # Socket de Docker (para gestión de contenedores)
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - homevault-network
-    # Límites de recursos (ajusta según tu hardware)
+    depends_on:
+      - adguardhome
     deploy:
       resources:
         limits:
-          cpus: '2'
+          cpus: "2"
           memory: 512M
         reservations:
-          cpus: '1'
+          cpus: "1"
           memory: 256M
 
-  # Base de datos backup (opcional)
-  # Sincroniza la base de datos cada 6 horas
+  adguardhome:
+    image: adguard/adguardhome:latest
+    container_name: homevault-adguard
+    restart: unless-stopped
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "67:67/udp"
+      - "68:68/tcp"
+      - "68:68/udp"
+      - "3001:3000/tcp"
+      - "853:853/tcp"
+      - "784:784/udp"
+    volumes:
+      - ./data/adguard/work:/opt/adguardhome/work
+      - ./data/adguard/conf:/opt/adguardhome/conf
+    networks:
+      - homevault-network
+
   backup-cron:
     image: alpine:latest
     container_name: homevault-db-backup
@@ -49,15 +65,16 @@ services:
     volumes:
       - ./data:/data
       - ./backups:/backups
-    entrypoint: |
+    entrypoint: >
       sh -c '
       while true; do
-        echo "Realizando backup de base de datos..."
-        cp /data/homevault.db /backups/homevault-$(date +%s).db.bak
-        # Mantener solo los últimos 10 backups
-        ls -1 /backups/homevault-*.db.bak | sort -r | tail -n +11 | xargs -r rm
-        echo "Backup completado"
-        sleep 21600
+        echo "Realizando backup de base de datos...";
+        if [ -f /data/homevault.db ]; then
+          cp /data/homevault.db /backups/homevault-$(date +%s).db.bak;
+        fi;
+        ls -1 /backups/homevault-*.db.bak 2>/dev/null | sort -r | tail -n +11 | xargs -r rm;
+        echo "Backup completado";
+        sleep 21600;
       done
       '
     networks:

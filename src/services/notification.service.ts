@@ -1,127 +1,109 @@
-import { PrismaClient } from '@prisma/client';
-import { logger } from '../utils/logger.js';
+import { PrismaClient, type NotificationConfig } from "@prisma/client";
+import { logger } from "../utils/logger.js";
 
 const prisma = new PrismaClient();
-const log = logger.child('notification-service');
+const log = logger.child("notification-service");
 
-export type AlertLevel = 'INFO' | 'WARNING' | 'CRITICAL';
+export type AlertLevel = "INFO" | "WARNING" | "CRITICAL";
+
+async function ensureConfig(): Promise<NotificationConfig> {
+  return prisma.notificationConfig.upsert({
+    where: { id: "global" },
+    update: {},
+    create: {
+      id: "global",
+      telegramEnabled: false,
+      discordEnabled: false,
+      tempThreshold: 75,
+    },
+  });
+}
+
+function stripHtml(input: string): string {
+  return input.replace(/<[^>]*>/g, "");
+}
+
+async function sendTelegramMessage(config: NotificationConfig, message: string): Promise<void> {
+  if (!config.telegramEnabled || !config.telegramToken || !config.telegramChatId) {
+    return;
+  }
+
+  const endpoint = `https://api.telegram.org/bot${config.telegramToken}/sendMessage`;
+  const payload = {
+    chat_id: config.telegramChatId,
+    text: stripHtml(message),
+    parse_mode: "HTML",
+  };
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Telegram respondió con HTTP ${response.status}`);
+  }
+}
+
+async function sendDiscordMessage(config: NotificationConfig, message: string, level: AlertLevel): Promise<void> {
+  if (!config.discordEnabled || !config.discordWebhookUrl) {
+    return;
+  }
+
+  const color = level === "CRITICAL" ? 15158332 : level === "WARNING" ? 16763904 : 3447003;
+  const payload = {
+    embeds: [
+      {
+        title: `HomeVault ${level}`,
+        description: stripHtml(message),
+        color,
+      },
+    ],
+  };
+
+  const response = await fetch(config.discordWebhookUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Discord respondió con HTTP ${response.status}`);
+  }
+}
 
 export const NotificationService = {
-  /**
-   * Obtiene la configuración global de notificaciones
-   */
-  async getConfig() {
-    return await prisma.notificationConfig.upsert({
-      where: { id: 'global' },
-      update: {},
-      create: { id: 'global' }
-    });
+  async getConfig(): Promise<NotificationConfig> {
+    return ensureConfig();
   },
 
-  /**
-   * Envía una alerta a través de los canales configurados (Telegram/Discord)
-   */
-  async sendAlert(message: string, level: AlertLevel = 'INFO') {
-    const config = await this.getConfig();
-    const formattedMessage = this.formatMessage(message, level);
+  async sendAlert(message: string, level: AlertLevel = "INFO"): Promise<void> {
+    const currentConfig = await ensureConfig();
+    const tasks: Promise<void>[] = [];
 
-    const promises = [];
-
-    // Enviar a Discord si está habilitado
-    if (config.discordEnabled && config.discordWebhookUrl) {
-      promises.push(this.sendToDiscord(config.discordWebhookUrl, formattedMessage, level));
+    if (currentConfig.telegramEnabled && currentConfig.telegramToken && currentConfig.telegramChatId) {
+      tasks.push(sendTelegramMessage(currentConfig, message));
     }
 
-    // Enviar a Telegram si está habilitado
-    if (config.telegramEnabled && config.telegramToken && config.telegramChatId) {
-      promises.push(this.sendToTelegram(config.telegramToken, config.telegramChatId, formattedMessage));
+    if (currentConfig.discordEnabled && currentConfig.discordWebhookUrl) {
+      tasks.push(sendDiscordMessage(currentConfig, message, level));
     }
 
-    if (promises.length === 0) {
-      log.debug('Ningún canal de notificación habilitado. Alerta omitida.');
+    if (tasks.length === 0) {
+      log.info(`Alerta ${level} sin canales externos configurados`);
       return;
     }
 
-    try {
-      await Promise.all(promises);
-      
-      // Registrar en el historial de la DB
-      await prisma.notificationActivity.create({
-        data: {
-          message: message,
-          level: level
-        }
-      });
+    const results = await Promise.allSettled(tasks);
+    const failures = results.filter((result): result is PromiseRejectedResult => result.status === "rejected");
 
-      log.info(`Alerta [${level}] enviada y registrada correctamente.`);
-    } catch (error: unknown) {
-      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
-      log.error('Error enviando algunas notificaciones:', errData);
+    if (failures.length > 0) {
+      const errorMessage = failures.map((failure) => String(failure.reason)).join(" | ");
+      log.error(`Fallo enviando alertas externas: ${errorMessage}`);
+      throw new Error(errorMessage);
     }
+
+    log.info(`Alerta ${level} enviada a canales externos`);
   },
-
-  /**
-   * Formatea el mensaje según el nivel
-   */
-  formatMessage(message: string, level: AlertLevel): string {
-    const emojis = {
-      INFO: 'ℹ️ [INFO]',
-      WARNING: '⚠️ [AVISO]',
-      CRITICAL: '🚨 [CRÍTICO]'
-    };
-    const timestamp = new Date().toLocaleString('es-ES');
-    return `${emojis[level]} - ${timestamp}\n\n${message}`;
-  },
-
-  /**
-   * Envío RAW a Discord Webhook
-   */
-  async sendToDiscord(url: string, content: string, level: AlertLevel) {
-    const colors = {
-      INFO: 3447003, // Blue
-      WARNING: 16776960, // Yellow
-      CRITICAL: 15158332 // Red
-    };
-
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          embeds: [{
-            description: content,
-            color: colors[level]
-          }]
-        })
-      });
-      if (!response.ok) throw new Error(`Discord API error: ${response.statusText}`);
-    } catch (error: unknown) {
-      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
-      log.error('Fallo al enviar a Discord:', errData);
-      throw error;
-    }
-  },
-
-  /**
-   * Envío RAW a Telegram Bot API
-   */
-  async sendToTelegram(token: string, chatId: string, text: string) {
-    const url = `https://api.telegram.org/bot${token}/sendMessage`;
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: text,
-          parse_mode: 'HTML'
-        })
-      });
-      if (!response.ok) throw new Error(`Telegram API error: ${response.statusText}`);
-    } catch (error: unknown) {
-      const errData = error instanceof Error ? { error: error.message } : { error: String(error) };
-      log.error('Fallo al enviar a Telegram:', errData);
-      throw error;
-    }
-  }
 };
