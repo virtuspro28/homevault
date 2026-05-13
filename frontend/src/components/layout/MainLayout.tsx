@@ -7,6 +7,7 @@ import MobileTabBar from './MobileTabBar';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { getErrorMessage } from '../../lib/errors';
+import { reportClientError } from '../../lib/runtimeLog';
 
 interface NotificationItem {
   id: string;
@@ -25,6 +26,19 @@ const ROUTE_TITLES: Record<string, string> = {
   '/logs': 'Logs',
   '/remote': 'Acceso Remoto',
 };
+
+function sameNotifications(a: NotificationItem[], b: NotificationItem[]): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  return a.every((item, index) =>
+    item.id === b[index]?.id
+    && item.timestamp === b[index]?.timestamp
+    && item.level === b[index]?.level
+    && item.message === b[index]?.message,
+  );
+}
 
 export default function MainLayout() {
   const { logout } = useAuth();
@@ -46,7 +60,7 @@ export default function MainLayout() {
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification(`HomeVault - ${level}`, {
         body: message,
-        icon: '/favicon.ico',
+        icon: '/favicon.svg',
       });
     }
   };
@@ -58,6 +72,10 @@ export default function MainLayout() {
       if (data.success) {
         const nextNotifications = data.data as NotificationItem[];
         setNotifications((previous) => {
+          if (sameNotifications(previous, nextNotifications)) {
+            return previous;
+          }
+
           if (nextNotifications.length > previous.length) {
             const latest = nextNotifications[0];
             if (latest?.level === 'CRITICAL') {
@@ -69,7 +87,7 @@ export default function MainLayout() {
         });
       }
     } catch (error) {
-      console.error('Error fetching notifications history:', getErrorMessage(error, 'Unknown error'));
+      reportClientError('notifications-history', getErrorMessage(error, 'Unknown error'));
     }
   }, []);
 
@@ -88,7 +106,7 @@ export default function MainLayout() {
       await fetch('/api/system/events/read-all', { method: 'PATCH', credentials: 'include' });
       setNotifications([]);
     } catch (error) {
-      console.error('Error marking as read', getErrorMessage(error, 'Unknown error'));
+      reportClientError('notifications-read-all', getErrorMessage(error, 'Unknown error'));
     }
   };
 

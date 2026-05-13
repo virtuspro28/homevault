@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import MainLayout from "./components/layout/MainLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { reportClientError } from "./lib/runtimeLog";
 
 const Setup = lazy(() => import("./pages/Setup"));
 const Login = lazy(() => import("./pages/Login"));
@@ -77,7 +78,7 @@ function useInitialStatus() {
           setIsInitialized(false);
         }
       } catch (err) {
-        console.error("Error checking initial status:", err);
+        reportClientError("initial-status", err);
         setError(err instanceof Error ? err.message : "Error desconocido");
         setIsInitialized(false);
       } finally {

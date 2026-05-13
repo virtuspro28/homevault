@@ -15,6 +15,7 @@ import {
   MoreVertical
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { reportClientError } from '../lib/runtimeLog';
 
 const FILES_LIST_ENDPOINT = '/api/files/list';
 const FILE_MANAGER_PATH_KEY = 'homevault:file-manager:path';
@@ -48,7 +49,7 @@ export default function FileManager() {
       setCurrentPath(typeof data.path === 'string' && data.path.trim() ? data.path : requestPath);
       setError(null);
     } catch (err) {
-      console.error('Error fetching files:', err);
+      reportClientError('file-manager-fetch', err);
       setError(err instanceof Error ? err.message : 'No se pudo cargar el explorador');
     } finally {
       setLoading(false);

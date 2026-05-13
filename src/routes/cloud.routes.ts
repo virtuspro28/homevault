@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuth } from "../middlewares/authMiddleware.js";
+import { requireAdmin, requireAuth } from "../middlewares/authMiddleware.js";
 import { RCloneService } from "../services/rclone.service.js";
 
 const router = Router();
@@ -42,7 +42,7 @@ router.get("/remotes", requireAuth, async (_req, res) => {
   }
 });
 
-router.post("/profiles", requireAuth, async (req, res) => {
+router.post("/profiles", requireAuth, requireAdmin, async (req, res) => {
   try {
     const remote = await RCloneService.saveRemote(req.body);
     res.status(201).json({ success: true, data: redactProfileSecrets(remote) });
@@ -52,7 +52,7 @@ router.post("/profiles", requireAuth, async (req, res) => {
   }
 });
 
-router.put("/profiles/:name", requireAuth, async (req, res) => {
+router.put("/profiles/:name", requireAuth, requireAdmin, async (req, res) => {
   try {
     const remote = await RCloneService.saveRemote({ ...req.body, name: req.params["name"] });
     res.json({ success: true, data: redactProfileSecrets(remote) });
@@ -62,7 +62,7 @@ router.put("/profiles/:name", requireAuth, async (req, res) => {
   }
 });
 
-router.delete("/profiles/:name", requireAuth, async (req, res) => {
+router.delete("/profiles/:name", requireAuth, requireAdmin, async (req, res) => {
   try {
     await RCloneService.deleteRemote(req.params["name"] as string);
     res.json({ success: true, message: "Unidad de red eliminada" });
@@ -72,7 +72,7 @@ router.delete("/profiles/:name", requireAuth, async (req, res) => {
   }
 });
 
-router.post("/mount/:name", requireAuth, async (req, res) => {
+router.post("/mount/:name", requireAuth, requireAdmin, async (req, res) => {
   try {
     const name = req.params["name"] as string;
     await RCloneService.mountRemote(name);
@@ -83,7 +83,7 @@ router.post("/mount/:name", requireAuth, async (req, res) => {
   }
 });
 
-router.delete("/mount/:name", requireAuth, async (req, res) => {
+router.delete("/mount/:name", requireAuth, requireAdmin, async (req, res) => {
   try {
     const name = req.params["name"] as string;
     await RCloneService.unmountRemote(name);

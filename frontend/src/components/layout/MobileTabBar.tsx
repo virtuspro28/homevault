@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { LayoutDashboard, ShoppingBag, FolderLock, HardDrive, Settings } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
@@ -9,7 +10,7 @@ const mobileItems = [
   { name: 'Ajustes', icon: Settings, path: '/settings' },
 ];
 
-export default function MobileTabBar() {
+function MobileTabBar() {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-slate-950/95 px-2 pb-[calc(0.6rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur-2xl lg:hidden">
       <div className="mx-auto grid max-w-lg grid-cols-5 gap-1 rounded-[1.75rem] border border-white/10 bg-white/5 p-1.5 shadow-2xl shadow-black/30">
@@ -33,3 +34,5 @@ export default function MobileTabBar() {
     </nav>
   );
 }
+
+export default memo(MobileTabBar);

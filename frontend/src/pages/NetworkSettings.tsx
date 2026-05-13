@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Globe, Server, Save, ShieldCheck, Info } from 'lucide-react';
 import { getErrorMessage } from '../lib/errors';
+import { reportClientError } from '../lib/runtimeLog';
 
 interface NetworkStatus {
   hostname: string;
@@ -32,7 +33,7 @@ export default function NetworkSettings() {
         setIpConfig((prev) => ({ ...prev, ip: nextStatus.ip }));
       }
     } catch (error) {
-      console.error("Error fetching network status:", getErrorMessage(error, 'Unknown error'));
+      reportClientError("network-status", getErrorMessage(error, 'Unknown error'));
     } finally {
       setLoading(false);
     }

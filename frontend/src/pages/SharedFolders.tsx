@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getErrorMessage } from '../lib/errors';
+import { reportClientError } from '../lib/runtimeLog';
 
 interface Share {
   name: string;
@@ -68,7 +69,7 @@ const SharedFolders: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error('Error fetching shares', getErrorMessage(error, 'Unknown error'));
+      reportClientError('shares-fetch', getErrorMessage(error, 'Unknown error'));
     } finally {
       setLoading(false);
     }

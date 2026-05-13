@@ -16,6 +16,7 @@ import 'prismjs/components/prism-json';
 import 'prismjs/components/prism-bash';
 import 'prismjs/themes/prism-tomorrow.css';
 import { getErrorMessage } from '../lib/errors';
+import { reportClientError } from '../lib/runtimeLog';
 
 interface ConfigFile {
   name: string;
@@ -63,7 +64,7 @@ export default function ConfigEditor() {
         }
       }
     } catch (error) {
-      console.error('Error fetching config files:', getErrorMessage(error, 'Unknown error'));
+      reportClientError('config-files', getErrorMessage(error, 'Unknown error'));
     } finally {
       setLoading(false);
     }

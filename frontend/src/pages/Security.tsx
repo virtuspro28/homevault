@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ShieldAlert, Lock, Trash2, Globe, AlertTriangle, Info, RefreshCw, X, Fingerprint, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getErrorMessage } from '../lib/errors';
+import { reportClientError } from '../lib/runtimeLog';
 
 interface FirewallRule {
   id: string;
@@ -39,7 +40,7 @@ export default function Security() {
       if (rulesData.success) setRules(rulesData.data);
       if (ipsData.success) setRecentIps(ipsData.data);
     } catch (error) {
-      console.error('Error fetching security data:', getErrorMessage(error, 'Unknown error'));
+      reportClientError('security-data', getErrorMessage(error, 'Unknown error'));
     } finally {
       setLoading(false);
     }

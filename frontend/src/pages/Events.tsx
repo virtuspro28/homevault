@@ -9,6 +9,7 @@ import {
   History,
   Activity
 } from 'lucide-react';
+import { reportClientError } from '../lib/runtimeLog';
 
 interface EventLog {
   id: string;
@@ -36,7 +37,7 @@ export default function Events() {
       const data = await res.json();
       if (data.success) setEvents(data.data);
     } catch (err) {
-      console.error('Error fetching event logs:', err);
+      reportClientError('events-fetch', err);
     } finally {
       setLoading(false);
     }

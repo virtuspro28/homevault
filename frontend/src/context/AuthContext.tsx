@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { ShieldCheck } from 'lucide-react';
+import { reportClientError } from '../lib/runtimeLog';
 
 export interface User {
   id: string;
@@ -36,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsAuthenticated(false);
       }
     } catch (err) {
-      console.error('Auth check failed:', err);
+      reportClientError('auth-check', err);
       setUser(null);
       setIsAuthenticated(false);
     } finally {
@@ -59,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setIsAuthenticated(false);
     } catch (err) {
-      console.error('Logout failed:', err);
+      reportClientError('logout', err);
     }
   };
 

@@ -108,26 +108,25 @@ setupTerminalSocket(io);
 setupMonitorSocket(io);
 
 function printStartupBanner(): void {
-  const p = config.platform;
+  if (!config.isDev) {
+    return;
+  }
 
-  console.log("");
-  console.log("=======================================================");
-  console.log("  HomeVault Dashboard v1.0.2");
-  console.log("=======================================================");
-  console.log("");
-  console.log(`  Server:         http://${config.server.host}:${config.server.port}`);
-  console.log(`  Environment:    ${config.env}`);
-  console.log(`  Architecture:   ${p.arch} ${p.isARM ? "(ARM mode)" : "(x86_64 mode)"}`);
-  console.log(`  Platform:       ${p.os}`);
-  console.log(`  CPU:            ${p.cpuCores} cores`);
-  console.log(`  Memory:         ${p.totalMemoryMB} MB (tier: ${p.memoryTier})`);
-  console.log(`  Hostname:       ${p.hostname}`);
-  console.log(`  Node.js:        ${p.nodeVersion}`);
-  console.log(`  Database:       ${config.paths.database}`);
-  console.log(`  Remote mounts:  ${config.paths.remote}`);
-  console.log("");
-  console.log("=======================================================");
-  console.log("");
+  const p = config.platform;
+  log.debug("HomeVault arrancando en modo desarrollo", {
+    host: config.server.host,
+    port: config.server.port,
+    environment: config.env,
+    architecture: p.arch,
+    platform: p.os,
+    cpuCores: p.cpuCores,
+    memoryMB: p.totalMemoryMB,
+    memoryTier: p.memoryTier,
+    hostname: p.hostname,
+    nodeVersion: p.nodeVersion,
+    database: config.paths.database,
+    remoteMounts: config.paths.remote,
+  });
 }
 
 async function bootstrap(): Promise<void> {

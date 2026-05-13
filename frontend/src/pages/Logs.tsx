@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Terminal, RefreshCw } from 'lucide-react';
+import { reportClientError } from '../lib/runtimeLog';
 
 export default function Logs() {
   const [logs, setLogs] = useState<string[]>([]);
@@ -24,7 +25,7 @@ export default function Logs() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error desconocido';
       setError(message);
-      console.error('Error fetching logs:', err);
+      reportClientError('logs-fetch', err);
     } finally {
       setLoading(false);
     }

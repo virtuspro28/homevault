@@ -2,6 +2,7 @@ import { BatteryCharging, BatteryWarning, Zap, AlertTriangle, History, Clock, Ac
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { getErrorMessage } from '../lib/errors';
+import { reportClientError } from '../lib/runtimeLog';
 
 interface UpsStatus {
   status: string;
@@ -43,7 +44,7 @@ export default function PowerManager() {
       if (statusData.success) setStatus(statusData.data);
       if (eventData.success) setEvents(eventData.data);
     } catch (error) {
-      console.error("Error fetching power data:", getErrorMessage(error, 'Unknown error'));
+      reportClientError("power-data", getErrorMessage(error, 'Unknown error'));
     } finally {
       setLoading(false);
     }

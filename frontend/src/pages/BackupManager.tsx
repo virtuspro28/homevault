@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getErrorMessage } from '../lib/errors';
+import { reportClientError } from '../lib/runtimeLog';
 
 interface BackupTask {
   id: string;
@@ -49,7 +50,7 @@ export default function BackupManager() {
       const data = await res.json();
       if (data.success) setTasks(data.data);
     } catch (error) {
-      console.error('Error fetching backup tasks:', getErrorMessage(error, 'Unknown error'));
+      reportClientError('backup-tasks', getErrorMessage(error, 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -61,7 +62,7 @@ export default function BackupManager() {
       const data = await res.json();
       if (data.success) setUsbDrives(data.data);
     } catch (error) {
-      console.error('Error scanning USB drives:', getErrorMessage(error, 'Unknown error'));
+      reportClientError('backup-usb', getErrorMessage(error, 'Unknown error'));
     }
   };
 

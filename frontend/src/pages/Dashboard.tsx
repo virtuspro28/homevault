@@ -26,6 +26,7 @@ import SummaryRow from '../components/dashboard/SummaryRow';
 import type { ContainerInfo } from '../types/docker';
 import { getErrorMessage } from '../lib/errors';
 import { CONTAINERS_CHANGED_EVENT } from '../lib/containerEvents';
+import { reportClientError } from '../lib/runtimeLog';
 
 interface DashboardStats {
   cpu: { usage: number; cores: number };
@@ -95,7 +96,7 @@ export default function Dashboard() {
         if (remotesData.success) setRemotes(Array.isArray(remotesData.data) ? remotesData.data : []);
       } catch (error) {
         if (!disposed) {
-          console.error('Error fetching dashboard data:', getErrorMessage(error, 'Unknown error'));
+          reportClientError('dashboard-fetch', getErrorMessage(error, 'Unknown error'));
         }
       } finally {
         if (!disposed) {
@@ -120,7 +121,7 @@ export default function Dashboard() {
     });
     statsSocket.on('system:stats:error', (message: string) => {
       if (!disposed) {
-        console.error('Error fetching dashboard socket stats:', message);
+        reportClientError('dashboard-socket', message);
       }
     });
     const handleContainersChanged = () => {
