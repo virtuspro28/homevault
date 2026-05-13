@@ -58,6 +58,7 @@ export interface AppConfig {
     readonly data: string;
     readonly database: string;
     readonly logs: string;
+    readonly remote: string;
   };
 
   /** Configuración del Gestor de Archivos (Fase 10) */
@@ -102,8 +103,41 @@ export interface AppConfig {
 /* ─── Construcción del objeto de configuración ─── */
 
 const env = process.env["NODE_ENV"] === "production" ? "production" : "development";
-const dataDir = process.env["DATA_DIR"] ?? path.join(PROJECT_ROOT, "data");
-const storageRoot = process.env["STORAGE_BASE_PATH"] ?? dataDir;
+
+function normalizeSqliteUrlToPath(databaseUrl: string | undefined): string | null {
+  const rawValue = databaseUrl?.trim();
+  if (!rawValue || !rawValue.startsWith("file:")) {
+    return null;
+  }
+
+  const sqlitePath = rawValue.slice("file:".length);
+  if (!sqlitePath) {
+    return null;
+  }
+
+  if (path.isAbsolute(sqlitePath)) {
+    return path.normalize(sqlitePath);
+  }
+
+  return path.resolve(PROJECT_ROOT, sqlitePath);
+}
+
+const databasePathFromEnv = normalizeSqliteUrlToPath(process.env["DATABASE_URL"]);
+const dataDir = path.resolve(
+  process.env["DATA_DIR"]?.trim()
+  || (databasePathFromEnv ? path.dirname(databasePathFromEnv) : path.join(PROJECT_ROOT, "data")),
+);
+const databasePath = databasePathFromEnv ?? path.join(dataDir, "homevault.db");
+const storageRoot = path.resolve(process.env["STORAGE_BASE_PATH"]?.trim() || dataDir);
+const remoteRoot = path.resolve(
+  process.env["HOMEVAULT_REMOTE_ROOT"]?.trim()
+  || (env === "production" ? "/opt/homevault/remote" : path.join(PROJECT_ROOT, "remote")),
+);
+
+process.env["DATA_DIR"] = dataDir;
+process.env["STORAGE_BASE_PATH"] = storageRoot;
+process.env["HOMEVAULT_REMOTE_ROOT"] = remoteRoot;
+process.env["DATABASE_URL"] = `file:${databasePath}`;
 
 function requireEnv(name: string): string {
   const value = process.env[name]?.trim();
@@ -137,8 +171,9 @@ export const config: AppConfig = Object.freeze({
   paths: Object.freeze({
     root: PROJECT_ROOT,
     data: dataDir,
-    database: path.join(dataDir, "homevault.db"),
+    database: databasePath,
     logs: path.join(dataDir, "logs"),
+    remote: remoteRoot,
   }),
 
   storage: Object.freeze({

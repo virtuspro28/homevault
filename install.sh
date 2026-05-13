@@ -16,10 +16,12 @@ FRONTEND_DIST="$FRONTEND_DIR/dist"
 DATA_DIR="$INSTALL_DIR/data"
 REMOTE_MOUNT_DIR="$INSTALL_DIR/remote"
 DB_FILE="$DATA_DIR/homevault.db"
+ENV_FILE="$INSTALL_DIR/.env"
 BACKEND_PORT=3000
 SERVICE_NAME="homevault"
 NGINX_SITE="/etc/nginx/sites-available/homevault"
 SYSTEMD_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
+RCLONE_RESTORE_SYSTEMD_FILE="/etc/systemd/system/homevault-rclone-restore.service"
 DEFAULT_REPO_URL="https://github.com/virtuspro28/homevault.git"
 
 ARCH="$(uname -m)"
@@ -135,6 +137,19 @@ ensure_line_in_file() {
   fi
 }
 
+upsert_env_var() {
+  local key="$1"
+  local value="$2"
+
+  touch "$ENV_FILE"
+
+  if grep -q "^${key}=" "$ENV_FILE"; then
+    sed -i "s|^${key}=.*|${key}=${value}|" "$ENV_FILE"
+  else
+    echo "${key}=${value}" >> "$ENV_FILE"
+  fi
+}
+
 write_if_changed() {
   local target_file="$1"
   local tmp_file
@@ -166,6 +181,30 @@ print_success_banner() {
   echo -e "${CYAN}${BOLD}Remotas:${NC} ${REMOTE_MOUNT_DIR}"
   echo -e "${CYAN}${BOLD}Arquitectura:${NC} ${ARCH}"
   echo ""
+}
+
+ensure_env_file() {
+  if [ ! -f "$ENV_FILE" ] && [ -f "$INSTALL_DIR/.env.example" ]; then
+    cp "$INSTALL_DIR/.env.example" "$ENV_FILE"
+  fi
+
+  local jwt_secret
+  jwt_secret="$(grep '^JWT_SECRET=' "$ENV_FILE" 2>/dev/null | head -n 1 | cut -d '=' -f 2- || true)"
+  if [ -z "$jwt_secret" ] || [ "$jwt_secret" = "\"change-me-in-production-use-openssl-rand-base64-32\"" ]; then
+    jwt_secret="\"$(openssl rand -hex 32)\""
+  fi
+
+  upsert_env_var "JWT_SECRET" "$jwt_secret"
+  upsert_env_var "NODE_ENV" "production"
+  upsert_env_var "PORT" "$BACKEND_PORT"
+  upsert_env_var "DATA_DIR" "$DATA_DIR"
+  upsert_env_var "STORAGE_BASE_PATH" "$DATA_DIR"
+  upsert_env_var "HOMEVAULT_DATA_ROOT" "$DATA_DIR"
+  upsert_env_var "HOMEVAULT_REMOTE_ROOT" "$REMOTE_MOUNT_DIR"
+  upsert_env_var "HOMEVAULT_SERVICE_NAME" "$SERVICE_NAME"
+  upsert_env_var "HOMEVAULT_UPDATE_BRANCH" "main"
+  upsert_env_var "DATABASE_URL" "\"file:${DB_FILE}\""
+  upsert_env_var "RCLONE_CONFIG_PATH" "\"/etc/homevault/rclone.conf\""
 }
 
 if [ "${EUID}" -ne 0 ]; then
@@ -206,6 +245,7 @@ ensure_packages_installed \
   wireguard \
   htop \
   ufw \
+  openssl \
   rclone \
   fuse3 \
   nfs-kernel-server \
@@ -273,22 +313,19 @@ mkdir -p \
   "$DATA_DIR/adguard/conf"
 
 cd "$INSTALL_DIR"
-touch "$DB_FILE"
+ensure_env_file
 
 log_step "[6/8] Instalando dependencias y compilando"
 rm -rf dist frontend/dist
 npm install
 ( cd "$FRONTEND_DIR" && npm install && npm run build )
 npx prisma generate
-npx prisma db push --accept-data-loss
+npx prisma db push
 npm run build
 
 log_step "[7/8] Configurando systemd y NFS"
 chmod 755 /opt "$INSTALL_DIR" "$FRONTEND_DIR"
 chmod 775 "$DATA_DIR"
-touch "$DB_FILE"
-chown root:root "$DB_FILE"
-chmod 664 "$DB_FILE"
 
 if [ -d "$FRONTEND_DIST" ]; then
   find "$FRONTEND_DIST" -type d -exec chmod 755 {} \;
@@ -299,8 +336,8 @@ fi
 write_if_changed "$SYSTEMD_FILE" <<EOF
 [Unit]
 Description=HomeVault Dashboard (Backend API)
-After=network.target docker.service
-Wants=docker.service
+After=network-online.target docker.service
+Wants=network-online.target docker.service
 
 [Service]
 Type=simple
@@ -317,11 +354,29 @@ Environment=PORT=$BACKEND_PORT
 WantedBy=multi-user.target
 EOF
 
+write_if_changed "$RCLONE_RESTORE_SYSTEMD_FILE" <<EOF
+[Unit]
+Description=HomeVault RClone Restore Mounts
+After=network-online.target ${SERVICE_NAME}.service
+Wants=network-online.target ${SERVICE_NAME}.service
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=$INSTALL_DIR
+ExecStart=/usr/bin/node $INSTALL_DIR/scripts/restore-rclone-mounts.mjs
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
 ensure_line_in_file "$DATA_DIR/share *(rw,sync,no_subtree_check,no_root_squash)" "/etc/exports"
 exportfs -ra
 systemctl enable nfs-kernel-server >/dev/null 2>&1 || true
 systemctl restart nfs-kernel-server
 ensure_service_restarted_if_needed "$SERVICE_NAME"
+ensure_service_restarted_if_needed "homevault-rclone-restore"
 
 log_info "Esperando al backend..."
 for _ in $(seq 1 20); do

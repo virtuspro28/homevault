@@ -11,16 +11,20 @@ WORKDIR /app
 # Copiar archivos de package
 COPY package*.json ./
 COPY tsconfig.json ./
+COPY frontend/package*.json ./frontend/
 
 # Instalar todas las dependencias (incluyendo dev para compilación)
 RUN npm ci
+RUN cd frontend && npm ci
 
 # Copiar código fuente
 COPY src ./src
 COPY prisma ./prisma
+COPY frontend ./frontend
 
 # Compilar TypeScript
 RUN npm run build
+RUN cd frontend && npm run build
 
 # Etapa de Producción
 FROM node:20-alpine
@@ -45,15 +49,18 @@ RUN npm ci --only=production && \
 
 # Copiar código compilado desde builder
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/frontend/dist ./frontend/dist
 
 # Copiar archivos de prisma (necesario para migraciones)
 COPY --from=builder /app/prisma ./prisma
+COPY scripts/docker-entrypoint.sh ./scripts/docker-entrypoint.sh
 
 # Copiar archivo de configuración de prisma
 COPY prisma.config.ts ./
 
 # Crear directorio de datos
 RUN mkdir -p /app/data && \
+    chmod +x /app/scripts/docker-entrypoint.sh && \
     chmod 755 /app/data
 
 # Variables de entorno por defecto
@@ -73,4 +80,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 ENTRYPOINT ["/sbin/tini", "--"]
 
 # Comando de inicio
-CMD ["node", "dist/index.js"]
+CMD ["/app/scripts/docker-entrypoint.sh"]

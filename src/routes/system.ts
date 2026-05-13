@@ -1,7 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
-import { PrismaClient } from "@prisma/client";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -10,6 +9,7 @@ import { logger } from "../utils/logger.js";
 import { requireAuth, requireAdmin } from "../middlewares/authMiddleware.js";
 import { TelemetryService } from "../services/telemetry.service.js";
 import { getSystemStats, getHardwareInfo } from "../modules/system-monitor.js";
+import { prisma } from "../database/prisma.js";
 
 const execAsync = promisify(exec);
 const router = Router();
@@ -18,7 +18,6 @@ const log = logger.child("system-routes");
 function getMsg(e: unknown): string {
   return e instanceof Error ? e.message : "Error desconocido";
 }
-const prisma = new PrismaClient();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

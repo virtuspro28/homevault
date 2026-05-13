@@ -20,16 +20,18 @@ services:
       API_CORS_ORIGIN: ${API_CORS_ORIGIN:-*}
       DATA_DIR: /data
       STORAGE_BASE_PATH: ${STORAGE_BASE_PATH:-/data}
+      HOMEVAULT_REMOTE_ROOT: ${HOMEVAULT_REMOTE_ROOT:-/opt/homevault/remote}
       HOMEVAULT_UPDATE_BRANCH: ${HOMEVAULT_UPDATE_BRANCH:-main}
       HOMEVAULT_SERVICE_NAME: ${HOMEVAULT_SERVICE_NAME:-homevault}
     volumes:
-      - ./data:/data
-      - ./logs:/app/logs
+      - ${HOMEVAULT_DATA_ROOT:-/opt/homevault/data}:/data
+      - ${HOMEVAULT_LOG_ROOT:-/opt/homevault/logs}:/app/logs
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - homevault-network
     depends_on:
-      - adguardhome
+      adguardhome:
+        condition: service_healthy
     deploy:
       resources:
         limits:
@@ -53,18 +55,24 @@ services:
       - "853:853/tcp"
       - "784:784/udp"
     volumes:
-      - ./data/adguard/work:/opt/adguardhome/work
-      - ./data/adguard/conf:/opt/adguardhome/conf
+      - ${HOMEVAULT_DATA_ROOT:-/opt/homevault/data}/adguard/work:/opt/adguardhome/work
+      - ${HOMEVAULT_DATA_ROOT:-/opt/homevault/data}/adguard/conf:/opt/adguardhome/conf
     networks:
       - homevault-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000 >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
   backup-cron:
     image: alpine:latest
     container_name: homevault-db-backup
     restart: unless-stopped
     volumes:
-      - ./data:/data
-      - ./backups:/backups
+      - ${HOMEVAULT_DATA_ROOT:-/opt/homevault/data}:/data
+      - ${HOMEVAULT_BACKUP_ROOT:-/opt/homevault/backups}:/backups
     entrypoint: >
       sh -c '
       while true; do

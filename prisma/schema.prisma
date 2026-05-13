@@ -4,8 +4,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  // Reutilizamos la misma base de datos generada en la Fase 2
-  url      = "file:../data/homevault.db"
+  url      = env("DATABASE_URL")
 }
 
 model User {

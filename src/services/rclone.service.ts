@@ -12,7 +12,7 @@ const log = logger.child("rclone-service");
 const RCLONE_STATE_DIR = path.join(config.paths.data, "rclone");
 const RCLONE_CONFIG_FILE = path.join(RCLONE_STATE_DIR, "rclone.conf");
 const REMOTE_PROFILES_FILE = path.join(RCLONE_STATE_DIR, "network-drives.json");
-const MOUNT_ROOT = process.env["HOMEVAULT_REMOTE_ROOT"]?.trim() || path.join(config.paths.root, "remote");
+const MOUNT_ROOT = config.paths.remote;
 
 let _rcloneConfigPath: string | null = null;
 async function getRcloneConfigPath(): Promise<string> {
@@ -604,6 +604,33 @@ export const RCloneService = {
       await execAsync(`fusermount -u "${profile.mountPath}"`);
     } catch {
       await execAsync(`umount "${profile.mountPath}"`);
+    }
+  },
+
+  async restoreMountsOnBoot(): Promise<void> {
+    if (config.platform.isWindows) {
+      return;
+    }
+
+    const profiles = await readProfiles();
+    if (profiles.length === 0) {
+      log.info("No hay unidades Rclone guardadas para remontar.");
+      return;
+    }
+
+    for (const profile of profiles) {
+      try {
+        if (await isMounted(profile.mountPath)) {
+          continue;
+        }
+
+        await this.mountRemote(profile.name);
+        log.info(`Unidad remota restaurada: ${profile.name}`);
+      } catch (error: unknown) {
+        log.warn(
+          `No se pudo remontar ${profile.name} en el arranque: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
     }
   },
 };

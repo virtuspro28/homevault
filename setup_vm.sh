@@ -8,6 +8,7 @@ BACKEND_PORT="3000"
 ENV_FILE="${PROJECT_ROOT}/.env"
 EXPORTS_FILE="/etc/exports"
 SHARE_DIR="${PROJECT_ROOT}/data/share"
+RCLONE_RESTORE_SERVICE="homevault-rclone-restore.service"
 
 log() {
   printf '[setup_vm] %s\n' "$1"
@@ -123,10 +124,12 @@ ensure_env_file() {
   fi
 
   upsert_env_var "JWT_SECRET" "$jwt_secret"
+  upsert_env_var "DATABASE_URL" "\"file:${PROJECT_ROOT}/data/homevault.db\""
   upsert_env_var "DATA_DIR" "${PROJECT_ROOT}/data"
   upsert_env_var "STORAGE_BASE_PATH" "${PROJECT_ROOT}/data"
   upsert_env_var "HOMEVAULT_DATA_ROOT" "${PROJECT_ROOT}/data"
   upsert_env_var "HOMEVAULT_REMOTE_ROOT" "${PROJECT_ROOT}/remote"
+  upsert_env_var "RCLONE_CONFIG_PATH" "\"/etc/homevault/rclone.conf\""
   upsert_env_var "HOMEVAULT_SERVICE_NAME" "${SERVICE_NAME}"
   upsert_env_var "HOMEVAULT_UPDATE_BRANCH" "main"
   upsert_env_var "PORT" "${BACKEND_PORT}"
@@ -142,9 +145,9 @@ build_application() {
 
   log "Generando Prisma y compilando HomeVault..."
   (
-    cd "$PROJECT_ROOT" && \
+      cd "$PROJECT_ROOT" && \
     npx prisma generate && \
-    npx prisma db push --accept-data-loss && \
+    npx prisma db push && \
     npm run build
   )
 }
@@ -153,8 +156,8 @@ install_systemd_service() {
   write_if_changed "/etc/systemd/system/${SERVICE_NAME}.service" <<EOF
 [Unit]
 Description=HomeVault Dashboard (VM deployment)
-After=network.target docker.service
-Wants=docker.service
+After=network-online.target docker.service
+Wants=network-online.target docker.service
 
 [Service]
 Type=simple
@@ -171,8 +174,26 @@ Environment=PORT=${BACKEND_PORT}
 WantedBy=multi-user.target
 EOF
 
+  write_if_changed "/etc/systemd/system/${RCLONE_RESTORE_SERVICE}" <<EOF
+[Unit]
+Description=HomeVault RClone Restore Mounts
+After=network-online.target ${SERVICE_NAME}.service
+Wants=network-online.target ${SERVICE_NAME}.service
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=${PROJECT_ROOT}
+ExecStart=/usr/bin/node ${PROJECT_ROOT}/scripts/restore-rclone-mounts.mjs
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
   systemctl daemon-reload
   systemctl enable --now "${SERVICE_NAME}"
+  systemctl enable --now "${RCLONE_RESTORE_SERVICE}"
 }
 
 setup_nfs() {

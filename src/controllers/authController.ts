@@ -1,11 +1,10 @@
 import type { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
 import { hashPassword, verifyPassword, generateToken } from "../utils/auth.js";
 import { logger } from "../utils/logger.js";
 import { config } from "../config/index.js";
 import { LoggerService } from "../services/logger.service.js";
+import { prisma } from "../database/prisma.js";
 
-const prisma = new PrismaClient();
 const log = logger.child("auth-controller");
 
 const COOKIE_OPTIONS = {

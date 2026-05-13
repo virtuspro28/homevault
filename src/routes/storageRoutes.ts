@@ -16,7 +16,7 @@ router.get("/pools", async (_req, res) => {
     const pools = await SnapRaidService.listPools();
     res.json({ success: true, data: pools });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, error: getMsg(error) });
+    res.json({ success: true, data: [], warning: getMsg(error) });
   }
 });
 
@@ -25,7 +25,11 @@ router.get("/pool/status", async (_req, res) => {
     const status = await SnapRaidService.getStatus();
     res.json({ success: true, data: status });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, error: getMsg(error) });
+    res.json({
+      success: true,
+      data: { status: "unavailable", progress: 0, pools: [] },
+      warning: getMsg(error),
+    });
   }
 });
 
@@ -75,7 +79,7 @@ router.get("/health", async (_req, res) => {
     const health = await DiskService.getHealthStatus();
     res.json({ success: true, data: health });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, error: getMsg(error) });
+    res.json({ success: true, data: [], warning: getMsg(error) });
   }
 });
 
