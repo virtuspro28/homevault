@@ -51,8 +51,8 @@ export default function Logs() {
   }
 
   return (
-    <div className="space-y-8 pb-12">
-      <div className="flex items-center space-x-4 bg-slate-900/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-white/5">
+    <div className="space-y-6 pb-12 md:space-y-8">
+      <div className="flex items-center space-x-4 rounded-[2rem] border border-white/5 bg-slate-900/40 p-5 backdrop-blur-md sm:p-6 lg:rounded-[2.5rem] lg:p-8">
         <div className="p-4 bg-blue-500/10 rounded-2xl">
           <Terminal className="w-8 h-8 text-blue-500" />
         </div>
@@ -68,8 +68,8 @@ export default function Logs() {
         </div>
       )}
 
-      <div className="bg-slate-950 border border-white/5 rounded-[2.5rem] overflow-hidden">
-        <div className="p-4 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl border-b border-white/5 flex items-center justify-between">
+      <div className="overflow-hidden rounded-[2rem] border border-white/5 bg-slate-950 lg:rounded-[2.5rem]">
+        <div className="flex items-center justify-between border-b border-white/5 bg-white/10 p-4">
            <div className="flex space-x-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-red-500/20"></div>
               <div className="w-2.5 h-2.5 rounded-full bg-amber-500/20"></div>
@@ -77,20 +77,23 @@ export default function Logs() {
            </div>
            <button
              onClick={() => void fetchLogs()}
-             className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-white transition-colors"
+             className="flex min-h-[44px] items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 transition-colors hover:text-white"
            >
              <RefreshCw className="w-3 h-3" />
              Recargar
            </button>
         </div>
-        <div className="p-8 h-[600px] overflow-y-auto font-mono text-xs leading-relaxed">
+        <div className="h-[calc(100dvh-18rem)] min-h-[420px] overflow-y-auto overflow-x-hidden p-4 font-mono text-xs leading-relaxed sm:p-6 lg:h-[600px] lg:p-8">
           {logs.length === 0 ? (
             <div className="text-slate-500">Sin logs disponibles.</div>
           ) : (
             logs.map((log, idx) => (
-              <div key={`${idx}-${log}`} className="hover:bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl backdrop-blur-xl border border-white/10 shadow-xl py-0.5 rounded px-2">
-                <span className="text-slate-600 mr-4">[{idx + 1}]</span>
-                <span className="text-slate-300">{log}</span>
+              <div
+                key={`${idx}-${log}`}
+                className="mb-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 hover:bg-white/10 lg:mb-0 lg:rounded lg:border-transparent lg:bg-transparent lg:px-2 lg:py-0.5"
+              >
+                <span className="mr-3 block text-[10px] text-slate-600 lg:inline">[{idx + 1}]</span>
+                <span className="break-all text-[11px] text-slate-300 sm:break-words lg:text-xs">{log}</span>
               </div>
             ))
           )}

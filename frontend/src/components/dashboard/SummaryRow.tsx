@@ -53,7 +53,7 @@ const SummaryRow: React.FC<SummaryRowProps> = ({ activeContainers, smartHealthy,
 
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {cards.map((card, i) => (
         <div 
           key={i}

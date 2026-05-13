@@ -87,12 +87,12 @@ export default function ContainerCard({
           </div>
         </div>
 
-        <div id="container-actions-grid" className="grid grid-cols-5 gap-2 w-full mt-4">
+        <div id="container-actions-grid" className="mt-4 grid w-full grid-cols-5 gap-2">
           {/* 1. START/STOP */}
           <button
             onClick={() => container.state === 'running' ? onStop?.(container.id) : onStart?.(container.id)}
             disabled={isProcessing}
-            className={`flex items-center justify-center p-2 rounded-lg transition-colors ${container.state === 'running' ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}
+            className={`flex min-h-[44px] items-center justify-center rounded-lg p-2 transition-colors ${container.state === 'running' ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}
           >
             {isProcessing ? <Loader2 size={18} className="animate-spin" /> : container.state === 'running' ? <Square size={18} /> : <Play size={18} />}
           </button>
@@ -101,7 +101,7 @@ export default function ContainerCard({
           <button 
             onClick={() => onRestart?.(container.id)} 
             disabled={isProcessing}
-            className="flex items-center justify-center p-2 rounded-lg bg-gray-500/10 text-gray-400 hover:bg-gray-500/20"
+            className="flex min-h-[44px] items-center justify-center rounded-lg bg-gray-500/10 p-2 text-gray-400 hover:bg-gray-500/20"
           >
             {isProcessing ? <Loader2 size={18} className="animate-spin" /> : <RotateCw size={18} />}
           </button>
@@ -109,7 +109,7 @@ export default function ContainerCard({
           {/* 3. TERMINAL */}
           <button 
             onClick={() => onDetails?.(container.id)} 
-            className="flex items-center justify-center p-2 rounded-lg bg-gray-500/10 text-gray-400 hover:bg-gray-500/20"
+            className="flex min-h-[44px] items-center justify-center rounded-lg bg-gray-500/10 p-2 text-gray-400 hover:bg-gray-500/20"
           >
             <Terminal size={18} />
           </button>
@@ -122,7 +122,7 @@ export default function ContainerCard({
               window.open(url, '_blank');
             }}
             disabled={container.state !== 'running'}
-            className={`flex items-center justify-center p-2 rounded-lg border transition-all ${
+            className={`flex min-h-[44px] items-center justify-center rounded-lg border p-2 transition-all ${
               container.state === 'running' 
               ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/40 hover:bg-indigo-500/30' 
               : 'bg-gray-500/5 text-gray-600 border-transparent cursor-not-allowed'
@@ -136,7 +136,7 @@ export default function ContainerCard({
           <button 
             onClick={() => setConfirmingDelete(true)} 
             disabled={isProcessing}
-            className="flex items-center justify-center p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20"
+            className="flex min-h-[44px] items-center justify-center rounded-lg bg-red-500/10 p-2 text-red-400 hover:bg-red-500/20"
           >
             <Trash2 size={18} />
           </button>

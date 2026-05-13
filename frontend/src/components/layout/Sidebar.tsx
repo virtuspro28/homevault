@@ -50,7 +50,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
   ];
 
   return (
-    <aside className="w-64 bg-slate-900/80 backdrop-blur-md border-r border-slate-800 flex flex-col h-full flex-shrink-0">
+    <aside className="hidden h-full w-64 flex-shrink-0 flex-col border-r border-slate-800 bg-slate-900/80 backdrop-blur-md lg:flex">
       <div className="p-6">
         <h1 className="text-xl font-black text-white flex items-center space-x-2">
           <Server className="w-6 h-6 text-blue-500" />
@@ -72,7 +72,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
             }
           >
             <item.icon className="w-5 h-5" />
-            <span>{item.name}</span>
+                <span className="leading-tight">{item.name}</span>
           </NavLink>
         ))}
       </nav>
@@ -80,7 +80,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
       <div className="p-4 border-t border-slate-800">
         <button
           onClick={onLogout}
-          className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-all font-bold text-sm"
+          className="flex min-h-[48px] w-full items-center space-x-3 rounded-xl px-4 py-3 text-sm font-bold text-red-400 transition-all hover:bg-red-500/10"
         >
           <LogOut className="w-5 h-5" />
           <span>Cerrar Sesión</span>

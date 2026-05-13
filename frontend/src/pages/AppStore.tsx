@@ -261,7 +261,7 @@ function EmptyStateButton({
     <button
       type="button"
       onClick={onClick}
-      className="px-4 py-2 rounded-xl bg-white/5 text-sm font-bold text-slate-300"
+      className="min-h-[44px] rounded-xl bg-white/5 px-4 py-2 text-sm font-bold text-slate-300"
     >
       {label}
     </button>
@@ -663,8 +663,8 @@ export default function AppStore() {
   }
 
   return (
-    <div className="space-y-8 pb-12">
-      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-slate-900/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-white/5">
+    <div className="space-y-6 pb-12 md:space-y-8">
+      <div className="flex flex-col items-start gap-4 rounded-[2rem] border border-white/5 bg-slate-900/40 p-5 backdrop-blur-md sm:p-6 xl:flex-row xl:items-center xl:justify-between lg:rounded-[2.5rem] lg:p-8">
         <div className="flex items-center space-x-4">
           <div className="p-4 bg-blue-500/10 rounded-2xl">
             <ShoppingBag className="w-8 h-8 text-blue-400" />
@@ -693,7 +693,7 @@ export default function AppStore() {
           </div>
           <button
             onClick={openCreateEditor}
-            className="px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black transition-all flex items-center gap-2"
+            className="flex min-h-[44px] items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 font-black text-white transition-all hover:bg-blue-500"
           >
             <Plus className="w-4 h-4" />
             Nueva app
@@ -713,7 +713,7 @@ export default function AppStore() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-6">
         {filteredApps.map((app) => (
           <motion.div
             key={app.id}
@@ -757,7 +757,7 @@ export default function AppStore() {
                       event.stopPropagation();
                       openEditEditor(app);
                     }}
-                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300"
+                    className="min-h-[44px] min-w-[44px] rounded-xl bg-white/5 p-2 text-slate-300 hover:bg-white/10"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
@@ -766,7 +766,7 @@ export default function AppStore() {
                       event.stopPropagation();
                       void handleDeleteCustomApp(app);
                     }}
-                    className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-300"
+                    className="min-h-[44px] min-w-[44px] rounded-xl bg-red-500/10 p-2 text-red-300 hover:bg-red-500/20"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -791,7 +791,7 @@ export default function AppStore() {
               initial={{ scale: 0.96, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.96, opacity: 0 }}
-              className="relative w-full max-w-6xl max-h-[92vh] overflow-x-hidden overflow-y-auto bg-slate-900 border border-white/10 rounded-[2.5rem] p-6 md:p-8 shadow-2xl"
+              className="relative h-[100dvh] w-full max-w-6xl overflow-x-hidden overflow-y-auto border border-white/10 bg-slate-900 p-4 shadow-2xl sm:h-auto sm:max-h-[92vh] sm:rounded-[2.5rem] sm:p-6 md:p-8"
             >
               <div className="flex justify-between items-start mb-8 gap-4">
                 <div className="flex items-center space-x-4">
@@ -805,14 +805,14 @@ export default function AppStore() {
                 </div>
                 <button
                   onClick={() => setSelectedApp(null)}
-                  className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all"
+                  className="min-h-[44px] min-w-[44px] rounded-2xl bg-white/5 p-3 transition-all hover:bg-white/10"
                 >
                   <X className="w-5 h-5 text-slate-400" />
                 </button>
               </div>
 
               <div className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="bg-white/5 p-4 rounded-2xl flex items-center space-x-3">
                     <div className="p-2 bg-emerald-500/20 rounded-lg">
                       <CheckCircle2 className="w-4 h-4 text-emerald-500" />
@@ -836,14 +836,14 @@ export default function AppStore() {
                     <button
                       type="button"
                       onClick={() => setInstallForm(toFormState(selectedApp))}
-                      className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-black uppercase tracking-widest text-slate-300"
+                      className="min-h-[44px] rounded-xl bg-white/5 px-4 py-2 text-xs font-black uppercase tracking-widest text-slate-300 hover:bg-white/10"
                     >
                       Restaurar preset oficial
                     </button>
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 2xl:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 gap-6 2xl:grid-cols-2 2xl:gap-8">
                   <div className="space-y-6">
                     <div>
                       <SectionTitle>Asignación de puertos</SectionTitle>
@@ -872,7 +872,7 @@ export default function AppStore() {
                         />
                       </div>
                       <div className="flex items-end">
-                        <label className="flex items-center gap-3 px-4 py-4 rounded-xl border border-white/10 bg-white/5 text-sm font-bold text-slate-300 w-full">
+                        <label className="flex min-h-[44px] w-full items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-4 text-sm font-bold text-slate-300">
                           <input
                             type="checkbox"
                             checked={installForm.privileged}
@@ -909,14 +909,14 @@ export default function AppStore() {
                 <div className="flex flex-col md:flex-row gap-4">
                   <button
                     onClick={() => setSelectedApp(null)}
-                    className="w-full flex items-center justify-center space-x-3 px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-black transition-all"
+                    className="flex min-h-[48px] w-full items-center justify-center space-x-3 rounded-2xl bg-slate-800 px-8 py-4 font-black text-white transition-all hover:bg-slate-700"
                   >
                     <span>Cancelar</span>
                   </button>
                   <button
                     onClick={() => void handleInstall()}
                     disabled={installing}
-                    className="w-full flex items-center justify-center space-x-3 px-8 py-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white rounded-2xl font-black transition-all"
+                    className="flex min-h-[48px] w-full items-center justify-center space-x-3 rounded-2xl bg-blue-600 px-8 py-4 font-black text-white transition-all hover:bg-blue-500 disabled:opacity-60"
                   >
                     <Plus className="w-5 h-5" />
                     <span>{installing ? 'Instalando...' : 'Instalar'}</span>
@@ -943,7 +943,7 @@ export default function AppStore() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.96, opacity: 0 }}
               onSubmit={handleSaveCustomApp}
-              className="relative w-full max-w-5xl max-h-[92vh] overflow-y-auto bg-slate-900 border border-white/10 rounded-[2.5rem] p-8 shadow-2xl space-y-8"
+              className="relative h-[100dvh] w-full max-w-5xl overflow-y-auto border border-white/10 bg-slate-900 p-4 shadow-2xl space-y-8 sm:h-auto sm:max-h-[92vh] sm:rounded-[2.5rem] sm:p-8"
             >
               <div className="flex justify-between items-start gap-4">
                 <div>
@@ -952,7 +952,7 @@ export default function AppStore() {
                     Define imagen, puertos, volúmenes y variables para que luego sea instalable desde la tienda.
                   </p>
                 </div>
-                <button type="button" onClick={() => setEditorOpen(false)} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all">
+                <button type="button" onClick={() => setEditorOpen(false)} className="min-h-[44px] min-w-[44px] rounded-2xl bg-white/5 p-3 transition-all hover:bg-white/10">
                   <X className="w-5 h-5 text-slate-400" />
                 </button>
               </div>
@@ -984,17 +984,17 @@ export default function AppStore() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input value={editorForm.networkMode} onChange={(event) => updateEditorForm((current) => ({ ...current, networkMode: event.target.value }))} placeholder="Network mode opcional" className="bg-white/5 border border-white/10 p-4 rounded-xl text-sm" />
-                <label className="flex items-center gap-3 px-4 py-4 rounded-xl border border-white/10 bg-white/5 text-sm font-bold text-slate-300">
+                <label className="flex min-h-[44px] items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-4 text-sm font-bold text-slate-300">
                   <input type="checkbox" checked={editorForm.privileged} onChange={(event) => updateEditorForm((current) => ({ ...current, privileged: event.target.checked }))} />
                   Ejecutar como `privileged`
                 </label>
               </div>
 
               <div className="flex flex-col md:flex-row gap-4">
-                <button type="button" onClick={() => setEditorOpen(false)} className="w-full px-6 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-black">
+                <button type="button" onClick={() => setEditorOpen(false)} className="min-h-[48px] w-full rounded-2xl bg-slate-800 px-6 py-4 font-black text-white hover:bg-slate-700">
                   Cancelar
                 </button>
-                <button type="submit" className="w-full px-6 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black">
+                <button type="submit" className="min-h-[48px] w-full rounded-2xl bg-blue-600 px-6 py-4 font-black text-white hover:bg-blue-500">
                   {editorMode === 'edit' ? 'Guardar cambios' : 'Crear app'}
                 </button>
               </div>

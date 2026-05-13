@@ -154,7 +154,7 @@ export default function Dashboard() {
   const healthyDisks = stats.storage.healthyDisks || hardwareDisks.filter((disk) => disk.status === 'PASSED' || disk.status === 'OK').length;
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-6 pb-12 md:space-y-8">
       <SummaryRow
         activeContainers={stats.docker.active}
         smartHealthy={healthyDisks}
@@ -162,8 +162,8 @@ export default function Dashboard() {
         uptime={stats.system.uptimeFormatted}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1 bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
+        <div className="rounded-[2rem] border border-white/5 bg-slate-900/40 p-5 backdrop-blur-md sm:p-6 lg:col-span-1 lg:rounded-[2.5rem] lg:p-8">
           <div className="flex items-center justify-between mb-8">
             <div>
               <h3 className="text-lg font-black text-white">Almacenamiento</h3>
@@ -174,7 +174,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="h-64 relative">
+          <div className="relative h-56 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -212,7 +212,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="lg:col-span-2 bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8">
+        <div className="rounded-[2rem] border border-white/5 bg-slate-900/40 p-5 backdrop-blur-md sm:p-6 lg:col-span-2 lg:rounded-[2.5rem] lg:p-8">
           <div className="flex items-center justify-between mb-8">
             <div>
               <h3 className="text-lg font-black text-white">Tráfico de Red</h3>
@@ -229,7 +229,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
         <FanControlWidget
           rpm={hardware.fan.rpm}
           pwm={hardware.fan.pwm}
@@ -245,7 +245,7 @@ export default function Dashboard() {
         />
       </div>
 
-      <div className="rounded-[2.5rem] border border-white/5 bg-slate-900/40 p-8 backdrop-blur-md">
+      <div className="rounded-[2rem] border border-white/5 bg-slate-900/40 p-5 backdrop-blur-md sm:p-6 lg:rounded-[2.5rem] lg:p-8">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h3 className="text-lg font-black text-white">Unidades de Red</h3>
@@ -256,7 +256,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {remotes.length === 0 ? (
             <div className="md:col-span-3 rounded-2xl border border-dashed border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-slate-400">
               No hay unidades configuradas todavía.
@@ -281,9 +281,9 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
         <div className="space-y-8">
-          <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-8 rounded-[2.5rem]">
+          <div className="rounded-[2rem] border border-white/5 bg-slate-900/40 p-5 backdrop-blur-md sm:p-6 lg:rounded-[2.5rem] lg:p-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">CPU Load</h3>
               <Cpu className="w-4 h-4 text-blue-500" />
@@ -295,7 +295,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-8 rounded-[2.5rem]">
+          <div className="rounded-[2rem] border border-white/5 bg-slate-900/40 p-5 backdrop-blur-md sm:p-6 lg:rounded-[2.5rem] lg:p-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Memory</h3>
               <Activity className="w-4 h-4 text-indigo-500" />
@@ -308,18 +308,18 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="lg:col-span-2 bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8">
+        <div className="rounded-[2rem] border border-white/5 bg-slate-900/40 p-5 backdrop-blur-md sm:p-6 lg:col-span-2 lg:rounded-[2.5rem] lg:p-8">
           <div className="flex items-center justify-between mb-8">
             <div>
               <h3 className="text-lg font-black text-white">Contenedores Activos</h3>
               <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Docker Engine</p>
             </div>
-            <button className="p-3 bg-white/5 hover:bg-blue-500/10 hover:text-blue-500 rounded-2xl transition-all">
+            <button className="min-h-[44px] min-w-[44px] rounded-2xl bg-white/5 p-3 transition-all hover:bg-blue-500/10 hover:text-blue-500">
               <Plus className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
             {safeContainers.filter((container) => container.state === 'running').slice(0, 4).map((container) => (
               <ContainerCard key={container.id} container={container} />
             ))}
@@ -333,7 +333,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8">
+      <div className="rounded-[2rem] border border-white/5 bg-slate-900/40 p-5 backdrop-blur-md sm:p-6 lg:rounded-[2.5rem] lg:p-8">
         <div className="flex items-center space-x-3 mb-8">
           <div className="h-8 w-1 bg-blue-600 rounded-full"></div>
           <h3 className="text-lg font-black text-white">Estado de Discos</h3>

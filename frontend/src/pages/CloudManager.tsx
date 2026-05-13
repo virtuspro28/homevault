@@ -370,8 +370,8 @@ export default function CloudManager() {
   };
 
   return (
-    <div className="space-y-8 pb-12">
-      <div className="flex flex-col gap-6 rounded-[2.5rem] border border-white/5 bg-slate-900/40 p-8 backdrop-blur-md xl:flex-row xl:items-center xl:justify-between">
+    <div className="space-y-6 pb-12 md:space-y-8">
+      <div className="flex flex-col gap-6 rounded-[2rem] border border-white/5 bg-slate-900/40 p-5 backdrop-blur-md sm:p-6 xl:flex-row xl:items-center xl:justify-between lg:rounded-[2.5rem] lg:p-8">
         <div className="flex items-center space-x-4">
           <div className="rounded-3xl bg-blue-500/10 p-4">
             <Cloud className="h-8 w-8 text-blue-400" />
@@ -386,7 +386,7 @@ export default function CloudManager() {
 
         <button
           onClick={openCreate}
-          className="flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 font-black text-white transition-all hover:bg-blue-500"
+          className="flex min-h-[44px] items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 font-black text-white transition-all hover:bg-blue-500"
         >
           <Plus className="h-4 w-4" />
           Nueva unidad
@@ -405,7 +405,7 @@ export default function CloudManager() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-3 xl:gap-6">
         {loading ? (
           [1, 2, 3].map((index) => (
             <div key={index} className="h-72 animate-pulse rounded-[2rem] border border-white/5 bg-slate-900/40" />
@@ -479,7 +479,7 @@ export default function CloudManager() {
                 <button
                   onClick={() => void handleMount(remote)}
                   disabled={actionLoading === remote.name}
-                  className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-[11px] font-bold uppercase tracking-wider transition-all ${remote.isMounted ? "border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20" : "bg-blue-600 text-white hover:bg-blue-500"}`}
+                  className={`flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-[11px] font-bold uppercase tracking-wider transition-all ${remote.isMounted ? "border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20" : "bg-blue-600 text-white hover:bg-blue-500"}`}
                 >
                   {actionLoading === remote.name ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : remote.isMounted ? <PlugZap className="h-3.5 w-3.5" /> : <HardDrive className="h-3.5 w-3.5" />}
                   <span>{remote.isMounted ? "Desmontar" : "Montar"}</span>
@@ -491,13 +491,13 @@ export default function CloudManager() {
                       openEdit(profile);
                     }
                   }}
-                  className="rounded-lg border border-gray-700 bg-slate-800 p-2 text-gray-300 hover:bg-slate-700 hover:text-white transition"
+                  className="min-h-[44px] min-w-[44px] rounded-lg border border-gray-700 bg-slate-800 p-2 text-gray-300 transition hover:bg-slate-700 hover:text-white"
                 >
                   <Pencil className="h-3.5 w-3.5" />
                 </button>
                 <button
                   onClick={() => void handleDelete(remote.name)}
-                  className="rounded-lg bg-red-500/10 p-2 text-red-400 hover:bg-red-500/20 transition"
+                  className="min-h-[44px] min-w-[44px] rounded-lg bg-red-500/10 p-2 text-red-400 transition hover:bg-red-500/20"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -507,7 +507,7 @@ export default function CloudManager() {
         )}
       </div>
 
-      <div className="flex items-start gap-6 rounded-[2.5rem] border border-blue-600/20 bg-blue-600/5 p-8">
+      <div className="flex flex-col items-start gap-4 rounded-[2rem] border border-blue-600/20 bg-blue-600/5 p-5 sm:flex-row sm:gap-6 sm:p-6 lg:rounded-[2.5rem] lg:p-8">
         <div className="rounded-3xl bg-blue-600/20 p-4">
           <Info className="h-8 w-8 text-blue-400" />
         </div>
@@ -536,7 +536,7 @@ export default function CloudManager() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.96, opacity: 0 }}
               onSubmit={handleSave}
-              className="relative max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-[2.5rem] border border-white/10 bg-slate-900 p-8 shadow-2xl"
+              className="relative h-[100dvh] w-full max-w-4xl overflow-y-auto border border-white/10 bg-slate-900 p-4 shadow-2xl sm:h-auto sm:max-h-[92vh] sm:rounded-[2.5rem] sm:p-8"
             >
               <div className="mb-8 flex items-start justify-between gap-4">
                 <div>
@@ -547,7 +547,7 @@ export default function CloudManager() {
                     Credenciales guardadas, generación de Rclone y montaje con un clic
                   </p>
                 </div>
-                <button type="button" onClick={() => setEditorOpen(false)} className="rounded-2xl bg-white/5 p-3 hover:bg-white/10">
+                <button type="button" onClick={() => setEditorOpen(false)} className="min-h-[44px] min-w-[44px] rounded-2xl bg-white/5 p-3 hover:bg-white/10">
                   <X className="h-5 w-5 text-slate-400" />
                 </button>
               </div>
@@ -571,7 +571,7 @@ export default function CloudManager() {
                           key={provider.id}
                           type="button"
                           onClick={() => handleProviderSelect(provider.id)}
-                          className={`rounded-xl border px-3 py-3 text-left text-sm font-bold transition-all ${
+                          className={`min-h-[44px] rounded-xl border px-3 py-3 text-left text-sm font-bold transition-all ${
                             isActive
                               ? "border-blue-400/40 bg-blue-500/20 text-white shadow-lg shadow-blue-900/20"
                               : "border-white/10 bg-slate-900 text-white hover:border-blue-400/30 hover:bg-slate-800 hover:text-blue-300"
@@ -637,10 +637,10 @@ export default function CloudManager() {
               </div>
 
               <div className="mt-8 flex flex-col gap-4 md:flex-row">
-                <button type="button" onClick={() => setEditorOpen(false)} className="w-full rounded-2xl bg-slate-800 px-6 py-4 font-black text-white hover:bg-slate-700">
+                <button type="button" onClick={() => setEditorOpen(false)} className="min-h-[48px] w-full rounded-2xl bg-slate-800 px-6 py-4 font-black text-white hover:bg-slate-700">
                   Cancelar
                 </button>
-                <button type="submit" className="w-full rounded-2xl bg-blue-600 px-6 py-4 font-black text-white hover:bg-blue-500">
+                <button type="submit" className="min-h-[48px] w-full rounded-2xl bg-blue-600 px-6 py-4 font-black text-white hover:bg-blue-500">
                   {editorMode === "edit" ? "Guardar cambios" : "Crear unidad"}
                 </button>
               </div>
